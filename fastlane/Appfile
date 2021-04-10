@@ -1,0 +1,13 @@
+# iOS
+app_identifier(ENV["IOS_IDENTIFIER"]) # The bundle identifier of your app
+apple_id(ENV["IOS_APPLE_ID"]) # Your Apple email address
+team_id(ENV["IOS_TEAM_ID"]) # Developer Portal Team ID
+# itc_team_id("119613010") # App Store Connect Team ID
+
+
+# Android
+json_key_file("") # Path to the json secret file - Follow https://docs.fastlane.tools/actions/supply/#setup to get one
+package_name(ENV["ANDROID_PACKAGE"]) # e.g. com.krausefx.app
+
+# For more information about the Appfile, see:
+#     https://docs.fastlane.tools/advanced/#appfile

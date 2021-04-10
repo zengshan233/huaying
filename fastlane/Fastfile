@@ -1,0 +1,145 @@
+
+#---------- begin -----------
+def get_update_description()
+
+  return "版本号:\n\b\b#{ENV['APP_VERSION_RELEASE']} \n更新描述:\n\b\b#{ENV['RELEASE_NOTES']}"
+   
+end
+
+def get_ios_version() 
+  return "iOS_#{ENV['IOS_VERSION_NAME']}_#{ENV['IOS_VERSION_CODE']}"
+end
+
+def get_android_version()
+  return "Android_#{ENV['ANDROID_VERSION_NAME']}_#{ENV['ANDROID_VERSION_CODE']}"
+end
+
+def clean_project()
+  sh ("cd .. && flutter clean")
+end
+
+
+
+### PGYER ###
+PGY_API_KEY = 'aac6a5ef008d0d24a87ecd61c9bd4afa'
+PGY_USER_KEY = '8ebe11b4c4ca7173dd38c0ecdf2fcab6'
+
+#---------- end -------------
+
+platform :ios do
+
+  desc "1).CLEAN PORJECT"
+  lane :clean do
+    clean_project
+  end
+
+  desc "2).DEV->蒲公英"
+  lane :dev_pgy do
+    sh "fastlane ios pgy_ios target:dev --env dev"
+  end
+
+  desc "3).TEST->蒲公英"
+  lane :test_pgy do
+    sh "fastlane ios pgy_ios target:alpha --env alpha"
+  end
+
+  desc "4).UAT->蒲公英"
+  lane :uat_pgy do
+    sh "fastlane ios pgy_ios target:uat --env uat"
+  end
+
+  desc "5).PROD->蒲公英"
+  lane :prod_pgy do
+    sh "fastlane ios pgy_ios --env prod"
+  end
+
+  desc "6).发布到 蒲公英"
+  lane :pgy_ios do |options|
+    target = options[:target] || 'Runner'
+    sh "cd .. && flutter build ios --release -t lib/main_#{target}.dart —-flavor #{target}"
+    build_ios_app(
+      workspace: "ios/Runner.xcworkspace", 
+      scheme: "#{target}",
+      export_xcargs: "-allowProvisioningUpdates",
+      export_method: "enterprise",
+      output_directory: "build/dist/ios",
+      silent: true,
+      clean: true,
+      )
+    version = get_ios_version
+    release_note = File.read("../release_note/#{version}.log")
+    pgyer(
+        api_key: "#{PGY_API_KEY}", 
+        user_key: "#{PGY_USER_KEY}", 
+        password: "huayin", 
+        install_type: "2",
+        update_description: release_note,)
+  end
+
+  after_all do |_lane, _options|
+
+  end
+
+  error do |_lane, _exception, _options|
+
+  end
+end
+
+
+platform :android do
+
+  desc "1).CLEAN Android"
+  lane :clean do
+    gradle(task: "clean", project_dir: "./android")
+  end
+
+  desc "2).DEV->蒲公英"
+  lane :dev_pgy do
+    sh "fastlane android pgy_android target:dev --env dev"
+  end
+
+  desc "3).TEST->蒲公英"
+  lane :test_pgy do
+    sh "fastlane android pgy_android target:alpha --env alpha"
+  end
+
+  desc "4).UAT->蒲公英"
+  lane :uat_pgy do
+    sh "fastlane android pgy_android target:uat --env uat"
+  end
+
+  desc "5).PROD->蒲公英"
+  lane :prod_pgy do
+    sh "fastlane android pgy_android target:prod --env prod"
+  end
+
+  desc "6).发布到 蒲公英"
+  lane :pgy_android do |options|
+    target = options[:target] || 'dev'
+    # sh "cd .. && flutter build apk -t lib/main_#{target}.dart —-flavor #{target}"
+    gradle(
+      project_dir: "./android",
+      task: "assemble",
+      flavor: "#{target}",
+      build_type: "Release",
+      flags: "-Ptarget=lib/main_#{target}.dart"
+      )
+    version = get_android_version
+    release_note = File.read("../release_note/#{version}.log")
+    pgyer(
+        api_key: "#{PGY_API_KEY}", 
+        user_key: "#{PGY_USER_KEY}", 
+        password: "huayin", 
+        install_type: "2",
+        update_description: release_note,
+        apk: "build/app/outputs/apk/#{target}/release/app-#{target}-release.apk",)
+  end
+
+  after_all do |_lane, _options|
+
+  end
+
+  error do |_lane, _exception, _options|
+    
+  end
+end

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="fastlane.lanes">
+    
+    
+    
+      
+      <testcase classname="fastlane.lanes" name="0: fastlane android pgy_android target:dev --env dev" time="68.534303">
+        
+      </testcase>
+    
+  </testsuite>
+</testsuites>

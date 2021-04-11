@@ -68,7 +68,7 @@ class _MutilRecordState extends State<MutilRecord> {
                     ),
                     UploadImgage(
                         enable: mulPicCount == 0,
-                        onLoad: (data) {
+                        updateImages: (data) {
                           if (data != null && data.isNotEmpty) {
                             List<Map<String, String>> tempList = [];
                             for (var x in data) {
@@ -80,6 +80,8 @@ class _MutilRecordState extends State<MutilRecord> {
                               d['imageItems'] = tempList;
                             });
                             picCount = tempList.length;
+                          } else {
+                            picCount = 0;
                           }
                           setState(() {});
                         },
@@ -158,7 +160,7 @@ class _MutilRecordState extends State<MutilRecord> {
               children: <Widget>[
                 InkWell(
                     onTap: () async {
-                      if (picCount > 0) {
+                      if (picCount > 0 || _submitData.isEmpty) {
                         return;
                       }
                       Navigator.push(context,
@@ -182,7 +184,8 @@ class _MutilRecordState extends State<MutilRecord> {
                       });
                     },
                     child: AnimatedOpacity(
-                        opacity: picCount == 0 ? 1 : 0.3,
+                        opacity:
+                            (picCount == 0 && _submitData.isNotEmpty) ? 1 : 0.3,
                         duration: Duration(milliseconds: 500),
                         child: Container(
                             margin: EdgeInsets.only(
@@ -193,13 +196,21 @@ class _MutilRecordState extends State<MutilRecord> {
                                     ImageHelper.wrapAssets("mulAddPic.png")),
                                 fit: BoxFit.fill)))),
                 InkWell(
-                    onTap: () => addProject(),
-                    child: Container(
-                        child: Image(
-                            width: ScreenUtil().setWidth(250),
-                            image: new AssetImage(
-                                ImageHelper.wrapAssets("mulAddProject.png")),
-                            fit: BoxFit.fill))),
+                    onTap: () {
+                      if (_submitData.isEmpty) {
+                        return;
+                      }
+                      addProject();
+                    },
+                    child: AnimatedOpacity(
+                        opacity: _submitData.isNotEmpty ? 1 : 0.3,
+                        duration: Duration(milliseconds: 500),
+                        child: Container(
+                            child: Image(
+                                width: ScreenUtil().setWidth(250),
+                                image: new AssetImage(ImageHelper.wrapAssets(
+                                    "mulAddProject.png")),
+                                fit: BoxFit.fill)))),
               ],
             ),
           ),

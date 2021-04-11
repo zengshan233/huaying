@@ -10,9 +10,9 @@ import 'package:huayin_logistics/ui/widget/img_picker.dart';
 
 class UploadImgage extends StatefulWidget {
   final Function(List<FileUploadItem>) submit;
-  final Function(List<FileUploadItem>) onLoad;
+  final Function(List<FileUploadItem>) updateImages;
   final bool enable;
-  UploadImgage({@required this.submit, this.onLoad, this.enable = true});
+  UploadImgage({@required this.submit, this.updateImages, this.enable = true});
   @override
   _UploadImgage createState() => _UploadImgage();
 }
@@ -74,7 +74,7 @@ class _UploadImgage extends State<UploadImgage> {
                               success: (res) {
                                 _imageList.addAll(res);
                                 setState(() => {_imageList = _imageList});
-                                widget.onLoad(_imageList);
+                                widget.updateImages(_imageList);
                               });
                           img.camera();
                         },
@@ -92,7 +92,7 @@ class _UploadImgage extends State<UploadImgage> {
                               success: (res) {
                                 _imageList.addAll(res);
                                 setState(() => {_imageList = _imageList});
-                                widget.onLoad(_imageList);
+                                widget.updateImages(_imageList);
                               });
                           img.loadAssets();
                         },
@@ -133,6 +133,7 @@ class _UploadImgage extends State<UploadImgage> {
                                     onTap: () {
                                       _imageList.removeWhere((i) => i == e);
                                       setState(() {});
+                                      widget.updateImages(_imageList);
                                     },
                                     child: Container(
                                       child: new Image.asset(

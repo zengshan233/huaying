@@ -6,7 +6,7 @@ import 'package:huayin_logistics/config/resource_mananger.dart';
 import 'package:huayin_logistics/model/event_manager_data_model.dart';
 import 'package:huayin_logistics/provider/provider_widget.dart';
 import 'package:huayin_logistics/ui/widget/comon_widget.dart'
-    show appBarComon, gradualButton, recordCard, showMsgToast;
+    show appBarWithName, gradualButton, recordCard, showMsgToast;
 import 'package:huayin_logistics/ui/widget/dialog/custom_dialog.dart';
 import 'package:huayin_logistics/ui/widget/dialog/progress_dialog.dart';
 import 'package:huayin_logistics/ui/widget/form_check.dart';
@@ -51,13 +51,10 @@ class _EventDetail extends State<EventDetail> {
               FocusScope.of(context).requestFocus(FocusNode());
             },
             child: Scaffold(
-              appBar: appBarComon(context, text: '事件详情'),
+              appBar: appBarWithName(context, '事件详情', '外勤:张三'),
               body: new SingleChildScrollView(
                 child: new Column(
                   children: <Widget>[
-                    SizedBox(
-                        width: ScreenUtil.screenWidth,
-                        height: ScreenUtil().setHeight(20)),
                     _infoFrom(),
                     _backContent(),
                     _backChat(),
@@ -86,37 +83,23 @@ class _EventDetail extends State<EventDetail> {
             ? eventStatusStr(
                 EventStatus.values[model.eventFeedback.handleStatus])
             : "";
-        return recordCard(
-            title: '基本信息',
-            colors: [
-              Color.fromRGBO(91, 168, 252, 1),
-              Color.fromRGBO(56, 111, 252, 1)
-            ],
-            titleRight: new Text(
-              eventStatus, //已处理Color.fromRGBO(23, 208,213,1)，处理中Color.fromRGBO(255, 155,15 , 1)
-              style: TextStyle(
-                  fontSize: ScreenUtil().setSp(38),
-                  color: EventStatus
-                              .values[model.eventFeedback?.handleStatus ?? 0] ==
-                          EventStatus.Done
-                      ? Color.fromRGBO(23, 208, 213, 1)
-                      : Color.fromRGBO(255, 155, 15, 1)),
-            ),
-            contentWidget: new Column(children: <Widget>[
-              SizedBox(height: ScreenUtil().setHeight(10)),
-              _infoFromItem(lable: '反馈类别：', text: eventType),
-              _infoFromItem(
-                  lable: '联系人员：', text: model.eventFeedback?.contactName ?? ""),
-              _infoFromItem(
-                  lable: '联系电话：',
-                  text: model.eventFeedback?.contactPhone ?? ""),
-              _infoFromItem(
-                  lable: '送检单位：',
-                  text: model.eventFeedback?.hospitalName ?? ""),
-              _infoFromItem(
-                  lable: '反馈时间：', text: model.eventFeedback?.backTime ?? ""),
-              SizedBox(height: ScreenUtil().setHeight(40)),
-            ]));
+        return Container(
+            child: new Column(children: <Widget>[
+          _infoFromItem(lable: '反馈类别：', text: eventType),
+          _infoFromItem(
+              lable: '联系人员：', text: model.eventFeedback?.contactName ?? ""),
+          _infoFromItem(
+              lable: '联系电话：', text: model.eventFeedback?.contactPhone ?? ""),
+          _infoFromItem(
+              lable: '送检单位：', text: model.eventFeedback?.hospitalName ?? ""),
+          _infoFromItem(
+              lable: '反馈时间：', text: model.eventFeedback?.backTime ?? ""),
+          _infoFromItem(
+              lable: '处理人员：', text: model.eventFeedback?.finalHandleName ?? ""),
+          _infoFromItem(
+              lable: '备注信息：', text: model.eventFeedback?.remark ?? ""),
+          SizedBox(height: ScreenUtil().setHeight(40)),
+        ]));
       },
     );
   }
@@ -124,17 +107,24 @@ class _EventDetail extends State<EventDetail> {
   //单个表单项
   Widget _infoFromItem({String lable, String text}) {
     return Container(
-      padding: EdgeInsets.symmetric(vertical: ScreenUtil().setHeight(10)),
+      padding: EdgeInsets.symmetric(vertical: ScreenUtil().setHeight(30)),
+      decoration: BoxDecoration(
+          color: Colors.white,
+          border:
+              Border(bottom: BorderSide(width: 1, color: Color(0xFFf0f0f0)))),
       child: Row(
         children: <Widget>[
           Container(
+            margin: EdgeInsets.only(
+                left: ScreenUtil().setWidth(20),
+                right: ScreenUtil().setWidth(50)),
             constraints: BoxConstraints(minWidth: ScreenUtil().setWidth(230)),
             child: Text(
               lable,
               textAlign: TextAlign.right,
               style: TextStyle(
                 fontSize: ScreenUtil().setSp(38),
-                color: Color.fromRGBO(201, 201, 201, 1),
+                color: Color(0xFF333333),
               ),
             ),
           ),
@@ -142,9 +132,9 @@ class _EventDetail extends State<EventDetail> {
             child: Text(
               text,
               style: TextStyle(
-                  fontSize: ScreenUtil().setSp(38),
-                  color: Color.fromRGBO(90, 90, 91, 0.8),
-                  fontWeight: FontWeight.w600),
+                fontSize: ScreenUtil().setSp(38),
+                color: Color(0xFF717171),
+              ),
             ),
           )
         ],
@@ -156,38 +146,27 @@ class _EventDetail extends State<EventDetail> {
   Widget _backContent() {
     return Consumer<EventManagerViewModel>(
       builder: (context, model, child) {
-        return recordCard(
-            title: '反馈内容',
-            colors: [
-              Color.fromRGBO(255, 175, 36, 1),
-              Color.fromRGBO(252, 141, 3, 1)
-            ],
-            contentWidget: Column(
+        return Container(
+            color: Colors.white,
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                SizedBox(height: ScreenUtil().setHeight(30)),
-                Text(
-                  model.eventFeedback?.backText ?? "",
-                  style: TextStyle(
-                      fontSize: ScreenUtil().setSp(34),
-                      color: Color.fromRGBO(90, 90, 91, 1),
-                      height: 1.4),
-                ),
                 child,
                 eventImgGridView(model.imageList, selectClick: () {
-                  var img = new ImgPicker(maxImages: 5 - model.imageList.length, success: (res) async{
-                    await res.forEach((item) async {
-                      var image = EventImage.fromParams(
-                      imageId: item.id,
-                      imageName: item.fileName,
-                      imageUrl: item.innerUrl,
-                      customerBackId: this.widget.eventBackId,
-                      );
-                      await model.addImage(image);
-                    });
-                    model.fetchEventImageList(this.widget.eventBackId);
-                  });
-                  print('图片列表');
+                  var img = new ImgPicker(
+                      maxImages: 5 - model.imageList.length,
+                      success: (res) async {
+                        await res.forEach((item) async {
+                          var image = EventImage.fromParams(
+                            imageId: item.id,
+                            imageName: item.fileName,
+                            imageUrl: item.innerUrl,
+                            customerBackId: this.widget.eventBackId,
+                          );
+                          await model.addImage(image);
+                        });
+                        model.fetchEventImageList(this.widget.eventBackId);
+                      });
                   selectBottomSheet(context, img);
                 }, delCallBack: (index) async {
                   var image = model.imageList[index];
@@ -197,44 +176,23 @@ class _EventDetail extends State<EventDetail> {
                     }
                   });
                 })
-                // Container(
-                //     margin: EdgeInsetsDirectional.only(
-                //         top: ScreenUtil().setHeight(20)),
-                //     height: ScreenUtil().setHeight(640),
-                //     child: GridView.builder(
-                //       gridDelegate:
-                //           SliverGridDelegateWithFixedCrossAxisCount(
-                //         crossAxisCount: 3,
-                //         childAspectRatio: 1,
-                //         mainAxisSpacing: ScreenUtil().setHeight(20),
-                //         crossAxisSpacing: 6,
-                //       ),
-                //       itemCount: model.imageList.length,
-                //       itemBuilder: (context, index) {
-                //         return Image.network(
-                //           '${FlavorConfig.instance.imgPre}${model.imageList[index].imageUrl}',
-                //           height: ScreenUtil().setHeight(240),
-                //           fit: BoxFit.fill,
-                //         );
-                //       },
-                //     ))
               ],
             ));
       },
       child: Container(
         alignment: Alignment.centerLeft,
-        margin: EdgeInsets.only(top: ScreenUtil().setHeight(60)),
-        padding: EdgeInsets.symmetric(vertical: ScreenUtil().setHeight(10)),
+        padding: EdgeInsets.only(
+            left: ScreenUtil().setWidth(60),
+            top: ScreenUtil().setWidth(20),
+            bottom: ScreenUtil().setWidth(20)),
         decoration: BoxDecoration(
             border: Border(
-                bottom: BorderSide(
-                    width: 1 / ScreenUtil.pixelRatio,
-                    color: GlobalConfig.borderColor))),
+                bottom: BorderSide(width: 1, color: GlobalConfig.borderColor))),
         child: Text(
           '照片列表',
           style: TextStyle(
-            fontSize: ScreenUtil().setSp(44),
-            color: Color.fromRGBO(90, 90, 91, 1),
+            fontSize: ScreenUtil().setSp(38),
+            color: Color(0xFF333333),
           ),
         ),
       ),
@@ -246,13 +204,10 @@ class _EventDetail extends State<EventDetail> {
     return Consumer<EventManagerViewModel>(
       builder: (context, model, child) {
         var tempYYDialog;
-        return recordCard(
-            title: '回复列表',
-            colors: [
-              Color.fromRGBO(42, 192, 255, 1),
-              Color.fromRGBO(21, 145, 241, 1)
-            ],
-            contentWidget: Column(
+        return Container(
+            padding:
+                EdgeInsets.symmetric(horizontal: ScreenUtil().setWidth(50)),
+            child: Column(
               mainAxisSize: MainAxisSize.min,
               children: <Widget>[
                 Offstage(
@@ -455,74 +410,47 @@ class _EventDetail extends State<EventDetail> {
       {String headImg, String people, String time, String content}) {
     return Container(
       padding: EdgeInsets.symmetric(vertical: ScreenUtil().setHeight(40)),
+      margin: EdgeInsets.only(bottom: ScreenUtil().setWidth(40)),
       decoration: BoxDecoration(
-          border: Border(
-              bottom: BorderSide(
-                  width: 1 / ScreenUtil.pixelRatio,
-                  color: GlobalConfig.borderColor))),
+          color: Colors.white,
+          borderRadius: BorderRadius.all(Radius.circular(6))),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.start,
         children: <Widget>[
-          new PhysicalModel(
-            shape: BoxShape.circle,
-            color: Colors.white,
-            clipBehavior: Clip.antiAlias, //注意这个属性
-            elevation: 4,
-            shadowColor: Color.fromRGBO(0, 0, 0, 0.4),
-            child: new Container(
-              width: ScreenUtil().setWidth(130),
-              height: ScreenUtil().setWidth(130),
-              padding: EdgeInsets.all(4),
-              child: new Image.asset(
-                  ImageHelper.wrapAssets(
-                      headImg == null ? 'mine_dheader.png' : headImg),
-                  fit: BoxFit.fitHeight),
-            ),
-          ),
           Expanded(
             child: Container(
               padding: EdgeInsets.only(left: ScreenUtil().setWidth(30)),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
-                  RichText(
-                    text: TextSpan(
-                        text: '回复人员：',
+                  Container(
+                      padding:
+                          EdgeInsets.only(bottom: ScreenUtil().setWidth(20)),
+                      decoration: BoxDecoration(
+                          border: Border(
+                              bottom: BorderSide(
+                                  width: 1, color: Color(0xFFf5f5f5)))),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: <Widget>[
+                          Text(people,
+                              style: TextStyle(
+                                  fontSize: ScreenUtil().setSp(34),
+                                  color: Color(0xFF666666))),
+                          Text(time ?? '',
+                              style: TextStyle(
+                                  fontSize: ScreenUtil().setSp(34),
+                                  color: Color(0xFF999999)))
+                        ],
+                      )),
+                  Container(
+                      margin: EdgeInsets.only(top: ScreenUtil().setWidth(40)),
+                      child: Text(
+                        content,
                         style: TextStyle(
                             fontSize: ScreenUtil().setSp(34),
-                            color: Color.fromRGBO(210, 210, 201, 1)),
-                        children: [
-                          TextSpan(
-                            text: people,
-                            style: TextStyle(
-                                fontSize: ScreenUtil().setSp(34),
-                                color: Color.fromRGBO(90, 90, 91, 1)),
-                          )
-                        ]),
-                  ),
-                  SizedBox(height: ScreenUtil().setHeight(30)),
-                  RichText(
-                    text: TextSpan(
-                        text: '回复时间：',
-                        style: TextStyle(
-                            fontSize: ScreenUtil().setSp(34),
-                            color: Color.fromRGBO(210, 210, 201, 1)),
-                        children: [
-                          TextSpan(
-                            text: time,
-                            style: TextStyle(
-                                fontSize: ScreenUtil().setSp(34),
-                                color: Color.fromRGBO(90, 90, 91, 1)),
-                          )
-                        ]),
-                  ),
-                  SizedBox(height: ScreenUtil().setHeight(30)),
-                  Text(
-                    content,
-                    style: TextStyle(
-                        fontSize: ScreenUtil().setSp(34),
-                        color: Color.fromRGBO(90, 90, 91, 1)),
-                  )
+                            color: Color.fromRGBO(90, 90, 91, 1)),
+                      ))
                 ],
               ),
             ),

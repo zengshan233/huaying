@@ -303,7 +303,7 @@ class _HomeState extends State<Home> with AutomaticKeepAliveClientMixin {
               img: 'main_express_send.png',
               count: 12,
               routerPush: () {
-                Navigator.pushNamed(context, RouteName.easyRecord);
+                Navigator.pushNamed(context, RouteName.specimenBoxSend);
               },
               color: DiyColors.heavy_orange),
           _gridExpressItem(
@@ -311,7 +311,6 @@ class _HomeState extends State<Home> with AutomaticKeepAliveClientMixin {
               img: 'main_express_transfer.png',
               count: 24,
               routerPush: () {
-                print("????DSfsfsdfds");
                 Navigator.pushNamed(context, RouteName.transferPicker);
               },
               color: DiyColors.thin_orange),
@@ -320,7 +319,7 @@ class _HomeState extends State<Home> with AutomaticKeepAliveClientMixin {
               img: 'main_express_arrive.png',
               count: 8,
               routerPush: () {
-                Navigator.pushNamed(context, RouteName.transferPicker);
+                Navigator.pushNamed(context, RouteName.specimenBoxArrive);
               },
               color: DiyColors.heavy_green)
         ],
@@ -346,19 +345,19 @@ class _HomeState extends State<Home> with AutomaticKeepAliveClientMixin {
               text: '标本箱合箱',
               img: 'main_merge_box.png',
               routerPush: () {
-                Navigator.pushNamed(context, RouteName.easyRecord);
+                Navigator.pushNamed(context, RouteName.specimentBoxCombine);
               }),
           _gridBoxItem(
               text: '标本箱交接',
               img: 'main_hand_box.png',
               routerPush: () {
-                Navigator.pushNamed(context, RouteName.mutilRecord);
+                Navigator.pushNamed(context, RouteName.specimentBoxJoin);
               }),
           _gridBoxItem(
               text: '标本箱接收',
               img: 'main_receive_box.png',
               routerPush: () {
-                Navigator.pushNamed(context, RouteName.transferPicker);
+                Navigator.pushNamed(context, RouteName.specimentBoxTake);
               })
         ],
       ),
@@ -385,14 +384,14 @@ class _HomeState extends State<Home> with AutomaticKeepAliveClientMixin {
               text: '事件管理',
               img: 'main_issue_manage.png',
               routerPush: () {
-                Navigator.pushNamed(context, RouteName.easyRecord);
+                Navigator.pushNamed(context, RouteName.eventManagement);
               }),
           _greyLine(),
           _gridOtherItem(
               text: '单据审核',
               img: 'main_ticket_examine.png',
               routerPush: () {
-                Navigator.pushNamed(context, RouteName.mutilRecord);
+                Navigator.pushNamed(context, RouteName.receiptCheck);
               })
         ],
       ),
@@ -407,63 +406,68 @@ class _HomeState extends State<Home> with AutomaticKeepAliveClientMixin {
   }
 
   Widget _gridOtherItem({String img, String text, Function() routerPush}) {
-    return new Container(
-      margin: EdgeInsets.only(
-          top: ScreenUtil().setWidth(30), bottom: ScreenUtil().setWidth(30)),
-      child: new Row(
-        children: <Widget>[
-          new Container(
-            margin: EdgeInsets.only(right: ScreenUtil().setWidth(40)),
-            child: new Image(
-                width: ScreenUtil().setWidth(90),
-                height: ScreenUtil().setWidth(90),
-                image: new AssetImage(ImageHelper.wrapAssets(img)),
-                fit: BoxFit.fill),
+    return InkWell(
+        onTap: routerPush,
+        child: new Container(
+          margin: EdgeInsets.only(
+              top: ScreenUtil().setWidth(30),
+              bottom: ScreenUtil().setWidth(30)),
+          child: new Row(
+            children: <Widget>[
+              new Container(
+                margin: EdgeInsets.only(right: ScreenUtil().setWidth(40)),
+                child: new Image(
+                    width: ScreenUtil().setWidth(90),
+                    height: ScreenUtil().setWidth(90),
+                    image: new AssetImage(ImageHelper.wrapAssets(img)),
+                    fit: BoxFit.fill),
+              ),
+              new Text(text = text,
+                  style: TextStyle(
+                      color: DiyColors.normal_black,
+                      fontSize: ScreenUtil().setSp(44),
+                      fontWeight: FontWeight.w700))
+            ],
           ),
-          new Text(text = text,
-              style: TextStyle(
-                  color: DiyColors.normal_black,
-                  fontSize: ScreenUtil().setSp(44),
-                  fontWeight: FontWeight.w700))
-        ],
-      ),
-    );
+        ));
   }
 
   // 标本箱处理item
   Widget _gridBoxItem({String img, String text, Function() routerPush}) {
-    return new Container(
-      height: ScreenUtil().setHeight(260),
-      padding: EdgeInsets.all(ScreenUtil().setWidth(16)),
-      child: new Row(
-        children: <Widget>[
-          new Container(
-            margin: EdgeInsets.only(right: ScreenUtil().setWidth(20)),
-            child: new Image(
-                width: ScreenUtil().setWidth(90),
-                height: ScreenUtil().setWidth(90),
-                image: new AssetImage(ImageHelper.wrapAssets(img)),
-                fit: BoxFit.fill),
+    return InkWell(
+        onTap: routerPush,
+        child: Container(
+          height: ScreenUtil().setHeight(260),
+          padding: EdgeInsets.all(ScreenUtil().setWidth(16)),
+          child: new Row(
+            children: <Widget>[
+              new Container(
+                margin: EdgeInsets.only(right: ScreenUtil().setWidth(20)),
+                child: new Image(
+                    width: ScreenUtil().setWidth(90),
+                    height: ScreenUtil().setWidth(90),
+                    image: new AssetImage(ImageHelper.wrapAssets(img)),
+                    fit: BoxFit.fill),
+              ),
+              new Container(
+                child: new Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    new Text(text = text,
+                        style: TextStyle(
+                            color: DiyColors.normal_black,
+                            fontSize: ScreenUtil().setSp(40))),
+                    new Text(text = '辅助文案',
+                        style: TextStyle(
+                            color: DiyColors.hint,
+                            fontSize: ScreenUtil().setSp(36)))
+                  ],
+                ),
+              )
+            ],
           ),
-          new Container(
-            child: new Column(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                new Text(text = text,
-                    style: TextStyle(
-                        color: DiyColors.normal_black,
-                        fontSize: ScreenUtil().setSp(40))),
-                new Text(text = '辅助文案',
-                    style: TextStyle(
-                        color: DiyColors.hint,
-                        fontSize: ScreenUtil().setSp(36)))
-              ],
-            ),
-          )
-        ],
-      ),
-    );
+        ));
   }
 
   Widget _gridExpressItem(

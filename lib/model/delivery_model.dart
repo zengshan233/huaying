@@ -5,3 +5,10 @@ class DeliveryItem {
   final bool check;
   DeliveryItem({this.date, this.billno, this.confirm, this.check});
 }
+
+class SpecimenBoxItem {
+  final String name;
+  final bool ice;
+  final String code;
+  SpecimenBoxItem({this.name, this.ice, this.code});
+}

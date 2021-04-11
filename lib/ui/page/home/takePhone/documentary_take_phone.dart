@@ -3,24 +3,12 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_custom_dialog/flutter_custom_dialog.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:huayin_logistics/config/resource_mananger.dart';
 import 'package:huayin_logistics/model/file_upload_data_model.dart';
 import 'package:huayin_logistics/provider/provider_widget.dart';
 import 'package:huayin_logistics/ui/widget/barcode_scanner.dart';
 import 'package:huayin_logistics/ui/widget/comon_widget.dart'
-    show
-        appBarComon,
-        appBarWithName,
-        gradualButton,
-        radiusButton,
-        recordCard,
-        recordInput,
-        showMsgToast;
-import 'package:huayin_logistics/ui/widget/dialog/alert_dialog.dart';
-import 'package:huayin_logistics/ui/widget/dialog/notice_dialog.dart';
-import 'package:huayin_logistics/ui/widget/dialog/progress_dialog.dart';
+    show appBarWithName, radiusButton, recordInput, showMsgToast;
 import 'package:huayin_logistics/ui/widget/form_check.dart';
-import 'package:huayin_logistics/ui/widget/img_picker.dart';
 import 'package:huayin_logistics/view_model/home/documentary_take_phone_model.dart';
 import 'package:huayin_logistics/ui/widget/upload_image.dart';
 
@@ -114,6 +102,7 @@ class _DocumentaryTakePhone extends State<DocumentaryTakePhone> {
                 preText: '条码号',
                 hintText: '请扫描或输入条码号',
                 onController: _barCodeControll,
+                maxLength: 12,
                 keyType: TextInputType.visiblePassword,
                 textInputAction: TextInputAction.search,
                 rightWidget: InkWell(

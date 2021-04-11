@@ -1,6 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:huayin_logistics/ui/page/home/mutilRecord/mutil_record.dart';
+import 'package:huayin_logistics/ui/page/home/receiptCheck/receipt_check.dart';
+import 'package:huayin_logistics/ui/page/home/receiptCheck/receipt_confirm.dart';
+import 'package:huayin_logistics/ui/page/home/receiptCheck/receipt_details.dart';
+import 'package:huayin_logistics/ui/page/home/specimen_box_combine.dart';
+import 'package:huayin_logistics/ui/page/home/specimentJoin/speciment_box_join.dart';
+import 'package:huayin_logistics/ui/page/home/specimentTake/speciment_box_take.dart';
 import 'package:huayin_logistics/ui/page/mine/change_password.dart';
 import 'package:huayin_logistics/ui/widget/page_route_anim.dart';
 
@@ -12,17 +18,17 @@ import 'package:huayin_logistics/ui/page/home/easyRecord/easy_record.dart'; //�
 import 'package:huayin_logistics/ui/page/home/takePhone/documentary_take_phone.dart'; //单据拍照
 import 'package:huayin_logistics/ui/page/home/deliveryReceipt/delivery_receipt.dart'; //交接单
 import 'package:huayin_logistics/ui/page/home/recordedCode/recorded_code.dart'; //已录条码
-import 'package:huayin_logistics/ui/page/home/specimen_box_send.dart'; //标本箱发出
+import 'package:huayin_logistics/ui/page/home/specimenSend/specimen_box_send.dart'; //标本箱发出
 import 'package:huayin_logistics/ui/page/home/tansferPicker/transfer_picker.dart'; //中转取件
 import 'package:huayin_logistics/ui/page/home/specimen_box_arrive.dart'; //标本箱送达
-import 'package:huayin_logistics/ui/page/home/event_management.dart'; //标本箱送达
+import 'package:huayin_logistics/ui/page/home/eventManagement/event_management.dart'; //标本箱送达
 import 'package:huayin_logistics/ui/page/home/select_company.dart'; //选择送检单位
 import 'package:huayin_logistics/ui/page/home/selectProject/select_project.dart'; //选择项目
 import 'package:huayin_logistics/ui/page/home/specimen_status_inquiry.dart'; //标本状态查询
 import 'package:huayin_logistics/ui/page/home/specimen_details.dart'; //标本状态详情
-import 'package:huayin_logistics/ui/page/home/event_detail.dart'; //事件详情
+import 'package:huayin_logistics/ui/page/home/eventManagement/event_detail.dart'; //事件详情
 import 'package:huayin_logistics/ui/page/mine/my_info.dart'; //个人信息
-import 'package:huayin_logistics/ui/page/home/event_back.dart'; //事件反馈
+import 'package:huayin_logistics/ui/page/home/eventManagement/event_back.dart'; //事件反馈
 
 class RouteName {
   static const String splash = 'splash';
@@ -38,7 +44,13 @@ class RouteName {
   static const String specimenBoxArrive = 'specimenBoxArrive';
   static const String forgetPassword = 'forgetPassword';
   static const String eventManagement = 'eventManagement';
+  static const String receiptCheck = 'receiptCheck';
+  static const String receiptDetail = 'receiptDetail';
+  static const String receiptConfirm = 'receiptConfirm';
   static const String selectCompany = 'selectCompany';
+  static const String specimentBoxCombine = 'specimentBoxCombine';
+  static const String specimentBoxJoin = 'specimentBoxJoin';
+  static const String specimentBoxTake = 'specimentBoxTake';
   static const String selectItem = 'selectItem';
   static const String specimenStatusInquiry = 'specimenStatusInquiry';
   static const String specimenDetails = 'specimenDetails';
@@ -77,6 +89,14 @@ class Router {
         return CupertinoPageRoute(builder: (_) => ForgetPassword());
       case RouteName.eventManagement:
         return CupertinoPageRoute(builder: (_) => EventManagement());
+      case RouteName.receiptCheck:
+        return CupertinoPageRoute(builder: (_) => ReceiptCheck());
+      case RouteName.specimentBoxCombine:
+        return CupertinoPageRoute(builder: (_) => SpecimentBoxCombine());
+      case RouteName.specimentBoxJoin:
+        return CupertinoPageRoute(builder: (_) => SpecimentBoxJoin());
+      case RouteName.specimentBoxTake:
+        return CupertinoPageRoute(builder: (_) => SpecimentBoxTake());
       case RouteName.selectCompany:
         return CupertinoPageRoute(
             fullscreenDialog: true, builder: (_) => SelectCompany());
@@ -103,6 +123,18 @@ class Router {
         return CupertinoPageRoute(
             builder: (_) => EventDetail(
                   eventBackId: param['eventBackId'],
+                ));
+      case RouteName.receiptDetail:
+        var param = settings.arguments as Map;
+        return CupertinoPageRoute(
+            builder: (_) => ReceiptDetail(
+                  receiptId: param['receiptId'],
+                ));
+      case RouteName.receiptConfirm:
+        var param = settings.arguments as Map;
+        return CupertinoPageRoute(
+            builder: (_) => ReceiptConfirm(
+                  receiptId: param['receiptId'],
                 ));
       case RouteName.userInfo:
         return CupertinoPageRoute(builder: (_) => MyInfo());

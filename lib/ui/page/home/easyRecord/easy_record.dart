@@ -12,17 +12,10 @@ import 'package:huayin_logistics/ui/color/DiyColors.dart';
 import 'package:huayin_logistics/ui/widget/upload_image.dart';
 import 'package:huayin_logistics/ui/widget/barcode_scanner.dart';
 import 'package:huayin_logistics/ui/widget/comon_widget.dart'
-    show
-        appBarWithName,
-        gradualButton,
-        recordCard,
-        showMsgToast,
-        radiusButton,
-        simpleRecordInput;
+    show appBarWithName, showMsgToast, radiusButton, simpleRecordInput;
 import 'package:huayin_logistics/ui/widget/dialog/notice_dialog.dart';
 import 'package:huayin_logistics/ui/widget/dialog/progress_dialog.dart';
 import 'package:huayin_logistics/ui/widget/form_check.dart';
-import 'package:huayin_logistics/ui/widget/img_picker.dart';
 import 'package:huayin_logistics/view_model/home/recrod_model.dart';
 
 import 'apply_project.dart';
@@ -79,7 +72,6 @@ class _EasyRecord extends State<EasyRecord> {
                           _projectItemArray = items;
                         },
                       ),
-                      // _imgListGrid(model),
                       UploadImgage(
                         submit: (data) {
                           submit(model, data);

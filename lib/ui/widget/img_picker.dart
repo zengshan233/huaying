@@ -269,27 +269,21 @@ Widget eventImgGridView(List<EventImage> images,
     Function cSelect,
     Function pSelect}) {
   return Container(
-    height: ScreenUtil().setHeight(500),
+    height: ScreenUtil().setHeight(230) * ((images.length / 5).floor() + 1),
     margin: EdgeInsets.only(top: ScreenUtil().setHeight(30)),
-    padding: EdgeInsets.symmetric(horizontal: ScreenUtil().setWidth(10)),
+    padding: EdgeInsets.symmetric(horizontal: ScreenUtil().setWidth(50)),
     child: GridView.count(
-      crossAxisCount: 3,
-      childAspectRatio:
-          ScreenUtil().setWidth(260) / ScreenUtil().setHeight(210),
-      mainAxisSpacing: ScreenUtil().setHeight(10),
-      crossAxisSpacing: ScreenUtil().setWidth(10),
+      crossAxisCount: 5,
+      childAspectRatio: 1,
+      mainAxisSpacing: ScreenUtil().setHeight(40),
+      crossAxisSpacing: ScreenUtil().setWidth(40),
       children: [
         ...List.generate(images.length, (index) {
           return new Stack(
             children: <Widget>[
               Container(
-                width: ScreenUtil().setWidth(260),
-                height: ScreenUtil().setHeight(210),
-                padding: EdgeInsets.all(ScreenUtil().setWidth(20)),
-                decoration: BoxDecoration(
-                    border: Border.all(
-                        width: 1 / ScreenUtil.pixelRatio,
-                        color: GlobalConfig.borderColor)),
+                width: ScreenUtil().setWidth(220),
+                height: ScreenUtil().setHeight(220),
                 child: GestureDetector(
                   onTap: () {
                     ImagePickers.previewImage(
@@ -301,79 +295,80 @@ Widget eventImgGridView(List<EventImage> images,
                   ),
                 ),
               ),
-              new Positioned(
-                top: 0,
-                right: 0,
-                child: new Container(
-                  width: ScreenUtil().setHeight(80),
-                  height: ScreenUtil().setHeight(80),
-                  child: new FlatButton(
-                      //color: Colors.red,
-                      padding: EdgeInsets.all(0),
-                      onPressed: () {
-                        delCallBack(index);
-                      },
-                      child: new Image.asset(
-                        ImageHelper.wrapAssets('record_del.png'),
-                        width: ScreenUtil().setHeight(50),
-                        height: ScreenUtil().setHeight(50),
-                      )),
-                ),
-              )
+              // new Positioned(
+              //   top: 0,
+              //   right: 0,
+              //   child: new Container(
+              //     width: ScreenUtil().setHeight(80),
+              //     height: ScreenUtil().setHeight(80),
+              //     child: new FlatButton(
+              //         //color: Colors.red,
+              //         padding: EdgeInsets.all(0),
+              //         onPressed: () {
+              //           delCallBack(index);
+              //         },
+              //         child: new Image.asset(
+              //           ImageHelper.wrapAssets('record_del.png'),
+              //           width: ScreenUtil().setHeight(50),
+              //           height: ScreenUtil().setHeight(50),
+              //         )),
+              //   ),
+              // )
             ],
           );
         }),
-        initButton
-            ? (images.length < maxLength
-                ? Container(
-                    width: ScreenUtil().setWidth(260),
-                    height: ScreenUtil().setHeight(210),
-                    child: new FlatButton(
-                      padding: EdgeInsets.all(0),
-                      highlightColor: Colors.transparent,
-                      onPressed: () {
-                        selectClick();
-                      },
-                      child: new Image.asset(
-                        ImageHelper.wrapAssets('record_simg.png'),
-                        width: ScreenUtil().setHeight(190),
-                        height: ScreenUtil().setHeight(160),
-                      ),
-                    ),
-                  )
-                : SizedBox())
-            : (images.length < maxLength
-                ? Container(
-                    width: ScreenUtil().setWidth(260),
-                    height: ScreenUtil().setHeight(210),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: <Widget>[
-                        Container(
-                          width: ScreenUtil().setWidth(200),
-                          height: ScreenUtil().setHeight(90),
-                          child: gradualButton(
-                            '拍照',
-                            onTap: () {
-                              cSelect();
-                            },
-                          ),
-                        ),
-                        SizedBox(height: ScreenUtil().setWidth(20)),
-                        Container(
-                          width: ScreenUtil().setWidth(200),
-                          height: ScreenUtil().setHeight(90),
-                          child: gradualButton(
-                            '相册',
-                            onTap: () {
-                              pSelect();
-                            },
-                          ),
-                        )
-                      ],
-                    ))
-                : SizedBox())
+        // initButton
+        //     ? (images.length < maxLength
+        //         ? Container(
+        //             width: ScreenUtil().setWidth(220),
+        //             height: ScreenUtil().setHeight(220),
+        //             child: new FlatButton(
+        //               padding: EdgeInsets.all(0),
+        //               highlightColor: Colors.transparent,
+        //               onPressed: () {
+        //                 selectClick();
+        //               },
+        //               child: new Image.asset(
+        //                 ImageHelper.wrapAssets('record_simg.png'),
+        //                 width: ScreenUtil().setHeight(190),
+        //                 height: ScreenUtil().setHeight(160),
+        //               ),
+        //             ),
+        //           )
+        //         : SizedBox())
+        //     : (images.length < maxLength
+        //         ? Container(
+        //             width: ScreenUtil().setWidth(260),
+        //             height: ScreenUtil().setHeight(210),
+        //             child: Column(
+        //               mainAxisAlignment: MainAxisAlignment.center,
+        //               crossAxisAlignment: CrossAxisAlignment.center,
+        //               children: <Widget>[
+        //                 Container(
+        //                   width: ScreenUtil().setWidth(200),
+        //                   height: ScreenUtil().setHeight(90),
+        //                   child: gradualButton(
+        //                     '拍照',
+        //                     onTap: () {
+        //                       cSelect();
+        //                     },
+        //                   ),
+        //                 ),
+        //                 SizedBox(height: ScreenUtil().setWidth(20)),
+        //                 Container(
+        //                   width: ScreenUtil().setWidth(200),
+        //                   height: ScreenUtil().setHeight(90),
+        //                   child: gradualButton(
+        //                     '相册',
+        //                     onTap: () {
+        //                       pSelect();
+        //                     },
+        //                   ),
+        //                 )
+        //               ],
+        //             ))
+        //         : SizedBox()
+        // )
       ],
     ),
   );

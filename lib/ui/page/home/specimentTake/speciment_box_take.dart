@@ -38,7 +38,7 @@ class _SpecimentBoxTake extends State<SpecimentBoxTake> {
         },
         child: Scaffold(
             backgroundColor: Colors.white,
-            appBar: appBarWithName(context, '标本箱接收', '外勤:张三'),
+            appBar: appBarWithName(context, '标本箱接收', '外勤:', withName: true),
             body: ProviderWidget<TransferPickerModel>(
                 model: TransferPickerModel(context),
                 builder: (cContext, model, child) => Column(

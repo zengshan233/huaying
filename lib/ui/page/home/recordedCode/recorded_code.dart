@@ -77,7 +77,7 @@ class _RecordedCode extends State<RecordedCode> {
     YYDialog.init(context);
     return Scaffold(
         backgroundColor: DiyColors.background_grey,
-        appBar: appBarWithName(context, '已录条码', '外勤:张三'),
+        appBar: appBarWithName(context, '已录条码', '外勤:', withName: true),
         body: Column(
           children: <Widget>[
             _baseInfo(),

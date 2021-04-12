@@ -46,7 +46,7 @@ class _ReceiptDetail extends State<ReceiptDetail> {
               FocusScope.of(context).requestFocus(FocusNode());
             },
             child: Scaffold(
-              appBar: appBarWithName(context, '单据详情', '外勤:张三'),
+              appBar: appBarWithName(context, '单据详情', '外勤:', withName: true),
               body: new SingleChildScrollView(
                 child: new Column(
                   crossAxisAlignment: CrossAxisAlignment.start,

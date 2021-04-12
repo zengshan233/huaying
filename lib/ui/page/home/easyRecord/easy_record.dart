@@ -17,6 +17,8 @@ import 'package:huayin_logistics/ui/widget/dialog/notice_dialog.dart';
 import 'package:huayin_logistics/ui/widget/dialog/progress_dialog.dart';
 import 'package:huayin_logistics/ui/widget/form_check.dart';
 import 'package:huayin_logistics/view_model/home/recrod_model.dart';
+import 'package:huayin_logistics/view_model/mine/mine_model.dart';
+import 'package:provider/provider.dart';
 
 import 'apply_project.dart';
 
@@ -54,7 +56,7 @@ class _EasyRecord extends State<EasyRecord> {
       },
       child: Scaffold(
         backgroundColor: DiyColors.background_grey,
-        appBar: appBarWithName(context, '简易录单', '外勤:张三'),
+        appBar: appBarWithName(context, '简易录单', '外勤:', withName: true),
         body: new SingleChildScrollView(
             scrollDirection: Axis.vertical,
             child: ProviderWidget<RecrodModel>(

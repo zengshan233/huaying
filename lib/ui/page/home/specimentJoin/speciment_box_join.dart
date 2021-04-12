@@ -39,7 +39,7 @@ class _SpecimentBoxJoin extends State<SpecimentBoxJoin> {
     YYDialog.init(context);
     return Scaffold(
         backgroundColor: DiyColors.background_grey,
-        appBar: appBarWithName(context, '标本箱交接', '外勤:张三'),
+        appBar: appBarWithName(context, '标本箱交接', '外勤:', withName: true),
         body: SingleChildScrollView(
             child: Column(
           children: <Widget>[

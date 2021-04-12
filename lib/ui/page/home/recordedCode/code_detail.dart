@@ -57,7 +57,7 @@ class _CodeDetailPage extends State<CodeDetail> {
     YYDialog.init(context);
     return Scaffold(
         backgroundColor: DiyColors.background_grey,
-        appBar: appBarWithName(context, '条码详情', '外勤:张三'),
+        appBar: appBarWithName(context, '条码详情', '外勤:', withName: true),
         body: loading
             ? Container()
             : SingleChildScrollView(

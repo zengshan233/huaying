@@ -9,10 +9,15 @@ import 'package:huayin_logistics/ui/widget/comon_widget.dart' show radiusButton;
 import 'package:huayin_logistics/ui/widget/img_picker.dart';
 
 class UploadImgage extends StatefulWidget {
+  List<FileUploadItem> imageList;
   final Function(List<FileUploadItem>) submit;
   final Function(List<FileUploadItem>) updateImages;
   final bool enable;
-  UploadImgage({@required this.submit, this.updateImages, this.enable = true});
+  UploadImgage(
+      {this.imageList,
+      @required this.submit,
+      this.updateImages,
+      this.enable = true});
   @override
   _UploadImgage createState() => _UploadImgage();
 }
@@ -23,6 +28,9 @@ class _UploadImgage extends State<UploadImgage> {
   @override
   void initState() {
     super.initState();
+    if (widget.imageList != null) {
+      _imageList = widget.imageList;
+    }
   }
 
   @override
@@ -125,7 +133,7 @@ class _UploadImgage extends State<UploadImgage> {
                                   color: Color(0xFFf0f2f5),
                                   child: Image.network(
                                       'https://lrp-dev.idaoben.com' +
-                                          e.thumbnailUrl),
+                                          (e.thumbnailUrl ?? e.innerUrl)),
                                 )),
                             Positioned(
                                 right: 0,

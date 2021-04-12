@@ -10,6 +10,8 @@ import 'package:flutter_swiper/flutter_swiper.dart';
 import 'package:huayin_logistics/config/router_manger.dart';
 import 'package:huayin_logistics/ui/color/DiyColors.dart';
 import 'package:huayin_logistics/ui/widget/barcode_scanner.dart';
+import 'package:huayin_logistics/view_model/mine/mine_model.dart';
+import 'package:provider/provider.dart';
 
 class Home extends StatefulWidget {
   @override
@@ -74,6 +76,10 @@ class _HomeState extends State<Home> with AutomaticKeepAliveClientMixin {
 
   //头部组件
   Widget _headerContent() {
+    MineModel model = Provider.of<MineModel>(context);
+    String userName = model.user == null
+        ? '未登录'
+        : model.user.user == null ? '--' : model.user?.user?.name;
     return new Container(
       margin: EdgeInsets.only(
           top: ScreenUtil().setHeight(200),
@@ -84,7 +90,6 @@ class _HomeState extends State<Home> with AutomaticKeepAliveClientMixin {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: <Widget>[
           new Container(
-//			  alignment: Alignment.centerLeft,
               child: Text(
                 '华银物流',
                 textAlign: TextAlign.center,
@@ -96,10 +101,8 @@ class _HomeState extends State<Home> with AutomaticKeepAliveClientMixin {
               ),
               padding: EdgeInsets.only(left: ScreenUtil().setWidth(440))),
           new Container(
-//			  alignment: Alignment.centerLeft,
               child: Text(
-            // TODO 之后从接口获取数据
-            '外勤:张三', // 先写死
+            '外勤:$userName',
             maxLines: 1,
             style: TextStyle(
                 color: Colors.white,

@@ -94,32 +94,40 @@ class _ApplyProject extends State<ApplyProject> {
             ],
           ),
         ),
-        Column(
-          children: (() {
-            List<Widget> tempList = [];
-            tempList.clear();
-            for (var i = 0, len = _projectItemArray.length; i < len; i++) {
-              var x = _projectItemArray[i];
-              tempList.add(
-                _buildSingleProgect(
-                    x['itemName'].toString(), x['specimenTypeName'],
-                    key: ObjectKey('index$i'), delTap: () {
-                  var curIndex = tempList.indexWhere((e) =>
-                      (e.key.toString() == ObjectKey('index$i').toString()));
-                  _projectItemArray.removeAt(curIndex);
-                  _hasSelectItem.removeAt(curIndex);
-                  setState(() {
-                    _projectItemArray = _projectItemArray;
-                  });
-                  widget.updateProject(_projectItemArray);
-                }),
-              );
-            }
-            return tempList;
-          })(),
-        )
+        _projectItemArray.length <= 5
+            ? Column(
+                children: _buildList(),
+              )
+            : Container(
+                height: ScreenUtil().setHeight(700),
+                child: ListView(
+                  children: _buildList(),
+                ),
+              )
       ],
     );
+  }
+
+  List<Widget> _buildList() {
+    List<Widget> tempList = [];
+    tempList.clear();
+    for (var i = 0, len = _projectItemArray.length; i < len; i++) {
+      var x = _projectItemArray[i];
+      tempList.add(
+        _buildSingleProgect(x['itemName'].toString(), x['specimenTypeName'],
+            key: ObjectKey('index$i'), delTap: () {
+          var curIndex = tempList.indexWhere(
+              (e) => (e.key.toString() == ObjectKey('index$i').toString()));
+          _projectItemArray.removeAt(curIndex);
+          _hasSelectItem.removeAt(curIndex);
+          setState(() {
+            _projectItemArray = _projectItemArray;
+          });
+          widget.updateProject(_projectItemArray);
+        }),
+      );
+    }
+    return tempList.reversed.toList();
   }
 
   //单个体检项目

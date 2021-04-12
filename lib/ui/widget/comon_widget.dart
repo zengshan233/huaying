@@ -7,10 +7,16 @@ import 'package:gradient_app_bar/gradient_app_bar.dart';
 import 'package:huayin_logistics/base/global_config.dart';
 import 'package:huayin_logistics/config/resource_mananger.dart';
 import 'package:huayin_logistics/ui/color/DiyColors.dart';
+import 'package:huayin_logistics/view_model/mine/mine_model.dart';
 import 'package:oktoast/oktoast.dart';
+import 'package:provider/provider.dart';
 
 Widget appBarWithName(BuildContext context, String title, String name,
-    {Widget rightWidget}) {
+    {Widget rightWidget, bool withName = false}) {
+  MineModel model = Provider.of<MineModel>(context);
+  String userName = model.user == null
+      ? '未登录'
+      : model.user.user == null ? '--' : model.user?.user?.name;
   return AppBar(
     backgroundColor: Colors.white,
     brightness: Brightness.light,
@@ -42,7 +48,7 @@ Widget appBarWithName(BuildContext context, String title, String name,
               alignment: Alignment.center,
               padding: EdgeInsets.only(right: ScreenUtil().setWidth(40)),
               child: new Text(
-                name,
+                '$name${withName ? userName : ''}',
                 style: TextStyle(
                     color: DiyColors.heavy_blue,
                     fontSize: ScreenUtil().setSp(42)),

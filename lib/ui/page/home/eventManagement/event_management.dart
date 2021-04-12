@@ -67,7 +67,7 @@ class _EventManagement extends State<EventManagement> {
         },
         child: Scaffold(
             backgroundColor: Color.fromRGBO(242, 243, 249, 1),
-            appBar: appBarWithName(context, '事件管理', '外勤:张三'),
+            appBar: appBarWithName(context, '事件管理', '外勤:', withName: true),
             body: ProviderWidget<EventManagerViewModel>(
                 model: viewModel,
                 onModelReady: (model) {

@@ -40,7 +40,7 @@ class _TransferPicker extends State<TransferPicker> {
         },
         child: Scaffold(
             backgroundColor: Colors.white,
-            appBar: appBarWithName(context, '中转取件', '外勤:张三'),
+            appBar: appBarWithName(context, '中转取件', '外勤:', withName: true),
             body: ProviderWidget<TransferPickerModel>(
                 model: TransferPickerModel(context),
                 builder: (cContext, model, child) => Column(

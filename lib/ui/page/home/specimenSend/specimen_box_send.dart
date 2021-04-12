@@ -55,7 +55,7 @@ class _SpecimenBoxSend extends State<SpecimenBoxSend> {
         FocusScope.of(context).requestFocus(FocusNode());
       },
       child: Scaffold(
-        appBar: appBarWithName(context, '标本箱发出', '外勤:张三'),
+        appBar: appBarWithName(context, '标本箱发出', '外勤:', withName: true),
         body: new SingleChildScrollView(
             padding: EdgeInsets.only(bottom: ScreenUtil().setWidth(60)),
             child: ProviderWidget<SpecimenBoxSendModel>(
@@ -78,6 +78,7 @@ class _SpecimenBoxSend extends State<SpecimenBoxSend> {
                       pickLine(),
                       _baseInfo(),
                       UploadImgage(submit: (data) {
+                        _imageList = data;
                         submit(model);
                       }),
                     ],
@@ -200,8 +201,8 @@ class _SpecimenBoxSend extends State<SpecimenBoxSend> {
     }
     var userInfo = Provider.of<MineModel>(context, listen: false).user?.user;
     model
-        .specimenSendSubmitData(
-            '', '', tempList, _logisticsLine, userInfo.name, userInfo.id)
+        .specimenSendSubmitData('0123123124', '2', tempList, _logisticsLine,
+            userInfo.name, userInfo.id)
         .then((val) {
       if (val) {
         Future.microtask(() {

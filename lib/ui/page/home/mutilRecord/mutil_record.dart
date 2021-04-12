@@ -52,7 +52,7 @@ class _MutilRecordState extends State<MutilRecord> {
         FocusScope.of(context).requestFocus(FocusNode());
       },
       child: Scaffold(
-          appBar: appBarWithName(context, '批量录单', '外勤:张三'),
+          appBar: appBarWithName(context, '批量录单', '外勤:', withName: true),
           body: ProviderWidget<RecrodModel>(
               model: RecrodModel(context),
               builder: (cContext, model, child) {

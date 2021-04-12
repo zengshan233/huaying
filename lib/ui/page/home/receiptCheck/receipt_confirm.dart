@@ -28,7 +28,7 @@ class _ReceiptConfirm extends State<ReceiptConfirm> {
     YYDialog.init(context);
     return Scaffold(
         backgroundColor: DiyColors.background_grey,
-        appBar: appBarWithName(context, '审核', '外勤:张三'),
+        appBar: appBarWithName(context, '审核', '外勤:', withName: true),
         body: Column(
           children: <Widget>[
             buildItem(true, '审核通过'),

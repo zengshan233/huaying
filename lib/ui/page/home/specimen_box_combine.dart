@@ -53,7 +53,7 @@ class _SpecimentBoxCombine extends State<SpecimentBoxCombine> {
     YYDialog.init(context);
     return Scaffold(
         backgroundColor: DiyColors.background_grey,
-        appBar: appBarWithName(context, '标本箱合箱', '外勤:张三'),
+        appBar: appBarWithName(context, '标本箱合箱', '外勤:', withName: true),
         body: SingleChildScrollView(
             child: Column(
           children: <Widget>[

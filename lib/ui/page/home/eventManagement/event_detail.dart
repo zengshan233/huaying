@@ -51,7 +51,7 @@ class _EventDetail extends State<EventDetail> {
               FocusScope.of(context).requestFocus(FocusNode());
             },
             child: Scaffold(
-              appBar: appBarWithName(context, '事件详情', '外勤:张三'),
+              appBar: appBarWithName(context, '事件详情', '外勤:', withName: true),
               body: new SingleChildScrollView(
                 child: new Column(
                   children: <Widget>[

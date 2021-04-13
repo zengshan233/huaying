@@ -2,8 +2,10 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_custom_dialog/flutter_custom_dialog.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:huayin_logistics/config/net/repository.dart';
 import 'package:huayin_logistics/config/resource_mananger.dart';
 import 'package:huayin_logistics/model/file_upload_data_model.dart';
+import 'package:huayin_logistics/model/oss_model.dart';
 import 'package:huayin_logistics/ui/color/DiyColors.dart';
 import 'package:huayin_logistics/ui/widget/comon_widget.dart' show radiusButton;
 import 'package:huayin_logistics/ui/widget/img_picker.dart';
@@ -125,16 +127,16 @@ class _UploadImgage extends State<UploadImgage> {
                         height: ScreenUtil().setWidth(180),
                         child: Stack(
                           children: <Widget>[
-                            Positioned(
-                                bottom: 0,
-                                child: Container(
-                                  width: ScreenUtil().setWidth(158),
-                                  height: ScreenUtil().setWidth(158),
-                                  color: Color(0xFFf0f2f5),
-                                  child: Image.network(
-                                      'https://lrp-dev.idaoben.com' +
-                                          (e.thumbnailUrl ?? e.innerUrl)),
-                                )),
+                            // Positioned(
+                            //     bottom: 0,
+                            //     child: Container(
+                            //       width: ScreenUtil().setWidth(158),
+                            //       height: ScreenUtil().setWidth(158),
+                            //       color: Color(0xFFf0f2f5),
+                            //       child: Image.network(
+                            //           'https://lrp-dev.idaoben.com' +
+                            //               (e.thumbnailUrl ?? e.innerUrl)),
+                            //     )),
                             Positioned(
                                 right: 0,
                                 child: InkWell(

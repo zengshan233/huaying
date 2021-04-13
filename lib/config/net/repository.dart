@@ -1,6 +1,8 @@
+import 'package:huayin_logistics/config/net/api.dart';
 import 'package:huayin_logistics/model/documentary_take_phone_data_model.dart';
 import 'package:huayin_logistics/model/event_manager_data_model.dart';
 import 'package:huayin_logistics/model/login_data_model.dart';
+import 'package:huayin_logistics/model/oss_model.dart';
 import 'package:huayin_logistics/model/select_item_company_data_model.dart';
 import 'package:huayin_logistics/model/specimen_box_arrive_data_model.dart';
 import 'package:huayin_logistics/model/specimen_box_send_data_model.dart';
@@ -17,6 +19,7 @@ class Repository {
   static Future fetchAccountLogin(String accountName, String password) async {
     var response = await http.post<Map>('/org/security/user/signin',
         data: {'accountName': accountName, 'password': password});
+    print(response.data);
     return LoginDataModel.fromJson(response.data);
   }
 
@@ -336,5 +339,20 @@ class Repository {
       });
     }
     return list;
+  }
+
+  ///获取阿里云OSS临时授权
+  static Future<OssSts> fetchOssSts() async {
+    Response<Map<String, dynamic>> response =
+        await http.get<Map<String, dynamic>>('/oss/sts');
+    OssSts ossSts = OssSts.fromJson(response.data);
+    return ossSts;
+  }
+
+  ///获取标本箱
+  static Future fetchBoxList(String labId, String userId) async {
+    Response<List> response =
+        await http.get<List>('/order/lab/$labId/box/conf/$userId');
+    return response;
   }
 }

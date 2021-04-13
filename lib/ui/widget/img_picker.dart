@@ -3,24 +3,36 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:huayin_logistics/base/flavor_config.dart';
 import 'package:huayin_logistics/base/global_config.dart';
+import 'package:huayin_logistics/config/net/repository.dart';
 import 'package:huayin_logistics/config/resource_mananger.dart';
 import 'package:huayin_logistics/config/storage_manager.dart';
 import 'package:huayin_logistics/model/event_manager_data_model.dart';
 import 'package:huayin_logistics/model/file_upload_data_model.dart';
 import 'package:huayin_logistics/model/login_data_model.dart';
+import 'package:huayin_logistics/model/oss_model.dart';
 import 'package:huayin_logistics/ui/helper/gaps.dart';
 import 'package:huayin_logistics/ui/widget/comon_widget.dart';
 import 'package:huayin_logistics/ui/widget/dialog/notice_dialog.dart';
 import 'package:huayin_logistics/ui/widget/dialog/progress_dialog.dart';
+import 'package:huayin_logistics/utils/oss_uploader.dart';
+import 'package:huayin_logistics/utils/platform_utils.dart';
 import 'package:image_pickers/UIConfig.dart';
 import 'package:image_pickers/image_pickers.dart';
 //import 'package:image_pickers/CorpConfig.dart';
 import 'package:image_pickers/Media.dart';
+import 'package:oss_flutter/oss_flutter.dart';
+import 'package:http/http.dart' as http;
+
+import 'package:oss_dart/oss_dart.dart';
 
 class ImgPicker {
   int maxImages;
   Function(List<FileUploadItem>) success;
-  ImgPicker({this.maxImages = 5, @required this.success});
+  OssSts ossData;
+  ImgPicker({
+    this.maxImages = 5,
+    @required this.success,
+  });
   int imgQulity = 20; //0-100
 
   Future loadAssets() async {
@@ -40,21 +52,9 @@ class ImgPicker {
     } on Exception catch (e) {
       print(e.toString());
     }
-    Future<FormData> getImg() async {
-      var formData = FormData();
-      for (var x in resultList) {
-        formData.files.add(MapEntry(
-          "fileuploads",
-          await MultipartFile.fromFile(x.path,
-              filename:
-                  x.path.substring(x.path.lastIndexOf("/") + 1, x.path.length)),
-        ));
-      }
-      return formData;
-    }
-
-    FormData data = await getImg();
-    imageUpload(data);
+    ossData = await Repository.fetchOssSts();
+    List<String> paths = resultList.map((e) => e.path).toList();
+    imageUpload(paths);
   }
 
   Future<Media> camera() async {
@@ -72,54 +72,43 @@ class ImgPicker {
           filename: media.path
               .substring(media.path.lastIndexOf("/") + 1, media.path.length)),
     ));
-    imageUpload(formData);
   }
 
-  void imageUpload(FormData formData) async {
-    // 	'fileuploads':1,// [文件类型] — 1.图片， 2.pdf ， 3.word, 4.excel. 4.配置文件, 99.其他
-    // 	'businessType':1,//[业务类型] — 属于那种业务的文件： 1.报告单pdf， 2.常规结果图片, 3.用户签名图片、公司logo、二维码图片
-    print("imageUploadimageUploadimageUploadimageUpload $formData");
-    var userMap = StorageManager.localStorage.getItem('userInfo');
-    var userInfo;
-    if (userMap != null) {
-      if (userMap['user'] is User) {
-        userMap['user'] = userMap['user'].toJson();
-      }
-      userInfo = LoginDataModel.fromJson(userMap);
-    }
-    var dio = Dio(BaseOptions(
-        connectTimeout: 1000000,
-        receiveTimeout: 1000000,
-        headers: {'token': userInfo?.token}));
+  void imageUpload(List<String> paths) async {
     var yyDialog;
+
+    OssClient client = OssClient(
+        bucketName: ossData.bucket,
+        endpoint: ossData.endpoint,
+        tokenGetter: () {
+          return ossData.credentials.toJson();
+        });
+    List<int> fileData = File(paths.first).readAsBytesSync(); //上传文件的二进制
     yyDialog = yyProgressDialogBody(text: '正在上传...');
-    var response;
+    http.Response response;
     try {
-      response = await dio.post<Map<String, dynamic>>(
-          FlavorConfig.instance.apiHost +
-              "/i8n/files/report?fileType=1&businessType=1",
-          data: formData);
+      response = await client.putObject(fileData, 'test.png');
     } catch (e) {
+      print('upload erroe $e');
       Future.microtask(() {
         yyDialog = yyNoticeFailedDialog(text: '上传失败！');
         Future.delayed(Duration(milliseconds: 1500), () {
           dialogDismiss(yyDialog);
         });
       });
+      return;
     }
     dialogDismiss(yyDialog);
-    print('图片' + response.data.toString()); //注意采坑此处response.data与response一样
-    var res = FileUpload.fromJson(response.data);
-    if (res.code == 0) {
-      success(res.data);
-    } else {
-      Future.microtask(() {
-        yyDialog = yyNoticeFailedDialog(text: '上传失败！');
-        Future.delayed(Duration(milliseconds: 1500), () {
-          dialogDismiss(yyDialog);
-        });
-      });
-    }
+    print('图片 :    ${response?.body}'); //注意采坑此处response.data与response一样
+    // if (res.code == 0) {
+    // } else {
+    //   Future.microtask(() {
+    //     yyDialog = yyNoticeFailedDialog(text: '上传失败！');
+    //     Future.delayed(Duration(milliseconds: 1500), () {
+    //       dialogDismiss(yyDialog);
+    //     });
+    //   });
+    // }
   }
 }
 

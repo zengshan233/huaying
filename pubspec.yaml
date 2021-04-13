@@ -67,6 +67,9 @@ dependencies:
     # 异常收集
     flutter_bugly: ^0.2.8
     solid_bottom_sheet: ^0.1.9
+    oss_flutter: ^0.1.4
+    oss_dart:
+        path: ./plugins/oss_dart
 dev_dependencies:
     flutter_test:
         sdk: flutter

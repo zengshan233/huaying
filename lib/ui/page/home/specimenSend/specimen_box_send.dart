@@ -13,11 +13,12 @@ import 'package:huayin_logistics/ui/widget/dialog/custom_dialog.dart';
 import 'package:huayin_logistics/ui/widget/dialog/notice_dialog.dart';
 import 'package:huayin_logistics/ui/widget/dialog/progress_dialog.dart';
 import 'package:huayin_logistics/ui/widget/upload_image.dart';
+import 'package:huayin_logistics/utils/popUtils.dart';
 import 'package:huayin_logistics/view_model/home/specimen_box_send_model.dart';
 import 'package:huayin_logistics/view_model/mine/mine_model.dart';
 import 'package:provider/provider.dart';
 
-import 'line_items.dart';
+import '../../../widget/select_items.dart';
 
 class SpecimenBoxSend extends StatefulWidget {
   @override
@@ -104,15 +105,16 @@ class _SpecimenBoxSend extends State<SpecimenBoxSend> {
             height: ScreenUtil().setHeight(40),
           ),
           onController: _lineCon, onTap: () {
-        tempYYDialog = yyCustomDialog(
-            width: ScreenUtil().setWidth(940),
-            widget: LineItems(
-              wayList: _wayList,
-              tempYYDialog: tempYYDialog,
-              line: _logisticsLine,
-              confirm: (value) {
-                _lineCon.text = value;
-                _logisticsLine = value;
+        PopUtils.showPop(
+            context: context,
+            opacity: 0.5,
+            child: SelectItems(
+              title: '路线选择',
+              nameList: _wayList.list.map((l) => l.lineName).toList(),
+              pickedName: _logisticsLine,
+              confirm: (index) {
+                _lineCon.text = _wayList.list[index].lineName;
+                _logisticsLine = _wayList.list[index].lineName;
               },
             ));
       }),

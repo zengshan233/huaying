@@ -143,8 +143,10 @@ class _ApplyProject extends State<ApplyProject> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: <Widget>[
           Container(
+            constraints: BoxConstraints(maxWidth: ScreenUtil().setWidth(600)),
             margin: EdgeInsets.only(left: ScreenUtil().setWidth(90)),
             child: Text(text,
+                overflow: TextOverflow.ellipsis,
                 style: TextStyle(
                     color: DiyColors.normal_black,
                     fontSize: ScreenUtil().setSp(40))),

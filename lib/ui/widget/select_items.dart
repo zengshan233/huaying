@@ -3,29 +3,27 @@ import 'package:flutter_custom_dialog/flutter_custom_dialog.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:huayin_logistics/base/global_config.dart';
 import 'package:huayin_logistics/config/resource_mananger.dart';
-import 'package:huayin_logistics/model/specimen_box_send_data_model.dart';
 import 'package:huayin_logistics/ui/widget/comon_widget.dart'
     show gradualButton;
-import 'package:huayin_logistics/ui/widget/dialog/progress_dialog.dart';
 
-class LineItems extends StatefulWidget {
-  WayModel wayList;
-  dynamic tempYYDialog;
-  Function(String) confirm;
-  String line;
-  LineItems({this.wayList, this.tempYYDialog, this.confirm, this.line});
+class SelectItems extends StatefulWidget {
+  final String title;
+  final List<String> nameList;
+  final Function(int) confirm;
+  String pickedName;
+  SelectItems({this.nameList, this.title, this.confirm, this.pickedName});
   @override
-  _LineItems createState() => _LineItems();
+  _SelectItems createState() => _SelectItems();
 }
 
-class _LineItems extends State<LineItems> {
-  String _logisticsLine = '';
+class _SelectItems extends State<SelectItems> {
+  String _pickedName;
 
   @override
   void initState() {
     super.initState();
-    if (widget.line != null) {
-      _logisticsLine = widget.line;
+    if (widget.pickedName != null) {
+      _pickedName = widget.pickedName;
     }
   }
 
@@ -33,6 +31,10 @@ class _LineItems extends State<LineItems> {
   Widget build(BuildContext context) {
     YYDialog.init(context);
     return Container(
+      width: ScreenUtil().setWidth(940),
+      decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.all(Radius.circular(6))),
       child: Column(
         children: <Widget>[
           Container(
@@ -48,32 +50,37 @@ class _LineItems extends State<LineItems> {
                       width: 1.5 / ScreenUtil.pixelRatio)),
             ),
             child: Text(
-              '路线选择',
+              widget.title ?? '',
               style: TextStyle(
                 fontSize: ScreenUtil().setSp(44),
                 color: Color.fromRGBO(90, 90, 90, 1),
               ),
             ),
           ),
-          Container(
-            height: ScreenUtil().setHeight(660),
-            child: CustomScrollView(
-              slivers: <Widget>[
-                SliverList(
-                  delegate: SliverChildBuilderDelegate(
-                    (c, i) => _listItem(i),
-                    childCount: widget.wayList.list.length,
+          widget.nameList.length <= 5
+              ? Column(
+                  children: List.generate(
+                      widget.nameList.length, (i) => _listItem(i)),
+                )
+              : Container(
+                  height: ScreenUtil().setHeight(660),
+                  child: CustomScrollView(
+                    slivers: <Widget>[
+                      SliverList(
+                        delegate: SliverChildBuilderDelegate(
+                          (c, i) => _listItem(i),
+                          childCount: widget.nameList.length,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              ],
-            ),
-          ),
           new Container(
             padding: EdgeInsets.symmetric(vertical: ScreenUtil().setHeight(40)),
             child: gradualButton('确定', onTap: () {
-              dialogDismiss(widget.tempYYDialog);
               Navigator.pop(context);
-              widget.confirm(_logisticsLine);
+              widget
+                  .confirm(widget.nameList.indexWhere((n) => n == _pickedName));
             }),
           )
         ],
@@ -83,7 +90,7 @@ class _LineItems extends State<LineItems> {
 
   //列表单项
   Widget _listItem(index) {
-    var item = widget.wayList.list[index];
+    String item = widget.nameList[index];
     return Container(
         child: new PhysicalModel(
       color: Colors.white, //设置背景底色透明
@@ -109,13 +116,13 @@ class _LineItems extends State<LineItems> {
               padding: EdgeInsets.symmetric(vertical: ScreenUtil().setWidth(4)),
               onPressed: () {
                 setState(() {
-                  _logisticsLine = item.lineName;
+                  _pickedName = item;
                 });
               },
               child: new Row(
                 children: <Widget>[
                   new Expanded(
-                    child: new Text(item.lineName.toString(),
+                    child: new Text(item,
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: ScreenUtil().setSp(38),
@@ -127,9 +134,9 @@ class _LineItems extends State<LineItems> {
                     height: ScreenUtil().setWidth(80),
                     margin: EdgeInsets.only(left: ScreenUtil().setWidth(20)),
                     child: Image.asset(
-                      ImageHelper.wrapAssets(_logisticsLine == item.lineName
-                          ? 'record_sg.png'
-                          : 'record_sa.png'),
+                      ImageHelper.wrapAssets(_pickedName == item
+                          ? 'select_on.png'
+                          : 'select_off.png'),
                       fit: BoxFit.fitWidth,
                     ),
                   )

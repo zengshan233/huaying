@@ -6,7 +6,6 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:huayin_logistics/config/resource_mananger.dart';
 import 'package:huayin_logistics/config/router_manger.dart';
 import 'package:huayin_logistics/model/file_upload_data_model.dart';
-import 'package:huayin_logistics/model/select_item_company_data_model.dart';
 import 'package:huayin_logistics/provider/provider_widget.dart';
 import 'package:huayin_logistics/ui/color/DiyColors.dart';
 import 'package:huayin_logistics/ui/widget/barcode_scanner.dart';
@@ -82,6 +81,9 @@ class _MutilRecordState extends State<MutilRecord> {
                             picCount = tempList.length;
                           } else {
                             picCount = 0;
+                            _submitData.forEach((d) {
+                              d['imageItems'] = [];
+                            });
                           }
                           setState(() {});
                         },
@@ -395,12 +397,10 @@ class _MutilRecordState extends State<MutilRecord> {
       hasSubmit = true;
     });
     if (!_checkLoginInput()) return;
-    List<Map<String, dynamic>> tempList = [];
     String barCodeStrs = '';
     for (var x in _submitData) {
       barCodeStrs += (',' + x['apply']['barCode']);
     }
-    print('tempList $tempList');
     model.judgeSpecimenCodeExistData(barCodeStrs.substring(1)).then((list) {
       if (list == null) return;
       _hasExistNum.clear();

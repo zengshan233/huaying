@@ -3,12 +3,16 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_custom_dialog/flutter_custom_dialog.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:huayin_logistics/config/net/repository.dart';
 import 'package:huayin_logistics/config/resource_mananger.dart';
 import 'package:huayin_logistics/config/router_manger.dart';
 import 'package:huayin_logistics/model/file_upload_data_model.dart';
 import 'package:huayin_logistics/model/select_item_company_data_model.dart';
+import 'package:huayin_logistics/model/speciment_box_model.dart';
 import 'package:huayin_logistics/provider/provider_widget.dart';
 import 'package:huayin_logistics/ui/color/DiyColors.dart';
+import 'package:huayin_logistics/ui/widget/dialog/custom_dialog.dart';
+import 'package:huayin_logistics/ui/widget/select_items.dart';
 import 'package:huayin_logistics/ui/widget/upload_image.dart';
 import 'package:huayin_logistics/ui/widget/barcode_scanner.dart';
 import 'package:huayin_logistics/ui/widget/comon_widget.dart'
@@ -16,18 +20,28 @@ import 'package:huayin_logistics/ui/widget/comon_widget.dart'
 import 'package:huayin_logistics/ui/widget/dialog/notice_dialog.dart';
 import 'package:huayin_logistics/ui/widget/dialog/progress_dialog.dart';
 import 'package:huayin_logistics/ui/widget/form_check.dart';
+import 'package:huayin_logistics/utils/popUtils.dart';
 import 'package:huayin_logistics/view_model/home/recrod_model.dart';
 import 'package:huayin_logistics/view_model/mine/mine_model.dart';
 import 'package:provider/provider.dart';
 
 import 'apply_project.dart';
 
-class EasyRecord extends StatefulWidget {
+class EasyRecord extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return EasyRecordPage(context: context);
+  }
+}
+
+class EasyRecordPage extends StatefulWidget {
+  BuildContext context;
+  EasyRecordPage({this.context});
   @override
   _EasyRecord createState() => _EasyRecord();
 }
 
-class _EasyRecord extends State<EasyRecord> {
+class _EasyRecord extends State<EasyRecordPage> {
   List<Map<String, String>> _projectItemArray = [];
 
   String _companyId = ''; //单位名称id
@@ -40,9 +54,14 @@ class _EasyRecord extends State<EasyRecord> {
 
   List<SelectItemRightListItem> _hasSelectItem = []; //已选择的项目
 
+  List<SpecimentBox> _specimentBoxes = [];
+
+  SpecimentBox _pickedBox;
+
   @override
   void initState() {
     super.initState();
+    getBoxlist(widget.context);
   }
 
   @override
@@ -88,28 +107,49 @@ class _EasyRecord extends State<EasyRecord> {
   }
 
   Widget _boxNum() {
-    return Container(
-      width: ScreenUtil.screenWidth,
-      height: ScreenUtil().setHeight(140),
-      color: Colors.white,
-      padding: EdgeInsets.only(
-          left: ScreenUtil().setWidth(40), right: ScreenUtil().setWidth(40)),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: <Widget>[
-          _leftText('标本箱号'),
-          _leftText('0123123123'), // 先写死
-          new SizedBox(width: ScreenUtil().setWidth(140)),
-          new Image(
-              color: Colors.black,
-              width: ScreenUtil().setWidth(60),
-              height: ScreenUtil().setWidth(60),
-              image: new AssetImage(ImageHelper.wrapAssets("right_more.png")),
-              fit: BoxFit.fill),
-          radiusButton(text: '交接单', img: "transfer_ticket.png")
-        ],
-      ),
-    );
+    return InkWell(
+        onTap: () {
+          PopUtils.showPop(
+              context: context,
+              opacity: 0.5,
+              child: SelectItems(
+                title: '标本箱选择',
+                nameList: _specimentBoxes.map((l) => l.boxNo).toList(),
+                pickedName: _pickedBox.boxNo,
+                confirm: (index) {
+                  setState(() {
+                    _pickedBox = _specimentBoxes[index];
+                  });
+                },
+              ));
+        },
+        child: Container(
+          width: ScreenUtil.screenWidth,
+          height: ScreenUtil().setHeight(140),
+          color: Colors.white,
+          padding: EdgeInsets.only(
+              left: ScreenUtil().setWidth(40),
+              right: ScreenUtil().setWidth(40)),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: <Widget>[
+              _leftText('标本箱号'),
+              Container(
+                width: ScreenUtil().setWidth(200),
+                child: _leftText(_pickedBox?.boxNo ?? ''),
+              ), // 先写死
+              new SizedBox(width: ScreenUtil().setWidth(140)),
+              new Image(
+                  color: Colors.black,
+                  width: ScreenUtil().setWidth(60),
+                  height: ScreenUtil().setWidth(60),
+                  image:
+                      new AssetImage(ImageHelper.wrapAssets("right_more.png")),
+                  fit: BoxFit.fill),
+              radiusButton(text: '交接单', img: "transfer_ticket.png")
+            ],
+          ),
+        ));
   }
 
   Widget _leftText(String title) {
@@ -173,6 +213,24 @@ class _EasyRecord extends State<EasyRecord> {
                 needBorder: false)
           ],
         ));
+  }
+
+  getBoxlist(context) async {
+    /// 先写死
+    MineModel model = Provider.of<MineModel>(context);
+    String labId = '82858490362716212';
+    String userId = model.user.user.id;
+    var response;
+    try {
+      response = await Repository.fetchBoxList(labId, userId);
+    } catch (e) {
+      print('getBoxlist error $e');
+      return;
+    }
+    _specimentBoxes = List<SpecimentBox>.from(
+        response.data.map((r) => SpecimentBox.fromJson(r)));
+    _pickedBox = _specimentBoxes.first;
+    setState(() {});
   }
 
   //校验输入

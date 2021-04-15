@@ -146,7 +146,12 @@ class _EasyRecord extends State<EasyRecordPage> {
                   image:
                       new AssetImage(ImageHelper.wrapAssets("right_more.png")),
                   fit: BoxFit.fill),
-              radiusButton(text: '交接单', img: "transfer_ticket.png")
+              InkWell(
+                  onTap: () {
+                    Navigator.pushNamed(context, RouteName.deliveryDetail,
+                        arguments: {"boxNo": _pickedBox?.boxNo ?? ''});
+                  },
+                  child: radiusButton(text: '交接单', img: "transfer_ticket.png"))
             ],
           ),
         ));
@@ -272,18 +277,21 @@ class _EasyRecord extends State<EasyRecordPage> {
       tempMap['fileId'] = x.id;
       tempList.add(tempMap);
     }
+    String labId = '82858490362716212';
     model.recordSavaSubmitData([
       {
-        "apply": {
+        "main": {
           "inspectionUnitName": _companyNameControll.text,
           "inspectionUnitId": _companyId,
           "barCode": _barCodeControll.text,
+          "boxNo": _pickedBox.boxNo,
+          "joinId": 0,
           "name": _recordNameControll.text
         },
-        "imageItems": tempList,
+        "imageIds": _imageList.map((e) => e.innerUrl).toList(),
         "items": _projectItemArray
       }
-    ]).then((val) {
+    ], labId).then((val) {
       if (val) {
         Future.microtask(() {
           var yyDialog;

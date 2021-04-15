@@ -192,8 +192,9 @@ class Repository {
   }
 
   //录单保存提交
-  static Future fetchRecordSavaSubmit(List<Map<String, dynamic>> list) async {
-    await http.post('/recordSheet/apply/batch/records', data: list);
+  static Future fetchRecordSavaSubmit(
+      List<Map<String, dynamic>> list, String labId) async {
+    await http.post('/lab/$labId/new/simple/record/save', data: list);
   }
 
   //拍照录单
@@ -354,5 +355,25 @@ class Repository {
     Response<List> response =
         await http.get<List>('/order/lab/$labId/box/conf/$userId');
     return response;
+  }
+
+  ///根据箱号和人员查询当前未完成最新交接单ID
+  static Future fetchDeliveryId(
+      {String boxNo, String labId, String recordId}) async {
+    Response response = await http.post(
+        '/order/lab/$labId/box/join/un/finish/current/new',
+        data: {"boxNo": boxNo, 'recordId': recordId});
+    return response;
+  }
+
+  ///文件信息补充保存
+  static Future fetchFileSave(String orgId, String ossPath) async {
+    Response<Map> response = await http.post<Map>('/files/make/up', data: {
+      "businessType": 0,
+      'fileType': 0,
+      'orgId': 0,
+      'ossPath': ossPath
+    });
+    return response.data;
   }
 }

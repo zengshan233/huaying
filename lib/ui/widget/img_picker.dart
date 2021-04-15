@@ -5,24 +5,20 @@ import 'package:huayin_logistics/base/flavor_config.dart';
 import 'package:huayin_logistics/base/global_config.dart';
 import 'package:huayin_logistics/config/net/repository.dart';
 import 'package:huayin_logistics/config/resource_mananger.dart';
-import 'package:huayin_logistics/config/storage_manager.dart';
 import 'package:huayin_logistics/model/event_manager_data_model.dart';
 import 'package:huayin_logistics/model/file_upload_data_model.dart';
-import 'package:huayin_logistics/model/login_data_model.dart';
 import 'package:huayin_logistics/model/oss_model.dart';
 import 'package:huayin_logistics/ui/helper/gaps.dart';
 import 'package:huayin_logistics/ui/widget/comon_widget.dart';
 import 'package:huayin_logistics/ui/widget/dialog/notice_dialog.dart';
 import 'package:huayin_logistics/ui/widget/dialog/progress_dialog.dart';
-import 'package:huayin_logistics/utils/oss_uploader.dart';
 import 'package:huayin_logistics/utils/platform_utils.dart';
 import 'package:image_pickers/UIConfig.dart';
 import 'package:image_pickers/image_pickers.dart';
 //import 'package:image_pickers/CorpConfig.dart';
 import 'package:image_pickers/Media.dart';
-import 'package:oss_flutter/oss_flutter.dart';
 import 'package:http/http.dart' as http;
-
+import 'package:intl/intl.dart';
 import 'package:oss_dart/oss_dart.dart';
 
 class ImgPicker {
@@ -52,9 +48,25 @@ class ImgPicker {
     } on Exception catch (e) {
       print(e.toString());
     }
+    var yyDialog = yyProgressDialogBody(text: '正在上传...');
     ossData = await Repository.fetchOssSts();
     List<String> paths = resultList.map((e) => e.path).toList();
-    imageUpload(paths);
+    Iterable<Future<FileUploadItem>> futures = paths.map((e) => imageUpload(e));
+    List<FileUploadItem> list;
+    try {
+      list = await Future.wait(futures);
+    } catch (e) {
+      print('upload erroe $e');
+      Future.microtask(() {
+        yyDialog = yyNoticeFailedDialog(text: '上传失败！');
+        Future.delayed(Duration(milliseconds: 1500), () {
+          dialogDismiss(yyDialog);
+        });
+      });
+      return null;
+    }
+    dialogDismiss(yyDialog);
+    success(list);
   }
 
   Future<Media> camera() async {
@@ -74,32 +86,21 @@ class ImgPicker {
     ));
   }
 
-  void imageUpload(List<String> paths) async {
-    var yyDialog;
-
+  Future<FileUploadItem> imageUpload(String path) async {
     OssClient client = OssClient(
         bucketName: ossData.bucket,
         endpoint: ossData.endpoint,
         tokenGetter: () {
           return ossData.credentials.toJson();
         });
-    List<int> fileData = File(paths.first).readAsBytesSync(); //上传文件的二进制
-    yyDialog = yyProgressDialogBody(text: '正在上传...');
+    List<int> fileData = File(path).readAsBytesSync(); //上传文件的二进制
     http.Response response;
-    try {
-      response = await client.putObject(fileData, 'test.png');
-    } catch (e) {
-      print('upload erroe $e');
-      Future.microtask(() {
-        yyDialog = yyNoticeFailedDialog(text: '上传失败！');
-        Future.delayed(Duration(milliseconds: 1500), () {
-          dialogDismiss(yyDialog);
-        });
-      });
-      return;
-    }
-    dialogDismiss(yyDialog);
-    print('图片 :    ${response?.body}'); //注意采坑此处response.data与response一样
+    var uploadResponse;
+    String ossPath = getOssFilePath(path);
+    response = await client.putObject(fileData, ossPath);
+    uploadResponse = await Repository.fetchFileSave('1', ossPath);
+
+    print('上传成功了！~~~~~~'); //注意采坑此处response.data与response一样
     // if (res.code == 0) {
     // } else {
     //   Future.microtask(() {
@@ -109,7 +110,20 @@ class ImgPicker {
     //     });
     //   });
     // }
+    return FileUploadItem.fromJson(uploadResponse);
   }
+}
+
+String getOssFilePath(String path) {
+  String fileName = path.substring(path.lastIndexOf("/") + 1, path.length);
+  var formatterMonth = new DateFormat('yyyy-MM');
+  var formatterDay = new DateFormat('dd');
+  DateTime now = DateTime.now();
+  String month = formatterMonth.format(now);
+  String day = formatterDay.format(now);
+  String ossPath = 'hy_logistics/$month/$day/$fileName';
+  print('ossPath $ossPath');
+  return ossPath;
 }
 
 // void selectBottomSheet(dynamic img){

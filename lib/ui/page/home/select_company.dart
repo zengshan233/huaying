@@ -5,7 +5,7 @@ import 'package:huayin_logistics/config/resource_mananger.dart';
 import 'package:huayin_logistics/model/select_item_company_data_model.dart';
 import 'package:huayin_logistics/provider/provider_widget.dart';
 import 'package:huayin_logistics/ui/widget/comon_widget.dart'
-    show appBarComon, appBarWithName, gradualButton, noDataWidget, recordCard;
+    show appBarWithName, noDataWidget;
 import 'package:huayin_logistics/view_model/home/select_item_company_model.dart';
 import 'package:huayin_logistics/view_model/mine/mine_model.dart';
 import 'package:provider/provider.dart';

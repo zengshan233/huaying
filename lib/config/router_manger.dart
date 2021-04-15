@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:huayin_logistics/ui/page/home/deliveryReceipt/delivery_detail.dart';
 import 'package:huayin_logistics/ui/page/home/mutilRecord/mutil_record.dart';
 import 'package:huayin_logistics/ui/page/home/receiptCheck/receipt_check.dart';
 import 'package:huayin_logistics/ui/page/home/receiptCheck/receipt_confirm.dart';
@@ -58,6 +59,7 @@ class RouteName {
   static const String userInfo = 'userInfo';
   static const String eventBack = 'eventBack';
   static const String changePassword = 'changePassword';
+  static const String deliveryDetail = 'deliveryDetail';
 }
 
 class Router {
@@ -118,6 +120,11 @@ class Router {
         return CupertinoPageRoute(
             builder: (_) =>
                 SpecimenDetails(specimenStatusId: param['specimenStatusId']));
+      case RouteName.deliveryDetail:
+        var param = settings.arguments as Map;
+        return CupertinoPageRoute(
+            builder: (_) => DeliveryDetail(boxNo: param['boxNo']));
+
       case RouteName.eventDetail:
         var param = settings.arguments as Map;
         return CupertinoPageRoute(

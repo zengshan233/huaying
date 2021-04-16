@@ -58,6 +58,8 @@ class _EasyRecord extends State<EasyRecordPage> {
 
   SpecimentBox _pickedBox;
 
+  SelectCompanyListItem _pickedCompanyItem;
+
   @override
   void initState() {
     super.initState();
@@ -183,13 +185,14 @@ class _EasyRecord extends State<EasyRecordPage> {
                   height: ScreenUtil().setHeight(40),
                 ),
                 onController: _companyNameControll, onTap: () {
-              Navigator.pushNamed(context, RouteName.selectCompany)
-                  .then((value) {
+              Navigator.pushNamed(context, RouteName.selectCompany,
+                  arguments: {'item': _pickedCompanyItem}).then((value) {
                 //print('接收到的单位返回值：'+value.toString());
                 if (value == null) return;
                 var tempMap = jsonDecode(value.toString());
                 _companyId = tempMap['custId'];
                 _companyNameControll.text = tempMap['custName'];
+                _pickedCompanyItem = value;
               });
             }),
             simpleRecordInput(
@@ -285,10 +288,10 @@ class _EasyRecord extends State<EasyRecordPage> {
           "inspectionUnitId": _companyId,
           "barCode": _barCodeControll.text,
           "boxNo": _pickedBox.boxNo,
-          "joinId": 0,
+          // "joinId": 0,
           "name": _recordNameControll.text
         },
-        "imageIds": _imageList.map((e) => e.innerUrl).toList(),
+        "imageIds": _imageList.map((e) => e.id).toList(),
         "items": _projectItemArray
       }
     ], labId).then((val) {

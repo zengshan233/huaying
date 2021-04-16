@@ -3,26 +3,76 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:huayin_logistics/base/global_config.dart';
 import 'package:huayin_logistics/config/resource_mananger.dart';
+import 'package:huayin_logistics/config/router_manger.dart';
 import 'package:huayin_logistics/model/select_item_company_data_model.dart';
+import 'package:huayin_logistics/ui/color/DiyColors.dart';
 
-class SelectItem extends StatelessWidget {
-  SelectItemRightListItem item;
-  Function delTap;
+class SelectItem extends StatefulWidget {
+  List<SelectItemRightListItem> hasSelectItems = [];
   Key key;
-  SelectItem({this.item, this.delTap, this.key});
+  Function(List<SelectItemRightListItem>) updateItems;
+  SelectItem({this.hasSelectItems, this.key, this.updateItems});
+  @override
+  _SelectItem createState() => _SelectItem(
+        hasSelectItems: hasSelectItems,
+        key: key,
+      );
+}
+
+class _SelectItem extends State<SelectItem> {
+  List<SelectItemRightListItem> hasSelectItems = [];
+  Key key;
+  Function updateItems;
+  _SelectItem({this.hasSelectItems, this.key, this.updateItems});
+  List<SelectItemRightListItem> _hasSelectItem = [];
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    _hasSelectItem = hasSelectItems;
+  }
 
   @override
   Widget build(BuildContext context) {
+    int itemCount = _hasSelectItem.length;
+    return Container(
+      color: Colors.white,
+      height: ScreenUtil().setWidth(180) * (itemCount >= 6 ? 6 : itemCount),
+      child: ListView(
+        children: (() {
+          List<Widget> tempList = [];
+          for (var x in _hasSelectItem) {
+            tempList.add(buildItem(
+                item: x,
+                key: ObjectKey('$x.id'),
+                delTap: () {
+                  // focusNode.unfocus();
+                  var curIndex = tempList.indexWhere((e) =>
+                      (e.key.toString() == ObjectKey('$x.id').toString()));
+                  _hasSelectItem.removeAt(curIndex);
+                  setState(() {});
+                  updateItems(_hasSelectItem);
+                }));
+          }
+          return tempList.map((e) => e).toList();
+        })(),
+      ),
+    );
+  }
+
+  Widget buildItem(
+      {ObjectKey key, SelectItemRightListItem item, Function delTap}) {
     return Container(
         key: key == null ? UniqueKey() : key,
+        height: ScreenUtil().setWidth(180),
         child: new PhysicalModel(
           color: Colors.white, //设置背景底色透明
           clipBehavior: Clip.antiAlias, //注意这个属性
           elevation: 0,
           child: Container(
-            padding: EdgeInsets.symmetric(
-                horizontal: ScreenUtil().setWidth(30),
-                vertical: ScreenUtil().setWidth(20)),
+            padding:
+                EdgeInsets.symmetric(horizontal: ScreenUtil().setWidth(30)),
             decoration: BoxDecoration(
               color: Colors.white,
             ),
@@ -51,6 +101,7 @@ class SelectItem extends StatelessWidget {
                             children: <Widget>[
                               Container(
                                   margin: EdgeInsets.only(
+                                      top: ScreenUtil().setWidth(20),
                                       bottom: ScreenUtil().setWidth(5)),
                                   child: Row(
                                     mainAxisAlignment:
@@ -79,7 +130,7 @@ class SelectItem extends StatelessWidget {
                                   )),
                               Container(
                                   padding: EdgeInsets.only(
-                                      right: ScreenUtil().setWidth(150)),
+                                      right: ScreenUtil().setWidth(200)),
                                   child: Row(
                                     mainAxisAlignment:
                                         MainAxisAlignment.spaceBetween,
@@ -91,12 +142,38 @@ class SelectItem extends StatelessWidget {
                                             color:
                                                 Color.fromRGBO(90, 90, 90, 1),
                                           )),
-                                      Text(item.specimenTypeName.toString(),
-                                          textAlign: TextAlign.center,
-                                          style: TextStyle(
-                                            fontSize: ScreenUtil().setSp(38),
-                                            color:
-                                                Color.fromRGBO(90, 90, 90, 1),
+                                      InkWell(
+                                          onTap: () {
+                                            Navigator.pushNamed(context,
+                                                RouteName.specimentSpecimenType,
+                                                arguments: {
+                                                  'id': item.specimenTypeId
+                                                }).then((value) {
+                                              if (value != null) {
+                                                Map tempMap = value;
+                                                int idx =
+                                                    _hasSelectItem.indexWhere(
+                                                        (i) => i.id == item.id);
+                                                _hasSelectItem[idx]
+                                                        .specimenTypeId =
+                                                    tempMap['id'];
+                                                _hasSelectItem[idx]
+                                                        .specimenTypeName =
+                                                    tempMap['name'];
+                                                setState(() {});
+                                              }
+                                            });
+                                          },
+                                          child: Container(
+                                            child: Text(
+                                                item.specimenTypeName
+                                                    .toString(),
+                                                textAlign: TextAlign.center,
+                                                style: TextStyle(
+                                                  fontSize:
+                                                      ScreenUtil().setSp(38),
+                                                  color: DiyColors.heavy_blue,
+                                                )),
                                           ))
                                     ],
                                   ))

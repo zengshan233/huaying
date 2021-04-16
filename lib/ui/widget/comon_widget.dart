@@ -222,6 +222,7 @@ Widget simpleRecordInput(BuildContext context,
     {Widget rightWidget,
     String preText,
     String hintText,
+    String text,
     bool needBorder = true,
     Function onChange,
     Function onTap,
@@ -252,42 +253,55 @@ Widget simpleRecordInput(BuildContext context,
               width: ScreenUtil().setWidth(776),
               margin: EdgeInsets.only(right: ScreenUtil().setWidth(30)),
 //              padding: EdgeInsets.only(right: ScreenUtil().setWidth(140)),
-              child: new TextField(
-                key: UniqueKey(),
-                textInputAction: textInputAction,
-                keyboardType: keyType,
-                inputFormatters: keyType == TextInputType.number
-                    ? [WhitelistingTextInputFormatter.digitsOnly]
-                    : [],
-                //只允许输入数字
-                onSubmitted: onSubmitted,
-                style: TextStyle(
-                    fontSize: ScreenUtil().setSp(40),
-                    color: Color.fromRGBO(0, 117, 255, 1)),
-                decoration: InputDecoration(
-                    hintText: hintText,
-                    hintStyle: TextStyle(
-                        fontSize: ScreenUtil().setSp(40),
-                        color: Color.fromRGBO(211, 211, 211, 1),
-                        height: 1.4),
-                    border: InputBorder.none,
-                    focusedBorder: InputBorder.none,
-                    enabledBorder: InputBorder.none,
-                    counterText: ""),
-                enableInteractiveSelection: enbleInput,
-                //禁止输入
-                maxLength: maxLength,
-                onTap: () {
-                  onTap?.call();
-                  enbleInput
-                      ? (() {})()
-                      : FocusScope.of(context).requestFocus(new FocusNode());
-                },
-                onChanged: (v) {
-                  onChange?.call(v);
-                },
-                controller: onController,
-              ),
+              child: !enbleInput
+                  ? InkWell(
+                      onTap: () {
+                        onTap?.call();
+                        FocusScope.of(context).requestFocus(new FocusNode());
+                      },
+                      child: Container(
+                        child: Text(
+                          text ?? '',
+                          style: TextStyle(
+                            fontSize: ScreenUtil().setSp(38),
+                            color: Color(0xFF666666),
+                          ),
+                        ),
+                      ),
+                    )
+                  : new TextField(
+                      key: UniqueKey(),
+                      textInputAction: textInputAction,
+                      keyboardType: keyType,
+                      inputFormatters: keyType == TextInputType.number
+                          ? [WhitelistingTextInputFormatter.digitsOnly]
+                          : [],
+                      //只允许输入数字
+                      onSubmitted: onSubmitted,
+                      style: TextStyle(
+                          fontSize: ScreenUtil().setSp(40),
+                          color: Color.fromRGBO(0, 117, 255, 1)),
+                      decoration: InputDecoration(
+                          hintText: hintText,
+                          hintStyle: TextStyle(
+                              fontSize: ScreenUtil().setSp(40),
+                              color: Color.fromRGBO(211, 211, 211, 1),
+                              height: 1.4),
+                          border: InputBorder.none,
+                          focusedBorder: InputBorder.none,
+                          enabledBorder: InputBorder.none,
+                          counterText: ""),
+                      enableInteractiveSelection: enbleInput,
+                      //禁止输入
+                      maxLength: maxLength,
+                      onTap: () {
+                        onTap?.call();
+                      },
+                      onChanged: (v) {
+                        onChange?.call(v);
+                      },
+                      controller: onController,
+                    ),
             ),
             new Positioned(
                 right: 0, child: rightWidget == null ? SizedBox() : rightWidget)

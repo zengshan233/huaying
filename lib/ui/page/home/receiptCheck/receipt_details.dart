@@ -8,6 +8,7 @@ import 'package:huayin_logistics/ui/color/DiyColors.dart';
 import 'package:huayin_logistics/ui/widget/comon_widget.dart'
     show appBarWithName;
 import 'package:huayin_logistics/ui/widget/img_picker.dart';
+import 'package:huayin_logistics/ui/widget/info_form_item.dart';
 import 'package:huayin_logistics/view_model/home/event_model.dart';
 import 'package:provider/provider.dart';
 
@@ -79,7 +80,7 @@ class _ReceiptDetail extends State<ReceiptDetail> {
 
         return Container(
             child: new Column(children: <Widget>[
-          _infoFromItem(
+          InfoFormItem(
               lable: '反馈类别',
               text: eventType,
               rightWidget: Container(
@@ -95,14 +96,14 @@ class _ReceiptDetail extends State<ReceiptDetail> {
                     '未审核',
                     style: TextStyle(color: DiyColors.heavy_blue),
                   ))),
-          _infoFromItem(
+          InfoFormItem(
               lable: '录入时间', text: model.eventFeedback?.backTime ?? ""),
           _backContent(),
-          _infoFromItem(
+          InfoFormItem(
               lable: '标本条码', text: model.eventFeedback?.contactName ?? ""),
-          _infoFromItem(
+          InfoFormItem(
               lable: '送检单位', text: model.eventFeedback?.contactPhone ?? ""),
-          _infoFromItem(
+          InfoFormItem(
               lable: '外勤', text: model.eventFeedback?.hospitalName ?? ""),
           _projects(),
           SizedBox(height: ScreenUtil().setHeight(40)),
@@ -111,50 +112,11 @@ class _ReceiptDetail extends State<ReceiptDetail> {
     );
   }
 
-  //单个表单项
-  Widget _infoFromItem({String lable, String text, Widget rightWidget}) {
-    return Container(
-      padding: EdgeInsets.symmetric(vertical: ScreenUtil().setHeight(30)),
-      decoration: BoxDecoration(
-          color: Colors.white,
-          border:
-              Border(bottom: BorderSide(width: 1, color: Color(0xFFf0f0f0)))),
-      child: Row(
-        children: <Widget>[
-          Container(
-            margin: EdgeInsets.only(
-                left: ScreenUtil().setWidth(50),
-                right: ScreenUtil().setWidth(50)),
-            constraints: BoxConstraints(minWidth: ScreenUtil().setWidth(230)),
-            child: Text(
-              lable,
-              textAlign: TextAlign.left,
-              style: TextStyle(
-                fontSize: ScreenUtil().setSp(38),
-                color: Color(0xFF333333),
-              ),
-            ),
-          ),
-          Expanded(
-            child: Text(
-              text,
-              style: TextStyle(
-                fontSize: ScreenUtil().setSp(38),
-                color: Color(0xFF717171),
-              ),
-            ),
-          ),
-          rightWidget ?? Container()
-        ],
-      ),
-    );
-  }
-
   Widget _projects() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
-        _infoFromItem(lable: '申请项目', text: ""),
+        InfoFormItem(lable: '申请项目', text: ""),
         Column(
           children: List(4)
               .map(

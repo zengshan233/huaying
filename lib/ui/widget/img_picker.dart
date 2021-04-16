@@ -17,7 +17,6 @@ import 'package:image_pickers/UIConfig.dart';
 import 'package:image_pickers/image_pickers.dart';
 //import 'package:image_pickers/CorpConfig.dart';
 import 'package:image_pickers/Media.dart';
-import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:oss_dart/oss_dart.dart';
 
@@ -48,25 +47,7 @@ class ImgPicker {
     } on Exception catch (e) {
       print(e.toString());
     }
-    var yyDialog = yyProgressDialogBody(text: '正在上传...');
-    ossData = await Repository.fetchOssSts();
-    List<String> paths = resultList.map((e) => e.path).toList();
-    Iterable<Future<FileUploadItem>> futures = paths.map((e) => imageUpload(e));
-    List<FileUploadItem> list;
-    try {
-      list = await Future.wait(futures);
-    } catch (e) {
-      print('upload erroe $e');
-      Future.microtask(() {
-        yyDialog = yyNoticeFailedDialog(text: '上传失败！');
-        Future.delayed(Duration(milliseconds: 1500), () {
-          dialogDismiss(yyDialog);
-        });
-      });
-      return null;
-    }
-    dialogDismiss(yyDialog);
-    success(list);
+    imageUpload(resultList);
   }
 
   Future<Media> camera() async {
@@ -84,9 +65,35 @@ class ImgPicker {
           filename: media.path
               .substring(media.path.lastIndexOf("/") + 1, media.path.length)),
     ));
+    imageUpload([media]);
   }
 
-  Future<FileUploadItem> imageUpload(String path) async {
+  Future imageUpload(List<Media> resultList) async {
+    var yyDialog = yyProgressDialogBody(text: '正在上传...');
+    ossData = await Repository.fetchOssSts();
+    List<String> paths = resultList.map((e) => e.path).toList();
+    Iterable<Future<FileUploadItem>> futures = paths.map((e) => ossUpload(e));
+    List<FileUploadItem> uploadResponse;
+    List<String> ossPaths =
+        resultList.map((e) => getOssFilePath(e.path)).toList();
+    try {
+      await Future.wait(futures);
+      uploadResponse = await Repository.fetchFileSave('1', ossPaths);
+    } catch (e) {
+      print('upload erro $e');
+      Future.microtask(() {
+        yyDialog = yyNoticeFailedDialog(text: '上传失败！');
+        Future.delayed(Duration(milliseconds: 1500), () {
+          dialogDismiss(yyDialog);
+        });
+      });
+      return null;
+    }
+    dialogDismiss(yyDialog);
+    success(uploadResponse);
+  }
+
+  Future<FileUploadItem> ossUpload(String path) async {
     OssClient client = OssClient(
         bucketName: ossData.bucket,
         endpoint: ossData.endpoint,
@@ -94,23 +101,8 @@ class ImgPicker {
           return ossData.credentials.toJson();
         });
     List<int> fileData = File(path).readAsBytesSync(); //上传文件的二进制
-    http.Response response;
-    var uploadResponse;
     String ossPath = getOssFilePath(path);
-    response = await client.putObject(fileData, ossPath);
-    uploadResponse = await Repository.fetchFileSave('1', ossPath);
-
-    print('上传成功了！~~~~~~'); //注意采坑此处response.data与response一样
-    // if (res.code == 0) {
-    // } else {
-    //   Future.microtask(() {
-    //     yyDialog = yyNoticeFailedDialog(text: '上传失败！');
-    //     Future.delayed(Duration(milliseconds: 1500), () {
-    //       dialogDismiss(yyDialog);
-    //     });
-    //   });
-    // }
-    return FileUploadItem.fromJson(uploadResponse);
+    await client.putObject(fileData, ossPath);
   }
 }
 
@@ -122,7 +114,6 @@ String getOssFilePath(String path) {
   String month = formatterMonth.format(now);
   String day = formatterDay.format(now);
   String ossPath = 'hy_logistics/$month/$day/$fileName';
-  print('ossPath $ossPath');
   return ossPath;
 }
 

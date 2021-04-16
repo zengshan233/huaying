@@ -40,14 +40,12 @@ class SelectItemModel extends ViewStateRefreshListModel {
 
 class SelectCompanyModel extends ViewStateRefreshListModel {
   String custName;
-  String organizId;
 
-  SelectCompanyModel({this.custName, this.organizId});
+  SelectCompanyModel({this.custName});
 
   @override
   Future<List<SelectCompanyListItem>> loadData({int pageNum}) async {
-    var response =
-        await Repository.fetchSelectCompanyList(custName, pageNum, organizId);
+    var response = await Repository.fetchSelectCompanyList(custName, pageNum);
     return response == null ? [] : response;
   }
 }

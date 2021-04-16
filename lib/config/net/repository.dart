@@ -1,6 +1,8 @@
 import 'package:huayin_logistics/config/net/api.dart';
+import 'package:huayin_logistics/model/delivery_model.dart';
 import 'package:huayin_logistics/model/documentary_take_phone_data_model.dart';
 import 'package:huayin_logistics/model/event_manager_data_model.dart';
+import 'package:huayin_logistics/model/file_upload_data_model.dart';
 import 'package:huayin_logistics/model/login_data_model.dart';
 import 'package:huayin_logistics/model/oss_model.dart';
 import 'package:huayin_logistics/model/select_item_company_data_model.dart';
@@ -179,16 +181,26 @@ class Repository {
   }
 
   //获取选择医院单位列表
-  static Future fetchSelectCompanyList(
-      String custName, int pageNumber, String organizId) async {
-    var response = await http.post<Map>('/org/cust/rel/id/list', data: {
-      "custType": "1",
+  static Future fetchSelectCompanyList(String custName, int pageNumber) async {
+    var response =
+        await http.post<Map>('/specimen/state/find/inspection', data: {
       "custName": custName,
       "pageNumber": pageNumber,
       "pageSize": pageSize,
-      "organizId": organizId
     });
     return SelectCompanyList.fromJson(response.data).records;
+  }
+
+  //获取标本箱类型
+  static Future fetchSelectSpecimentTypeList(
+      String keyword, int pageNumber, String labId) async {
+    var response =
+        await http.post('/lab/$labId/dict/system/sample/type/list', data: {
+      "keyword": keyword,
+      "status": 0,
+    });
+    print('data ${response.data}');
+    return response.data;
   }
 
   //录单保存提交
@@ -366,14 +378,41 @@ class Repository {
     return response;
   }
 
+  ///查询标本箱交接表详情
+  static Future<DeliveryDetailModel> fetchDeliveryDetail(
+      {String labId, String id}) async {
+    Response response = await http.get('/order/lab/$labId/box/join/$id');
+    return DeliveryDetailModel.fromJson(response.data);
+  }
+
+  ///新增标本箱交接表
+  static Future fetchAddDelivery(
+      {String labId, Map<String, dynamic> data}) async {
+    Response response =
+        await http.post('/order/lab/$labId/box/join/create', data: data);
+    return response;
+  }
+
+  ///新增标本箱交接表
+  static Future fetchConfirmDelivery(String id) async {
+    Response response = await http.put('/order/lab/box/join/confirm/$id');
+    return response;
+  }
+
   ///文件信息补充保存
-  static Future fetchFileSave(String orgId, String ossPath) async {
-    Response<Map> response = await http.post<Map>('/files/make/up', data: {
-      "businessType": 0,
-      'fileType': 0,
-      'orgId': 0,
-      'ossPath': ossPath
-    });
-    return response.data;
+  static Future<List<FileUploadItem>> fetchFileSave(
+      String orgId, List<String> ossPaths) async {
+    List params = ossPaths
+        .map((path) => {
+              "businessType": '2',
+              "fileType": '1',
+              "orgId": orgId,
+              "ossPath": path
+            })
+        .toList();
+    Response response = await http.post('/files/batch/make/up', data: params);
+    List<FileUploadItem> items = List<FileUploadItem>.from(
+        response.data.map((e) => FileUploadItem.fromJson(e)));
+    return items;
   }
 }

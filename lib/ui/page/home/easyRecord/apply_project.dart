@@ -109,12 +109,14 @@ class _ApplyProject extends State<ApplyProject> {
   }
 
   List<Widget> _buildList() {
+    print('_projectItemArray $_projectItemArray');
     List<Widget> tempList = [];
     tempList.clear();
     for (var i = 0, len = _projectItemArray.length; i < len; i++) {
       var x = _projectItemArray[i];
       tempList.add(
-        _buildSingleProgect(x['itemName'].toString(), x['specimenTypeName'],
+        _buildSingleProgect(i, x['itemName'].toString(), x['specimenTypeName'],
+            x['specimenType'],
             key: ObjectKey('index$i'), delTap: () {
           var curIndex = tempList.indexWhere(
               (e) => (e.key.toString() == ObjectKey('index$i').toString()));
@@ -131,7 +133,8 @@ class _ApplyProject extends State<ApplyProject> {
   }
 
   //单个体检项目
-  Widget _buildSingleProgect(String text, String specimenTypeName,
+  Widget _buildSingleProgect(
+      int index, String text, String specimenTypeName, String specimenId,
       {Function delTap, Key key}) {
     return Container(
       width: ScreenUtil.screenWidth,
@@ -154,13 +157,28 @@ class _ApplyProject extends State<ApplyProject> {
           Container(
             child: Row(
               children: <Widget>[
-                Container(
-                  margin: EdgeInsets.only(right: ScreenUtil().setWidth(90)),
-                  child: Text(specimenTypeName ?? '',
-                      style: TextStyle(
-                          color: DiyColors.heavy_blue,
-                          fontSize: ScreenUtil().setSp(40))),
-                ),
+                InkWell(
+                    onTap: () {
+                      Navigator.pushNamed(
+                          context, RouteName.specimentSpecimenType,
+                          arguments: {'id': specimenId}).then((value) {
+                        if (value != null) {
+                          Map tempMap = value;
+                          _projectItemArray[index]['specimenType'] =
+                              tempMap['id'];
+                          _projectItemArray[index]['specimenTypeName'] =
+                              tempMap['name'];
+                          setState(() {});
+                        }
+                      });
+                    },
+                    child: Container(
+                      margin: EdgeInsets.only(right: ScreenUtil().setWidth(90)),
+                      child: Text(specimenTypeName ?? '',
+                          style: TextStyle(
+                              color: DiyColors.heavy_blue,
+                              fontSize: ScreenUtil().setSp(40))),
+                    )),
                 Container(
                   width: ScreenUtil().setHeight(80),
                   height: ScreenUtil().setHeight(60),

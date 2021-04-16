@@ -3,28 +3,30 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:huayin_logistics/base/global_config.dart';
 import 'package:huayin_logistics/config/resource_mananger.dart';
 import 'package:huayin_logistics/model/select_item_company_data_model.dart';
+import 'package:huayin_logistics/model/specimen_type_model.dart';
 import 'package:huayin_logistics/provider/provider_widget.dart';
 import 'package:huayin_logistics/ui/widget/comon_widget.dart'
     show appBarWithName, noDataWidget;
-import 'package:huayin_logistics/view_model/home/select_item_company_model.dart';
+import 'package:huayin_logistics/view_model/home/select_item_specimen_type_model.dart';
 import 'package:huayin_logistics/view_model/mine/mine_model.dart';
 import 'package:provider/provider.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 
-class SelectCompany extends StatefulWidget {
-  final SelectCompanyListItem item;
-  SelectCompany({this.item});
+class SelectSpecimenType extends StatefulWidget {
+  final String id;
+  SelectSpecimenType({this.id});
   @override
-  _SelectCompany createState() => _SelectCompany();
+  _SelectSpecimenType createState() => _SelectSpecimenType();
 }
 
-class _SelectCompany extends State<SelectCompany> {
-  SelectCompanyListItem _currentSelectedItem;
+class _SelectSpecimenType extends State<SelectSpecimenType> {
+  String _currentSelectedId;
+  SpecimenTypeItem _currentSelectedItem;
   @override
   void initState() {
     super.initState();
-    if (widget.item != null) {
-      _currentSelectedItem = widget.item;
+    if (widget.id != null) {
+      _currentSelectedId = widget.id;
     }
   }
 
@@ -39,9 +41,10 @@ class _SelectCompany extends State<SelectCompany> {
       },
       child: Scaffold(
           backgroundColor: Color(0xFFf5f5f5),
-          appBar: appBarWithName(context, '选择送检单位', ''),
-          body: ProviderWidget<SelectCompanyModel>(
-              model: SelectCompanyModel(custName: ""),
+          appBar: appBarWithName(context, '选择标本类型', ''),
+          body: ProviderWidget<SelectSpecimenTypeModel>(
+              model: SelectSpecimenTypeModel(
+                  keyword: "", labId: '82858490362716212'),
               onModelReady: (model) {
                 model.initData();
               },
@@ -143,8 +146,9 @@ class _SelectCompany extends State<SelectCompany> {
               onPressed: () {
                 setState(() {
                   _currentSelectedItem = item;
+                  _currentSelectedId = item.id;
                 });
-                Navigator.of(context).pop(_currentSelectedItem);
+                Navigator.of(context).pop(_currentSelectedItem.toJson());
               },
               child: new Row(
                 children: <Widget>[
@@ -153,15 +157,14 @@ class _SelectCompany extends State<SelectCompany> {
                     height: ScreenUtil().setWidth(60),
                     margin: EdgeInsets.only(left: ScreenUtil().setWidth(20)),
                     child: Image.asset(
-                      ImageHelper.wrapAssets(
-                          _currentSelectedItem?.custId == item.custId
-                              ? 'select_on.png'
-                              : 'select_off.png'),
+                      ImageHelper.wrapAssets(_currentSelectedId == item.id
+                          ? 'select_on.png'
+                          : 'select_off.png'),
                       fit: BoxFit.fitWidth,
                     ),
                   ),
                   new Expanded(
-                    child: new Text(item.custName.toString(),
+                    child: new Text(item.name.toString(),
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: ScreenUtil().setSp(38),
@@ -176,7 +179,7 @@ class _SelectCompany extends State<SelectCompany> {
   }
 
   //头部搜索栏
-  Widget _searchTitle(model) {
+  Widget _searchTitle(SelectSpecimenTypeModel model) {
     return Column(
       children: <Widget>[
         Container(
@@ -217,7 +220,7 @@ class _SelectCompany extends State<SelectCompany> {
                           ),
                         ),
                         onSubmitted: (v) {
-                          model.custName = v.toString();
+                          model.keyword = v.toString();
                           model.initData();
                         },
                       ),

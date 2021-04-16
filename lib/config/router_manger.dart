@@ -5,6 +5,7 @@ import 'package:huayin_logistics/ui/page/home/mutilRecord/mutil_record.dart';
 import 'package:huayin_logistics/ui/page/home/receiptCheck/receipt_check.dart';
 import 'package:huayin_logistics/ui/page/home/receiptCheck/receipt_confirm.dart';
 import 'package:huayin_logistics/ui/page/home/receiptCheck/receipt_details.dart';
+import 'package:huayin_logistics/ui/page/home/selectProject/select_specimen_type.dart';
 import 'package:huayin_logistics/ui/page/home/specimen_box_combine.dart';
 import 'package:huayin_logistics/ui/page/home/specimentJoin/speciment_box_join.dart';
 import 'package:huayin_logistics/ui/page/home/specimentTake/speciment_box_take.dart';
@@ -60,6 +61,7 @@ class RouteName {
   static const String eventBack = 'eventBack';
   static const String changePassword = 'changePassword';
   static const String deliveryDetail = 'deliveryDetail';
+  static const String specimentSpecimenType = 'specimentSpecimenType';
 }
 
 class Router {
@@ -99,9 +101,12 @@ class Router {
         return CupertinoPageRoute(builder: (_) => SpecimentBoxJoin());
       case RouteName.specimentBoxTake:
         return CupertinoPageRoute(builder: (_) => SpecimentBoxTake());
+      case RouteName.specimentSpecimenType:
+        return CupertinoPageRoute(builder: (_) => SelectSpecimenType());
       case RouteName.selectCompany:
+        var param = settings.arguments as Map;
         return CupertinoPageRoute(
-            fullscreenDialog: true, builder: (_) => SelectCompany());
+            builder: (_) => SelectCompany(item: param['item']));
       case RouteName.selectItem:
         var selectItemParm = settings.arguments as Map;
         return CupertinoPageRoute(

@@ -1,17 +1,22 @@
 import 'dart:async';
+import 'dart:convert';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_custom_dialog/flutter_custom_dialog.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:huayin_logistics/base/global_config.dart';
 import 'package:huayin_logistics/config/resource_mananger.dart';
+import 'package:huayin_logistics/config/router_manger.dart';
 import 'package:huayin_logistics/model/select_item_company_data_model.dart';
 import 'package:huayin_logistics/provider/provider_widget.dart';
 import 'package:huayin_logistics/ui/color/DiyColors.dart';
+import 'package:huayin_logistics/ui/page/home/selectProject/select_header.dart';
 import 'package:huayin_logistics/ui/widget/comon_widget.dart'
     show appBarWithName;
 import 'package:huayin_logistics/ui/widget/dialog/alert_dialog.dart';
 import 'package:huayin_logistics/ui/widget/form_check.dart';
+import 'package:huayin_logistics/utils/events_utils.dart';
 import 'package:huayin_logistics/view_model/home/select_item_company_model.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'package:solid_bottom_sheet/solid_bottom_sheet.dart';
@@ -38,6 +43,8 @@ class _SelectProject extends State<SelectProject>
 
   bool showDimSearch = false;
 
+  bool showItems = false;
+
   var focusListen;
 
   @override
@@ -63,6 +70,7 @@ class _SelectProject extends State<SelectProject>
   @override
   Widget build(BuildContext context) {
     YYDialog.init(context);
+    int itemCount = _hasSelectItem.length;
     return GestureDetector(
         behavior: HitTestBehavior.translucent,
         onTap: () {
@@ -126,45 +134,21 @@ class _SelectProject extends State<SelectProject>
                 }),
             bottomSheet: SolidBottomSheet(
               toggleVisibilityOnTap: true,
-              maxHeight: ScreenUtil().setWidth(1000),
-              headerBar: Container(
-                color: Color(0xFFf0f2f5),
-                padding:
-                    EdgeInsets.symmetric(vertical: ScreenUtil().setWidth(30)),
-                child: Row(
-                  children: <Widget>[
-                    Expanded(child: Container()),
-                    Expanded(
-                        child: Container(
-                            alignment: Alignment.center, child: Text('已选项目'))),
-                    Expanded(child: Container()),
-                  ],
-                ),
-              ),
-              body: Container(
-                color: Colors.white,
-                height: ScreenUtil().setWidth(1000),
-                child: ListView(
-                  children: (() {
-                    List<Widget> tempList = [];
-                    for (var x in _hasSelectItem) {
-                      tempList.add(SelectItem(
-                          item: x,
-                          key: ObjectKey('$x.id'),
-                          delTap: () {
-                            focusNode.unfocus();
-                            var curIndex = tempList.indexWhere((e) =>
-                                (e.key.toString() ==
-                                    ObjectKey('$x.id').toString()));
-                            _hasSelectItem.removeAt(curIndex);
-                            setState(() {
-                              _hasSelectItem = _hasSelectItem;
-                            });
-                          }));
-                    }
-                    return tempList.map((e) => e).toList();
-                  })(),
-                ),
+              maxHeight:
+                  ScreenUtil().setWidth(180) * (itemCount >= 6 ? 6 : itemCount),
+              onShow: () {
+                GlobalEvents().showHeader.add(true);
+              },
+              onHide: () async {
+                GlobalEvents().showHeader.add(false);
+                setState(() {});
+              },
+              headerBar: SelectHeader(),
+              body: SelectItem(
+                hasSelectItems: _hasSelectItem,
+                updateItems: (items) {
+                  _hasSelectItem = items;
+                },
               ),
             ),
           ),
@@ -350,7 +334,7 @@ class _SelectProject extends State<SelectProject>
                     child: Container(
                       padding: EdgeInsets.only(
                           left: ScreenUtil().setWidth(40),
-                          right: ScreenUtil().setWidth(80)),
+                          right: ScreenUtil().setWidth(200)),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: <Widget>[

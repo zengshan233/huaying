@@ -27,9 +27,9 @@ class _DocumentaryTakePhone extends State<DocumentaryTakePhone> {
 
   TextEditingController _barCodeControll = TextEditingController(); //条码号
 
-  TextEditingController _boxControll = TextEditingController(); //姓名
+  TextEditingController _boxControll = TextEditingController(); //标本箱号
 
-  TextEditingController _dateControll = TextEditingController(); //姓名
+  TextEditingController _dateControll = TextEditingController(); //录入时间
 
   bool searching = true;
 
@@ -84,7 +84,9 @@ class _DocumentaryTakePhone extends State<DocumentaryTakePhone> {
         if (res != null) {
           //print('返回数据'+res.toString());
           var jsonRes = jsonDecode(res.toString());
+          print('jsonResjsonResjsonResjsonResjsonResjsonRes $jsonRes');
           _companyNameControll.text = jsonRes['apply']['inspectionUnitName'];
+          // _boxControll.text = jsonRes['apply']['inspectionUnitName'];
           _dateControll.text =
               jsonRes['apply']['recordTime'].toString().substring(0, 16);
           var tempImgList = jsonRes['images'] == null ? [] : jsonRes['images'];

@@ -3,34 +3,48 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_custom_dialog/flutter_custom_dialog.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:huayin_logistics/config/net/repository.dart';
 import 'package:huayin_logistics/config/resource_mananger.dart';
 import 'package:huayin_logistics/config/router_manger.dart';
 import 'package:huayin_logistics/model/file_upload_data_model.dart';
+import 'package:huayin_logistics/model/select_item_company_data_model.dart';
+import 'package:huayin_logistics/model/speciment_box_model.dart';
 import 'package:huayin_logistics/provider/provider_widget.dart';
 import 'package:huayin_logistics/ui/color/DiyColors.dart';
+import 'package:huayin_logistics/ui/page/home/easyRecord/record_info.dart';
 import 'package:huayin_logistics/ui/widget/barcode_scanner.dart';
 import 'package:huayin_logistics/ui/widget/comon_widget.dart';
 import 'package:huayin_logistics/ui/widget/dialog/notice_dialog.dart';
 import 'package:huayin_logistics/ui/widget/dialog/progress_dialog.dart';
 import 'package:huayin_logistics/ui/widget/form_check.dart';
+import 'package:huayin_logistics/ui/widget/pop_window/kumi_popup_window.dart';
+import 'package:huayin_logistics/ui/widget/select_items.dart';
 import 'package:huayin_logistics/ui/widget/upload_image.dart';
+import 'package:huayin_logistics/utils/events_utils.dart';
+import 'package:huayin_logistics/utils/popUtils.dart';
 import 'package:huayin_logistics/view_model/home/recrod_model.dart';
+import 'package:huayin_logistics/view_model/mine/mine_model.dart';
+import 'package:provider/provider.dart';
 import './mutil_upload.dart';
 import './mutil_projects.dart';
 
-class MutilRecord extends StatefulWidget {
-  MutilRecord({Key key}) : super(key: key);
-
+class MutilRecord extends StatelessWidget {
   @override
-  _MutilRecordState createState() => _MutilRecordState();
+  Widget build(BuildContext context) {
+    return MutilRecordPage(context: context);
+  }
 }
 
-class _MutilRecordState extends State<MutilRecord> {
+class MutilRecordPage extends StatefulWidget {
+  BuildContext context;
+  MutilRecordPage({this.context});
+
+  @override
+  _MutilRecordPageState createState() => _MutilRecordPageState();
+}
+
+class _MutilRecordPageState extends State<MutilRecordPage> {
   TextEditingController _barCodeControll = TextEditingController(); //条码号
-
-  String _companyId = ''; //单位名称id
-
-  TextEditingController _companyNameControll = TextEditingController(); //单位名称
 
   List<Map<String, dynamic>> _submitData = [];
 
@@ -39,7 +53,14 @@ class _MutilRecordState extends State<MutilRecord> {
   bool hasSubmit = false;
 
   int mulPicCount = 0;
-  int picCount = 0;
+
+  List<String> picId = [];
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -57,8 +78,12 @@ class _MutilRecordState extends State<MutilRecord> {
               builder: (cContext, model, child) {
                 return Column(
                   children: <Widget>[
-                    _boxNum(),
-                    _baseInfo(),
+                    RecordInfo(
+                      barCodeControll: _barCodeControll,
+                      onBarcodeSubmit: (info) {
+                        _addSubmitItem(context, info, model);
+                      },
+                    ),
                     buildProjectHead(),
                     MutilProjects(
                       submitData: _submitData,
@@ -69,20 +94,14 @@ class _MutilRecordState extends State<MutilRecord> {
                         enable: mulPicCount == 0,
                         updateImages: (data) {
                           if (data != null && data.isNotEmpty) {
-                            List<Map<String, String>> tempList = [];
-                            for (var x in data) {
-                              Map<String, String> tempMap = {};
-                              tempMap['fileId'] = x.id;
-                              tempList.add(tempMap);
-                            }
+                            picId = data.map((e) => e.id).toList();
                             _submitData.forEach((d) {
-                              d['imageItems'] = tempList;
+                              d['imageIds'] = picId;
                             });
-                            picCount = tempList.length;
                           } else {
-                            picCount = 0;
+                            picId = [];
                             _submitData.forEach((d) {
-                              d['imageItems'] = [];
+                              d['imageIds'] = [];
                             });
                           }
                           setState(() {});
@@ -93,39 +112,6 @@ class _MutilRecordState extends State<MutilRecord> {
                   ],
                 );
               })),
-    );
-  }
-
-  Widget _boxNum() {
-    return Container(
-      width: ScreenUtil.screenWidth,
-      height: ScreenUtil().setHeight(140),
-      color: Colors.white,
-      padding: EdgeInsets.only(
-          left: ScreenUtil().setWidth(40), right: ScreenUtil().setWidth(40)),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: <Widget>[
-          _leftText('标本箱号'),
-          _leftText('0123123123'), // 先写死
-          new SizedBox(width: ScreenUtil().setWidth(140)),
-          new Image(
-              color: Colors.black,
-              width: ScreenUtil().setWidth(60),
-              height: ScreenUtil().setWidth(60),
-              image: new AssetImage(ImageHelper.wrapAssets("right_more.png")),
-              fit: BoxFit.fill),
-          radiusButton(text: '交接单', img: "transfer_ticket.png")
-        ],
-      ),
-    );
-  }
-
-  Widget _leftText(String title) {
-    return Container(
-      child: Text(title,
-          style: TextStyle(
-              color: DiyColors.normal_black, fontSize: ScreenUtil().setSp(40))),
     );
   }
 
@@ -162,7 +148,7 @@ class _MutilRecordState extends State<MutilRecord> {
               children: <Widget>[
                 InkWell(
                     onTap: () async {
-                      if (picCount > 0 || _submitData.isEmpty) {
+                      if (picId.length > 0 || _submitData.isEmpty) {
                         return;
                       }
                       Navigator.push(context,
@@ -170,24 +156,21 @@ class _MutilRecordState extends State<MutilRecord> {
                           .then((value) {
                         if (value != null) {
                           int idx = _submitData.indexWhere(
-                              (d) => d['apply']['barCode'] == value.first);
+                              (d) => d['main']['barCode'] == value.first);
                           if (idx > -1) {
-                            List<Map<String, String>> tempList = [];
-                            for (var x in value.last) {
-                              Map<String, String> tempMap = {};
-                              tempMap['fileId'] = x.id;
-                              tempList.add(tempMap);
-                            }
-                            _submitData[idx]['imageItems'] = tempList;
-                            mulPicCount = tempList.length;
+                            List<String> ids =
+                                List<String>.from(value.last.map((e) => e.id));
+                            _submitData[idx]['imageIds'] = ids;
+                            mulPicCount = ids.length;
                             setState(() {});
                           }
                         }
                       });
                     },
                     child: AnimatedOpacity(
-                        opacity:
-                            (picCount == 0 && _submitData.isNotEmpty) ? 1 : 0.3,
+                        opacity: (picId.length == 0 && _submitData.isNotEmpty)
+                            ? 1
+                            : 0.3,
                         duration: Duration(milliseconds: 500),
                         child: Container(
                             margin: EdgeInsets.only(
@@ -252,7 +235,7 @@ class _MutilRecordState extends State<MutilRecord> {
         });
       } else {
         int idx =
-            _submitData.indexWhere((d) => d['apply']['barCode'] == barCode);
+            _submitData.indexWhere((d) => d['main']['barCode'] == barCode);
         if (idx > -1) {
           _submitData[idx]['items'] = _projectItemArray;
         }
@@ -264,15 +247,31 @@ class _MutilRecordState extends State<MutilRecord> {
 
   void _removeSubmitItem(String barCode) {
     var curIndex =
-        _submitData.indexWhere((e) => (e['apply']['barCode'] == barCode));
+        _submitData.indexWhere((e) => (e['main']['barCode'] == barCode));
     _submitData.removeAt(curIndex);
     setState(() {
+      mulPicCount = _submitData
+          .where((s) {
+            List pics = s['imageIds'];
+            return pics.isNotEmpty;
+          })
+          .toList()
+          .length;
       _submitData = _submitData;
     });
   }
 
-  void _addSubmitItem(BuildContext context) {
-    if (_barCodeControll.text.length != 12) {
+  Future _addSubmitItem(
+      BuildContext context, Map info, RecrodModel model) async {
+    KumiPopupWindow pop = PopUtils.showLoading();
+    List<dynamic> response =
+        await Repository.fetchJudgeSpecimenCodeExist(info['barCode']);
+    pop.dismiss(context);
+    if (response != null && response.contains(info['barCode'])) {
+      showMsgToast('该条码已被使用过，请重新输入！', context: context);
+      return;
+    }
+    if (info['barCode'].length != 12) {
       showMsgToast('条码号长度必须为12位！', context: context);
       return;
     }
@@ -288,20 +287,15 @@ class _MutilRecordState extends State<MutilRecord> {
       return;
     }
     var curIndex = _submitData
-        .indexWhere((e) => (e['apply']['barCode'] == _barCodeControll.text));
-    print(curIndex);
+        .indexWhere((e) => (e['main']['barCode'] == info['barCode']));
     if (curIndex >= 0) {
       showMsgToast('列表已存在该条码，请重新输入！', context: context);
       return;
     }
-    List<FileUploadItem> imageItems = [];
+
     Map<String, dynamic> tempObj = {
-      "apply": {
-        "inspectionUnitName": _companyNameControll.text,
-        "inspectionUnitId": _companyId,
-        "barCode": _barCodeControll.text,
-      },
-      "imageItems": imageItems,
+      "main": info,
+      "imageIds": picId,
       "items": []
     };
     _submitData.insert(0, tempObj);
@@ -311,68 +305,18 @@ class _MutilRecordState extends State<MutilRecord> {
     });
   }
 
-  // 基本信息
-  Widget _baseInfo() {
-    return new Container(
-        color: Colors.white,
-        padding: EdgeInsets.only(
-            left: ScreenUtil().setWidth(40), right: ScreenUtil().setWidth(40)),
-        child: new Column(
-          children: <Widget>[
-            simpleRecordInput(context,
-                preText: '送检单位',
-                hintText: '(必填)请选择送检单位',
-                enbleInput: false,
-                rightWidget: new Image.asset(
-                  ImageHelper.wrapAssets('mine_rarrow.png'),
-                  width: ScreenUtil().setHeight(40),
-                  height: ScreenUtil().setHeight(40),
-                ),
-                onController: _companyNameControll, onTap: () {
-              Navigator.pushNamed(context, RouteName.selectCompany)
-                  .then((value) {
-                //print('接收到的单位返回值：'+value.toString());
-                if (value == null) return;
-                var tempMap = jsonDecode(value.toString());
-                _companyId = tempMap['custId'];
-                _companyNameControll.text = tempMap['custName'];
-              });
-            }),
-            simpleRecordInput(context,
-                preText: '条码号',
-                hintText: '请扫描或输入条码号',
-                keyType: TextInputType.visiblePassword,
-                onController: _barCodeControll,
-                maxLength: 12,
-                rightWidget: InkWell(
-                    onTap: () {
-                      var p = new BarcodeScanner(success: (String code) {
-                        //print('条形码'+code);
-                        if (code == '-1') return;
-                        _barCodeControll.text = code;
-                        _addSubmitItem(context);
-                      });
-                      p.scanBarcodeNormal();
-                    },
-                    child: radiusButton(text: '扫码', img: "scan.png")),
-                onSubmitted: (v) {
-              if (v.toString().isEmpty) return;
-              _addSubmitItem(context);
-            }),
-          ],
-        ));
-  }
-
   //校验输入
   bool _checkLoginInput() {
     bool check = true;
-    if (!isRequire(_companyNameControll.text)) {
-      showMsgToast('请选择送检单位！');
+
+    if (_submitData.length <= 0) {
+      showMsgToast('请添加录单信息！');
       check = false;
       return null;
     }
-    if (_submitData.length <= 0) {
-      showMsgToast('请添加录单信息！');
+
+    if (!isRequire(_submitData.first['main']['inspectionUnitName'])) {
+      showMsgToast('请选择送检单位！');
       check = false;
       return null;
     }
@@ -383,7 +327,7 @@ class _MutilRecordState extends State<MutilRecord> {
       // 	check=false;
       // 	break;
       // }
-      if (item['imageItems'].length <= 0) {
+      if (item['imageIds'].length <= 0) {
         showMsgToast('第 ${i + 1} 条录单数据未上传图片！');
         check = false;
         break;
@@ -392,45 +336,71 @@ class _MutilRecordState extends State<MutilRecord> {
     return check;
   }
 
-  submit(model) {
+  submit(RecrodModel model) {
     setState(() {
       hasSubmit = true;
     });
     if (!_checkLoginInput()) return;
     String barCodeStrs = '';
     for (var x in _submitData) {
-      barCodeStrs += (',' + x['apply']['barCode']);
+      barCodeStrs += (',' + x['main']['barCode']);
     }
-    model.judgeSpecimenCodeExistData(barCodeStrs.substring(1)).then((list) {
-      if (list == null) return;
-      _hasExistNum.clear();
-      if (list.length > 0) {
-        list.forEach((val) {
-          _hasExistNum.add(val.toString());
-        });
-        setState(() {
-          _hasExistNum = _hasExistNum;
-        });
-        showMsgToast('存在已经被使用的条码号，请先删除！');
-      } else {
-        model.recordSavaSubmitData(_submitData).then((val) {
-          if (val) {
-            Future.microtask(() {
-              var yyDialog;
-              yyDialog = yyNoticeDialog(text: '提交成功');
-              Future.delayed(Duration(milliseconds: 1500), () {
-                dialogDismiss(yyDialog);
-                _submitData.clear();
-                _barCodeControll.text = '';
-                setState(() {
-                  _submitData = _submitData;
-                  hasSubmit = false;
-                });
-              });
+
+    String labId = '82858490362716212';
+    model.recordSavaSubmitData(_submitData, labId).then((val) {
+      if (val) {
+        Future.microtask(() {
+          var yyDialog;
+          yyDialog = yyNoticeDialog(text: '提交成功');
+          Future.delayed(Duration(milliseconds: 1500), () {
+            dialogDismiss(yyDialog);
+            _submitData.clear();
+            _barCodeControll.text = '';
+            GlobalEvents().clearImages.add(null);
+            setState(() {
+              picId.length = 0;
+              mulPicCount = 0;
+              _submitData = _submitData;
+              hasSubmit = false;
             });
-          }
+          });
         });
       }
     });
+
+    // model.judgeSpecimenCodeExistData(barCodeStrs.substring(1)).then((list) {
+    //   if (list == null) return;
+    //   _hasExistNum.clear();
+    //   if (list.length > 0) {
+    //     list.forEach((val) {
+    //       _hasExistNum.add(val.toString());
+    //     });
+    //     setState(() {
+    //       _hasExistNum = _hasExistNum;
+    //     });
+    //     showMsgToast('存在已经被使用的条码号，请先删除！');
+    //   } else {
+    //     String labId = '82858490362716212';
+    //     model.recordSavaSubmitData(_submitData, labId).then((val) {
+    //       if (val) {
+    //         Future.microtask(() {
+    //           var yyDialog;
+    //           yyDialog = yyNoticeDialog(text: '提交成功');
+    //           Future.delayed(Duration(milliseconds: 1500), () {
+    //             dialogDismiss(yyDialog);
+    //             _submitData.clear();
+    //             _barCodeControll.text = '';
+    //             mulPicCount = 0;
+    //             picId.length = 0;
+    //             setState(() {
+    //               _submitData = _submitData;
+    //               hasSubmit = false;
+    //             });
+    //           });
+    //         });
+    //       }
+    //     });
+    //   }
+    // });
   }
 }

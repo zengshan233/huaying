@@ -10,6 +10,8 @@ import 'package:huayin_logistics/model/oss_model.dart';
 import 'package:huayin_logistics/ui/color/DiyColors.dart';
 import 'package:huayin_logistics/ui/widget/comon_widget.dart' show radiusButton;
 import 'package:huayin_logistics/ui/widget/img_picker.dart';
+import 'package:huayin_logistics/utils/events_utils.dart';
+import 'package:image_pickers/image_pickers.dart';
 
 import 'package:intl/intl.dart';
 
@@ -36,6 +38,12 @@ class _UploadImgage extends State<UploadImgage> {
     if (widget.imageList != null) {
       _imageList = widget.imageList;
     }
+    GlobalEvents().clearImages.stream.listen((event) {
+      setState(() {
+        _imageList = [];
+      });
+      widget.updateImages?.call(_imageList);
+    });
   }
 
   @override
@@ -132,21 +140,27 @@ class _UploadImgage extends State<UploadImgage> {
                           children: <Widget>[
                             Positioned(
                                 bottom: 0,
-                                child: Container(
-                                  width: ScreenUtil().setWidth(158),
-                                  height: ScreenUtil().setWidth(158),
-                                  color: Color(0xFFf0f2f5),
-                                  child: Image.network(
-                                      FlavorConfig.instance.imgPre +
-                                          (e.thumbnailUrl ?? e.innerUrl)),
-                                )),
+                                child: InkWell(
+                                    onTap: () {
+                                      ImagePickers.previewImage(
+                                          FlavorConfig.instance.imgPre +
+                                              e.innerUrl);
+                                    },
+                                    child: Container(
+                                      width: ScreenUtil().setWidth(158),
+                                      height: ScreenUtil().setWidth(158),
+                                      color: Color(0xFFf0f2f5),
+                                      child: Image.network(
+                                          FlavorConfig.instance.imgPre +
+                                              (e.thumbnailUrl ?? e.innerUrl)),
+                                    ))),
                             Positioned(
                                 right: 0,
                                 child: InkWell(
                                     onTap: () {
                                       _imageList.removeWhere((i) => i == e);
                                       setState(() {});
-                                      widget.updateImages(_imageList);
+                                      widget.updateImages?.call(_imageList);
                                     },
                                     child: Container(
                                       child: new Image.asset(

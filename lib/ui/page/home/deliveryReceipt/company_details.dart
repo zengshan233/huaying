@@ -12,8 +12,6 @@ import 'package:huayin_logistics/ui/widget/datePicker/src/i18n/date_picker_i18n.
 import 'package:huayin_logistics/ui/widget/dialog/notice_dialog.dart';
 import 'package:huayin_logistics/ui/widget/dialog/progress_dialog.dart';
 import 'package:huayin_logistics/ui/widget/switch.dart';
-import 'package:huayin_logistics/view_model/mine/mine_model.dart';
-import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 
 class CompanyDetails extends StatefulWidget {
@@ -26,6 +24,7 @@ class CompanyDetails extends StatefulWidget {
 }
 
 class _CompanyDetails extends State<CompanyDetails> {
+  TextEditingController barCodeCon = TextEditingController();
   TextEditingController dateCon = TextEditingController();
   TextEditingController temperatureCon = TextEditingController();
   TextEditingController bloodCon = TextEditingController();
@@ -43,6 +42,23 @@ class _CompanyDetails extends State<CompanyDetails> {
   @override
   void initState() {
     super.initState();
+    initValue();
+  }
+
+  initValue() {
+    barCodeCon.text = widget.item.barcodeTotal.toString();
+    dateCon.text = widget.item.temperatures?.first?.recordAt;
+    temperatureCon.text =
+        widget.item.temperatures?.first?.temperature?.toString() ?? '';
+    bloodCon.text = widget.item.routineSecretion;
+    iceCon.text = widget.item.routineIce;
+    sliceNormalCon.text = widget.item.routineSmear;
+    microCon.text = widget.item.routineMic;
+    othersCon.text = widget.item.routineOther;
+    sampleCountCon.text = widget.item.pathologyTissueSample;
+    applyCon.text = widget.item.pathologyTissueOrder;
+    tctCon.text = widget.item.pathologyTissueTct;
+    sliceCon.text = widget.item.pathologySmear;
   }
 
   @override
@@ -60,16 +76,14 @@ class _CompanyDetails extends State<CompanyDetails> {
                   children: <Widget>[
                     simpleRecordInput(context,
                         preText: '条码总数',
-                        text: widget.item.barcodeTotal.toString(),
                         maxLength: 50,
-                        // onController: _recordNameControll,
-                        enbleInput: false,
+                        onController: barCodeCon,
+                        enbleInput: widget.item.status != 1,
                         needBorder: true),
                     simpleRecordInput(context,
                         preText: '时间',
                         hintText: '请选择时间',
-                        text: widget.item.createAt,
-                        enbleInput: widget.item.status != 1,
+                        enbleInput: false,
                         onController: dateCon,
                         rightWidget: new Image.asset(
                           ImageHelper.wrapAssets('mine_rarrow.png'),
@@ -78,15 +92,15 @@ class _CompanyDetails extends State<CompanyDetails> {
                         ), onTap: () {
                       DatePicker.showDatePicker(context,
                           locale: DateTimePickerLocale.zh_cn,
+                          pickerMode: DateTimePickerMode.datetime,
                           onConfirm: (DateTime dateTime, List<int> days) async {
-                        dateCon.text = dateTime.toString().split(' ').first;
+                        dateCon.text = dateTime.toString().split('.').first;
                       });
                     }),
                     simpleRecordInput(
                       context,
                       preText: '温度(℃)',
                       hintText: '(必填)请输入温度',
-                      text: widget.item.createAt,
                       onController: temperatureCon,
                       enbleInput: widget.item.status != 1,
                     ),
@@ -95,7 +109,6 @@ class _CompanyDetails extends State<CompanyDetails> {
                       context,
                       preText: '血/分泌物',
                       hintText: '请输入血/分泌物',
-                      text: widget.item.createAt,
                       onController: bloodCon,
                       enbleInput: widget.item.status != 1,
                     ),
@@ -103,7 +116,6 @@ class _CompanyDetails extends State<CompanyDetails> {
                       context,
                       preText: '冰敷',
                       hintText: '请输入冰敷',
-                      text: widget.item.createAt,
                       onController: iceCon,
                       enbleInput: widget.item.status != 1,
                     ),
@@ -111,7 +123,6 @@ class _CompanyDetails extends State<CompanyDetails> {
                       context,
                       preText: '涂片',
                       hintText: '请输入涂片',
-                      text: widget.item.createAt,
                       onController: sliceNormalCon,
                       enbleInput: widget.item.status != 1,
                     ),
@@ -119,7 +130,6 @@ class _CompanyDetails extends State<CompanyDetails> {
                       context,
                       preText: '微生物',
                       hintText: '请输入微生物',
-                      text: widget.item.createAt,
                       onController: microCon,
                       enbleInput: widget.item.status != 1,
                     ),
@@ -127,7 +137,6 @@ class _CompanyDetails extends State<CompanyDetails> {
                       context,
                       preText: '其他',
                       hintText: '请输入其他',
-                      text: widget.item.createAt,
                       onController: othersCon,
                       enbleInput: widget.item.status != 1,
                     ),
@@ -136,7 +145,6 @@ class _CompanyDetails extends State<CompanyDetails> {
                       context,
                       preText: '组织标本数',
                       hintText: '请输入组织标本数',
-                      text: widget.item.createAt,
                       onController: sampleCountCon,
                       enbleInput: widget.item.status != 1,
                     ),
@@ -144,7 +152,6 @@ class _CompanyDetails extends State<CompanyDetails> {
                       context,
                       preText: '组织申请单',
                       hintText: '请输入组织申请单',
-                      text: widget.item.createAt,
                       onController: applyCon,
                       enbleInput: widget.item.status != 1,
                     ),
@@ -152,7 +159,6 @@ class _CompanyDetails extends State<CompanyDetails> {
                       context,
                       preText: 'TCT',
                       hintText: '请输入TCT',
-                      text: widget.item.createAt,
                       onController: tctCon,
                       enbleInput: widget.item.status != 1,
                     ),
@@ -160,7 +166,6 @@ class _CompanyDetails extends State<CompanyDetails> {
                       context,
                       preText: '涂片',
                       hintText: '请输入涂片',
-                      text: widget.item.createAt,
                       onController: sliceCon,
                       enbleInput: widget.item.status != 1,
                     ),
@@ -225,11 +230,11 @@ class _CompanyDetails extends State<CompanyDetails> {
         ),
         Container(
           child: SwitchButton(
-            width: ScreenUtil().setWidth(190),
-            height: ScreenUtil().setWidth(65),
-            valueFontSize: ScreenUtil().setSp(28),
+            width: ScreenUtil().setWidth(185),
+            height: ScreenUtil().setWidth(70),
+            valueFontSize: ScreenUtil().setSp(26),
             toggleWidth: ScreenUtil().setWidth(70),
-            toggleHeight: ScreenUtil().setWidth(53),
+            toggleHeight: ScreenUtil().setWidth(56),
             toggleRadius: 3,
             value: widget.item.status == 1,
             borderRadius: 4,
@@ -263,20 +268,38 @@ class _CompanyDetails extends State<CompanyDetails> {
     );
   }
 
+  changeT() {
+    String labId = '82858490362716212';
+    Repository.fetchChangeDeliveryTemperature(
+        labId: labId,
+        id: widget.item.id,
+        data: {
+          "createAt": widget.item.createAt,
+          "updateAt": widget.item.updateAt,
+          "dcId": widget.item.dcId,
+          "id": widget.item.id,
+          "joinItemId": widget.item.joinId,
+          "orgId": widget.item.orgId,
+          "temperature": '35',
+        });
+  }
+
   submit() async {
     // if (!_checkLoginInput(_imageList)) return;
     String labId = '82858490362716212';
     var formatter = new DateFormat('yyyy-MM-dd H:mm:ss');
     DateTime now = DateTime.now();
     try {
-      await Repository.fetchAddDelivery(labId: labId, data: {
-        "boxNo": widget.detail.boxNo,
-        "items": [
-          {
-            "barcodeTotal": widget.item.barcodeTotal,
+      await Repository.fetchAddDelivery(
+          labId: labId,
+          id: widget.item.id,
+          data: {
+            "dcId": widget.item.dcId,
+            "id": widget.item.id,
+            "barcodeTotal": widget.item.barcodeTotal.toString(),
             "inspectionUnitId": widget.item.inspectionUnitId,
             "inspectionUnitName": widget.item.inspectionUnitName,
-            "joinId": widget.detail.id,
+            "joinId": widget.item.joinId,
             "pathologyLiquidSpecimen": "",
             "pathologyOther": "",
             "pathologyQfc": "",
@@ -293,20 +316,22 @@ class _CompanyDetails extends State<CompanyDetails> {
             "routineOther": othersCon.text,
             "routineSecretion": bloodCon.text,
             "routineSmear": sliceNormalCon.text,
-          }
-        ],
-        "temperatures": [
-          {
-            "joinItemId": 0,
-            "recordAt": formatter.format(now),
-            "temperature": temperatureCon.text
-          }
-        ],
-        "recordDate": dateCon.text + ' 10:10:10.000',
-        "recordId": widget.detail.recordId,
-        "recordName": widget.detail.recordName
-      });
-      await Repository.fetchConfirmDelivery(widget.detail.id);
+            "temperatureList": [
+              {
+                "createAt": widget.item.createAt,
+                "updateAt": widget.item.updateAt,
+                "dcId": widget.item.dcId,
+                "id": widget.item.id,
+                "joinItemId": widget.item.joinId,
+                "orgId": widget.item.orgId,
+                "temperature": '35',
+              }
+            ],
+            "createAt": widget.item.createAt,
+            "updateAt": widget.item.updateAt,
+            "stas": widget.item.status,
+          });
+      // await Repository.fetchConfirmDelivery(widget.detail.id);
     } catch (e) {
       print('submit error $e');
       return;

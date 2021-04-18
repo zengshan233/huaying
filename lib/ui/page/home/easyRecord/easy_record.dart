@@ -3,67 +3,40 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_custom_dialog/flutter_custom_dialog.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:huayin_logistics/config/net/repository.dart';
-import 'package:huayin_logistics/config/resource_mananger.dart';
-import 'package:huayin_logistics/config/router_manger.dart';
 import 'package:huayin_logistics/model/file_upload_data_model.dart';
 import 'package:huayin_logistics/model/select_item_company_data_model.dart';
-import 'package:huayin_logistics/model/speciment_box_model.dart';
 import 'package:huayin_logistics/provider/provider_widget.dart';
 import 'package:huayin_logistics/ui/color/DiyColors.dart';
-import 'package:huayin_logistics/ui/widget/dialog/custom_dialog.dart';
-import 'package:huayin_logistics/ui/widget/select_items.dart';
 import 'package:huayin_logistics/ui/widget/upload_image.dart';
-import 'package:huayin_logistics/ui/widget/barcode_scanner.dart';
 import 'package:huayin_logistics/ui/widget/comon_widget.dart'
     show appBarWithName, showMsgToast, radiusButton, simpleRecordInput;
 import 'package:huayin_logistics/ui/widget/dialog/notice_dialog.dart';
 import 'package:huayin_logistics/ui/widget/dialog/progress_dialog.dart';
 import 'package:huayin_logistics/ui/widget/form_check.dart';
-import 'package:huayin_logistics/utils/popUtils.dart';
 import 'package:huayin_logistics/view_model/home/recrod_model.dart';
-import 'package:huayin_logistics/view_model/mine/mine_model.dart';
-import 'package:provider/provider.dart';
 
+import 'record_info.dart';
 import 'apply_project.dart';
 
-class EasyRecord extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return EasyRecordPage(context: context);
-  }
-}
-
-class EasyRecordPage extends StatefulWidget {
-  BuildContext context;
-  EasyRecordPage({this.context});
+class EasyRecord extends StatefulWidget {
   @override
   _EasyRecord createState() => _EasyRecord();
 }
 
-class _EasyRecord extends State<EasyRecordPage> {
+class _EasyRecord extends State<EasyRecord> {
   List<Map<String, String>> _projectItemArray = [];
 
-  String _companyId = ''; //单位名称id
-
-  TextEditingController _companyNameControll = TextEditingController(); //单位名称
+  List<SelectItemRightListItem> _hasSelectItem = []; //已选择的项目
 
   TextEditingController _barCodeControll = TextEditingController(); //条码号
 
   TextEditingController _recordNameControll = TextEditingController(); //姓名
 
-  List<SelectItemRightListItem> _hasSelectItem = []; //已选择的项目
-
-  List<SpecimentBox> _specimentBoxes = [];
-
-  SpecimentBox _pickedBox;
-
-  SelectCompanyListItem _pickedCompanyItem;
+  Map<String, dynamic> submitData = {};
 
   @override
   void initState() {
     super.initState();
-    getBoxlist(widget.context);
   }
 
   @override
@@ -85,18 +58,20 @@ class _EasyRecord extends State<EasyRecordPage> {
                 builder: (cContext, model, child) {
                   return Column(
                     children: <Widget>[
-                      _boxNum(),
-                      SizedBox(
-                          width: ScreenUtil.screenWidth,
-                          height: ScreenUtil().setHeight(20)),
-                      _baseInfo(),
+                      RecordInfo(
+                        barCodeControll: _barCodeControll,
+                        recordNameControll: _recordNameControll,
+                        updateInfo: (info) {
+                          submitData['main'] = info;
+                        },
+                      ),
                       ApplyProject(
                         updateProject: (items) {
                           _projectItemArray = items;
                         },
                       ),
                       UploadImgage(
-                        submit: (data) {
+                        submit: (data) async {
                           submit(model, data);
                         },
                       ),
@@ -108,150 +83,17 @@ class _EasyRecord extends State<EasyRecordPage> {
     );
   }
 
-  Widget _boxNum() {
-    return InkWell(
-        onTap: () {
-          PopUtils.showPop(
-              context: context,
-              opacity: 0.5,
-              child: SelectItems(
-                title: '标本箱选择',
-                nameList: _specimentBoxes.map((l) => l.boxNo).toList(),
-                pickedName: _pickedBox.boxNo,
-                confirm: (index) {
-                  setState(() {
-                    _pickedBox = _specimentBoxes[index];
-                  });
-                },
-              ));
-        },
-        child: Container(
-          width: ScreenUtil.screenWidth,
-          height: ScreenUtil().setHeight(140),
-          color: Colors.white,
-          padding: EdgeInsets.only(
-              left: ScreenUtil().setWidth(40),
-              right: ScreenUtil().setWidth(40)),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: <Widget>[
-              _leftText('标本箱号'),
-              Container(
-                width: ScreenUtil().setWidth(200),
-                child: _leftText(_pickedBox?.boxNo ?? ''),
-              ), // 先写死
-              new SizedBox(width: ScreenUtil().setWidth(140)),
-              new Image(
-                  color: Colors.black,
-                  width: ScreenUtil().setWidth(60),
-                  height: ScreenUtil().setWidth(60),
-                  image:
-                      new AssetImage(ImageHelper.wrapAssets("right_more.png")),
-                  fit: BoxFit.fill),
-              InkWell(
-                  onTap: () {
-                    Navigator.pushNamed(context, RouteName.deliveryDetail,
-                        arguments: {"boxNo": _pickedBox?.boxNo ?? ''});
-                  },
-                  child: radiusButton(text: '交接单', img: "transfer_ticket.png"))
-            ],
-          ),
-        ));
-  }
-
-  Widget _leftText(String title) {
-    return Container(
-      child: Text(title,
-          style: TextStyle(
-              color: DiyColors.normal_black, fontSize: ScreenUtil().setSp(40))),
-    );
-  }
-
-  // 基本信息
-  Widget _baseInfo() {
-    return new Container(
-        color: Colors.white,
-        padding: EdgeInsets.only(
-            left: ScreenUtil().setWidth(40), right: ScreenUtil().setWidth(40)),
-        child: new Column(
-          children: <Widget>[
-            simpleRecordInput(context,
-                preText: '送检单位',
-                hintText: '(必填)请选择送检单位',
-                enbleInput: false,
-                rightWidget: new Image.asset(
-                  ImageHelper.wrapAssets('mine_rarrow.png'),
-                  width: ScreenUtil().setHeight(40),
-                  height: ScreenUtil().setHeight(40),
-                ),
-                onController: _companyNameControll, onTap: () {
-              Navigator.pushNamed(context, RouteName.selectCompany,
-                  arguments: {'item': _pickedCompanyItem}).then((value) {
-                //print('接收到的单位返回值：'+value.toString());
-                if (value == null) return;
-                var tempMap = jsonDecode(value.toString());
-                _companyId = tempMap['custId'];
-                _companyNameControll.text = tempMap['custName'];
-                _pickedCompanyItem = value;
-              });
-            }),
-            simpleRecordInput(
-              context,
-              preText: '条码号',
-              hintText: '请扫描或输入条码号',
-              keyType: TextInputType.visiblePassword,
-              onController: _barCodeControll,
-              maxLength: 12,
-              rightWidget: InkWell(
-                  onTap: () {
-                    var p = new BarcodeScanner(success: (String code) {
-                      //print('条形码'+code);
-                      if (code == '-1') return;
-                      _barCodeControll.text = code;
-                    });
-                    p.scanBarcodeNormal();
-                  },
-                  child: radiusButton(text: '扫码', img: "scan.png")),
-            ),
-            simpleRecordInput(context,
-                preText: '姓名',
-                hintText: '请输入姓名',
-                maxLength: 50,
-                onController: _recordNameControll,
-                needBorder: false)
-          ],
-        ));
-  }
-
-  getBoxlist(context) async {
-    /// 先写死
-    MineModel model = Provider.of<MineModel>(context);
-    String labId = '82858490362716212';
-    String userId = model.user.user.id;
-    var response;
-    try {
-      response = await Repository.fetchBoxList(labId, userId);
-    } catch (e) {
-      print('getBoxlist error $e');
-      return;
-    }
-    _specimentBoxes = List<SpecimentBox>.from(
-        response.data.map((r) => SpecimentBox.fromJson(r)));
-    _pickedBox = _specimentBoxes.first;
-    setState(() {});
-  }
-
   //校验输入
   bool _checkLoginInput(List<FileUploadItem> _imageList) {
-    if (!isRequire(_companyNameControll.text)) {
+    if (!isRequire(submitData['main']['inspectionUnitName'])) {
       showMsgToast('请选择送检单位！');
       return false;
     }
-    if (!isRequire(_barCodeControll.text)) {
+    if (!isRequire(submitData['main']['barCode'])) {
       showMsgToast('条码号必填项，请维护！');
       return false;
     }
-    if (_barCodeControll.text.length != 12) {
+    if (submitData['main']['barCode'].length != 12) {
       showMsgToast('条码号长度必须为12位！', context: context);
       return false;
     }
@@ -269,32 +111,13 @@ class _EasyRecord extends State<EasyRecordPage> {
     return true;
   }
 
-  submit(model, List<FileUploadItem> _imageList) {
+  submit(RecrodModel model, List<FileUploadItem> _imageList) {
     if (!_checkLoginInput(_imageList)) return;
-    List<Map<String, String>> tempList = [];
-
-    for (var x in _imageList) {
-      Map<String, String> tempMap = {};
-      // tempMap['name']=x.fileName;
-      // tempMap['url']=x.innerUrl;
-      tempMap['fileId'] = x.id;
-      tempList.add(tempMap);
-    }
     String labId = '82858490362716212';
-    model.recordSavaSubmitData([
-      {
-        "main": {
-          "inspectionUnitName": _companyNameControll.text,
-          "inspectionUnitId": _companyId,
-          "barCode": _barCodeControll.text,
-          "boxNo": _pickedBox.boxNo,
-          // "joinId": 0,
-          "name": _recordNameControll.text
-        },
-        "imageIds": _imageList.map((e) => e.id).toList(),
-        "items": _projectItemArray
-      }
-    ], labId).then((val) {
+    submitData['imageIds'] = _imageList.map((e) => e.id).toList();
+    submitData['items'] = _projectItemArray;
+    List<Map<String, dynamic>> list = [submitData];
+    model.recordSavaSubmitData(list, labId).then((val) {
       if (val) {
         Future.microtask(() {
           var yyDialog;

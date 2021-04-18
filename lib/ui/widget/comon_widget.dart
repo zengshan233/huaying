@@ -222,7 +222,6 @@ Widget simpleRecordInput(BuildContext context,
     {Widget rightWidget,
     String preText,
     String hintText,
-    String text,
     bool needBorder = true,
     Function onChange,
     Function onTap,
@@ -250,58 +249,51 @@ Widget simpleRecordInput(BuildContext context,
           alignment: AlignmentDirectional.center,
           children: <Widget>[
             new Container(
+              color: Colors.transparent,
               width: ScreenUtil().setWidth(776),
               margin: EdgeInsets.only(right: ScreenUtil().setWidth(30)),
 //              padding: EdgeInsets.only(right: ScreenUtil().setWidth(140)),
-              child: !enbleInput
-                  ? InkWell(
-                      onTap: () {
-                        onTap?.call();
-                        FocusScope.of(context).requestFocus(new FocusNode());
-                      },
-                      child: Container(
-                        child: Text(
-                          text ?? '',
-                          style: TextStyle(
-                            fontSize: ScreenUtil().setSp(38),
-                            color: Color(0xFF666666),
-                          ),
-                        ),
-                      ),
-                    )
-                  : new TextField(
-                      key: UniqueKey(),
-                      textInputAction: textInputAction,
-                      keyboardType: keyType,
-                      inputFormatters: keyType == TextInputType.number
-                          ? [WhitelistingTextInputFormatter.digitsOnly]
-                          : [],
-                      //只允许输入数字
-                      onSubmitted: onSubmitted,
-                      style: TextStyle(
-                          fontSize: ScreenUtil().setSp(40),
-                          color: Color.fromRGBO(0, 117, 255, 1)),
-                      decoration: InputDecoration(
-                          hintText: hintText,
-                          hintStyle: TextStyle(
-                              fontSize: ScreenUtil().setSp(40),
-                              color: Color.fromRGBO(211, 211, 211, 1),
-                              height: 1.4),
-                          border: InputBorder.none,
-                          focusedBorder: InputBorder.none,
-                          enabledBorder: InputBorder.none,
-                          counterText: ""),
-                      enableInteractiveSelection: enbleInput,
-                      //禁止输入
-                      maxLength: maxLength,
-                      onTap: () {
-                        onTap?.call();
-                      },
-                      onChanged: (v) {
-                        onChange?.call(v);
-                      },
-                      controller: onController,
-                    ),
+              child: new TextField(
+                key: UniqueKey(),
+                textInputAction: textInputAction,
+                keyboardType: keyType,
+                inputFormatters: keyType == TextInputType.number
+                    ? [WhitelistingTextInputFormatter.digitsOnly]
+                    : [],
+                //只允许输入数字
+                onSubmitted: onSubmitted,
+                style: TextStyle(
+                    fontSize: ScreenUtil().setSp(40), color: Color(0xFF333333)),
+                decoration: InputDecoration(
+                    hintText: hintText,
+                    hintStyle: TextStyle(
+                        fontSize: ScreenUtil().setSp(40),
+                        color: Color.fromRGBO(211, 211, 211, 1),
+                        height: 1.4),
+                    border: InputBorder.none,
+                    focusedBorder: InputBorder.none,
+                    enabledBorder: InputBorder.none,
+                    counterText: ""),
+                enableInteractiveSelection: enbleInput,
+                //禁止输入
+                onTap: () {
+                  onTap?.call();
+                  enbleInput
+                      ? (() {})()
+                      : FocusScope.of(context).requestFocus(new FocusNode());
+                },
+                onChanged: (v) {
+                  /// 手动实现输入框的maxLength属性，解决原maxLength设置输入满后，难以再次唤起键盘输入的问题
+                  if (maxLength != null && v.length > maxLength) {
+                    String text = onController.text;
+                    onController.text = text.substring(0, text.length - 1);
+                    onController.selection = TextSelection(
+                        baseOffset: maxLength, extentOffset: maxLength);
+                  }
+                  onChange?.call(onController.text);
+                },
+                controller: onController,
+              ),
             ),
             new Positioned(
                 right: 0, child: rightWidget == null ? SizedBox() : rightWidget)

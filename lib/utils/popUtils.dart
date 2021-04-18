@@ -1,20 +1,25 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:huayin_logistics/base/global_config.dart';
+import 'package:huayin_logistics/ui/color/DiyColors.dart';
+import 'package:huayin_logistics/ui/widget/comon_widget.dart';
 import 'package:huayin_logistics/ui/widget/pop_window/kumi_popup_window.dart';
 
 class PopUtils {
   static Color themeColor;
   static Color theme2Color;
   static Color fontColor;
-  static void showPop(
+  static KumiPopupWindow showPop(
       {Widget child,
+      BuildContext context,
       double opacity,
       int duration = -1,
       Function callback,
       Widget Function(KumiPopupWindow popup) childFun,
-      BuildContext context,
       bool clickDismiss = false}) {
-    showPopupWindow(
+    context = context ?? GlobalConfig.navigatorKey.currentState.overlay.context;
+    return showPopupWindow(
       context,
       gravity: KumiPopupGravity.center,
       bgColor: Colors.black.withOpacity(opacity == null ? 0 : opacity),
@@ -40,6 +45,21 @@ class PopUtils {
         );
       },
     );
+  }
+
+  static KumiPopupWindow showLoading([BuildContext context]) {
+    return showPop(
+        context: context,
+        clickDismiss: true,
+        child: Container(
+          child: Padding(
+            padding: EdgeInsets.all(0),
+            child: CircularProgressIndicator(
+              strokeWidth: 2.0,
+              valueColor: AlwaysStoppedAnimation<Color>(DiyColors.heavy_blue),
+            ),
+          ),
+        ));
   }
 
   static void toast(
@@ -80,13 +100,71 @@ class PopUtils {
     }
 
     showPop(
-        context: context,
         callback: callback,
         duration: 2,
         clickDismiss: true,
         child: Material(
             type: MaterialType.transparency, //透明类型
             child: Align(alignment: alignment, child: infoWidget)));
+  }
+
+  static showTip({String title, Function confirm, String message}) {
+    BuildContext context =
+        GlobalConfig.navigatorKey.currentState.overlay.context;
+    return showPop(
+        clickDismiss: true,
+        childFun: (pop) => Container(
+              width: ScreenUtil().setWidth(800),
+              padding: EdgeInsets.only(bottom: ScreenUtil().setWidth(30)),
+              decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.all(Radius.circular(6))),
+              child: Column(
+                children: <Widget>[
+                  Container(
+                    width: ScreenUtil().setWidth(800),
+                    padding: EdgeInsets.only(
+                        top: ScreenUtil().setHeight(30),
+                        bottom: ScreenUtil().setHeight(30),
+                        left: ScreenUtil().setHeight(30)),
+                    decoration: BoxDecoration(
+                      border: Border(
+                          bottom: BorderSide(
+                              color: GlobalConfig.borderColor,
+                              width: 1.5 / ScreenUtil.pixelRatio)),
+                    ),
+                    child: Text(
+                      title ?? '',
+                      style: TextStyle(
+                        fontSize: ScreenUtil().setSp(44),
+                        color: Color.fromRGBO(90, 90, 90, 1),
+                      ),
+                    ),
+                  ),
+                  Container(
+                    padding: EdgeInsets.symmetric(
+                        vertical: ScreenUtil().setWidth(50),
+                        horizontal: ScreenUtil().setWidth(50)),
+                    alignment: Alignment.center,
+                    child: Text(message),
+                  ),
+                  new Container(
+                    margin: EdgeInsets.symmetric(
+                        horizontal: ScreenUtil().setWidth(50)),
+                    padding: EdgeInsets.symmetric(
+                        vertical: ScreenUtil().setWidth(30)),
+                    child: gradualButton('确定', onTap: () {
+                      if (confirm != null) {
+                        Navigator.pop(context);
+                        confirm();
+                      } else {
+                        pop.dismiss(context);
+                      }
+                    }),
+                  )
+                ],
+              ),
+            ));
   }
 }
 

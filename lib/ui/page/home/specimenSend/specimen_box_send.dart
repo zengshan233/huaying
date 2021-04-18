@@ -90,7 +90,6 @@ class _SpecimenBoxSend extends State<SpecimenBoxSend> {
   }
 
   Widget pickLine() {
-    var tempYYDialog;
     return Container(
       color: Colors.white,
       margin: EdgeInsets.symmetric(vertical: ScreenUtil().setWidth(40)),
@@ -106,7 +105,6 @@ class _SpecimenBoxSend extends State<SpecimenBoxSend> {
           ),
           onController: _lineCon, onTap: () {
         PopUtils.showPop(
-            context: context,
             opacity: 0.5,
             child: SelectItems(
               title: '路线选择',
@@ -203,7 +201,7 @@ class _SpecimenBoxSend extends State<SpecimenBoxSend> {
     }
     var userInfo = Provider.of<MineModel>(context, listen: false).user?.user;
     model
-        .specimenSendSubmitData('0123123124', '2', tempList, _logisticsLine,
+        .specimenSendSubmitData('123456789789', '2', tempList, _logisticsLine,
             userInfo.name, userInfo.id)
         .then((val) {
       if (val) {

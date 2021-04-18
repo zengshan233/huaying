@@ -30,7 +30,6 @@ class _SelectCompany extends State<SelectCompany> {
 
   @override
   Widget build(BuildContext context) {
-    var userInfo = Provider.of<MineModel>(context, listen: false).user?.user;
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
       onTap: () {

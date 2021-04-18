@@ -2,12 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_custom_dialog/flutter_custom_dialog.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:huayin_logistics/config/resource_mananger.dart';
+import 'package:huayin_logistics/provider/provider_widget.dart';
 import 'package:huayin_logistics/ui/color/DiyColors.dart';
 import 'package:huayin_logistics/ui/widget/barcode_scanner.dart';
 import 'package:huayin_logistics/ui/widget/comon_widget.dart'
-    show appBarWithName, radiusButton, simpleRecordInput;
+    show appBarWithName, noDataWidget, radiusButton, simpleRecordInput;
 import 'package:huayin_logistics/model/recorded_code_model.dart';
+import 'package:huayin_logistics/view_model/home/recorded_list_model.dart';
 import 'package:huayin_logistics/ui/widget/datePicker/flutter_cupertino_date_picker.dart';
+import 'package:huayin_logistics/view_model/mine/mine_model.dart';
+import 'package:provider/provider.dart';
+import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'code_detail.dart';
 
 class RecordedCode extends StatefulWidget {
@@ -22,78 +27,102 @@ class _RecordedCode extends State<RecordedCode> {
 
   String date = '';
 
-  bool loading = false;
-
-  int status = 0;
-
   List taps = [
-    {'name': '未发出', 'status': 0},
-    {'name': '已发出', 'status': 1},
-    {'name': '已签收', 'status': 2}
+    {'name': '未发出', 'status': '0'},
+    {'name': '已发出', 'status': '1'},
+    {'name': '已签收', 'status': '2'}
   ];
 
   @override
   void initState() {
     super.initState();
-    getData(0);
-  }
-
-  Future getData(int _status) async {
-    loading = true;
-    setState(() {
-      status = _status;
-    });
-    await Future.delayed(Duration(seconds: 1));
-    String codeStatus = status == 0 ? '未发出' : status == 1 ? '已发出' : '已签收';
-
-    setState(() {
-      data = [
-        CodeItem(
-            date: '2021-02-13',
-            billno: '02号标本箱',
-            number: '21030901',
-            status: codeStatus),
-        CodeItem(
-            date: '2021-02-13',
-            billno: '03号标本箱',
-            number: '21030901',
-            status: codeStatus),
-        CodeItem(
-            date: '2021-02-13',
-            billno: '04号标本箱',
-            number: '21030901',
-            status: codeStatus),
-        CodeItem(
-            date: '2021-02-13',
-            billno: '05号标本箱',
-            number: '21030901',
-            status: codeStatus),
-      ];
-    });
   }
 
   @override
   Widget build(BuildContext context) {
     YYDialog.init(context);
-    return Scaffold(
-        backgroundColor: DiyColors.background_grey,
-        appBar: appBarWithName(context, '已录条码', '外勤:', withName: true),
-        body: Column(
-          children: <Widget>[
-            _baseInfo(),
-            buildTaps(),
-            Expanded(
-                child: ListView.builder(
-                    itemCount: data.length,
-                    itemBuilder: (c, index) {
-                      return buildItem(data[index]);
-                    }))
-          ],
-        ));
+    MineModel model = Provider.of<MineModel>(context);
+    String labId = '82858490362716212';
+    return GestureDetector(
+        behavior: HitTestBehavior.translucent,
+        onTap: () {
+          // 触摸收起键盘
+          FocusScope.of(context).requestFocus(FocusNode());
+        },
+        child: Scaffold(
+            backgroundColor: DiyColors.background_grey,
+            appBar: appBarWithName(context, '已录条码', '外勤:', withName: true),
+            body: ProviderWidget<RecordedListModel>(
+                model: RecordedListModel(
+                  labId: labId,
+                  recordId: model.user.user.id,
+                ),
+                onModelReady: (model) {
+                  model.initData();
+                },
+                builder: (cContext, model, child) {
+                  return Column(
+                    children: <Widget>[
+                      _baseInfo(model),
+                      buildTaps(model),
+                      Expanded(
+                        child: new Container(
+                          child: SmartRefresher(
+                              controller: model.refreshController,
+                              header: WaterDropHeader(),
+                              onRefresh: model.refresh,
+                              onLoading: model.loadMore,
+                              enablePullUp: true,
+                              enablePullDown: false,
+                              child: _listChild(model)),
+                        ),
+                      )
+                    ],
+                  );
+                })));
+  }
+
+  //单项列表
+  Widget _listChild(RecordedListModel model) {
+    if (model.busy)
+      return Container(
+        width: ScreenUtil.screenWidth,
+        padding: EdgeInsets.symmetric(horizontal: ScreenUtil().setWidth(85)),
+        child: Center(
+          child: CircularProgressIndicator(
+            strokeWidth: 2.0,
+          ),
+        ),
+      );
+    if (model.list.isEmpty)
+      return Container(
+        width: ScreenUtil.screenWidth,
+        padding: EdgeInsets.symmetric(horizontal: ScreenUtil().setWidth(85)),
+        child: Container(
+          decoration: BoxDecoration(
+              borderRadius: BorderRadius.only(
+                  bottomLeft: Radius.circular(10),
+                  bottomRight: Radius.circular(10))),
+          padding: EdgeInsets.symmetric(vertical: ScreenUtil().setHeight(100)),
+          child: noDataWidget(text: '暂无列表数据'),
+        ),
+      );
+    else {
+      return CustomScrollView(
+        slivers: <Widget>[
+          SliverList(
+            delegate: SliverChildBuilderDelegate(
+              (c, i) => buildItem(model.list[i]),
+              childCount: model.list.length,
+            ),
+          ),
+        ],
+      );
+    }
   }
 
   // 基本信息
-  Widget _baseInfo() {
+  Widget _baseInfo(RecordedListModel model) {
     return new Container(
         color: Colors.white,
         margin: EdgeInsets.only(bottom: ScreenUtil().setWidth(50)),
@@ -112,16 +141,11 @@ class _RecordedCode extends State<RecordedCode> {
                   height: ScreenUtil().setHeight(40),
                 ), onTap: () {
               DatePicker.showDatePicker(context,
-                  // pickerTheme: DateTimePickerTheme(
-                  //   confirmTextStyle: TextStyle(color: Color(0xFF0377D1)),
-                  //   cancelTextStyle: TextStyle(color: Color(0xFF0377D1)),
-                  //   itemTextStyle: TextStyle(
-                  //       color: Color(0xFF303133), fontWeight: FontWeight.bold),
-                  // ),
-                  // maxDateTime: DateTime.now(),
                   locale: DateTimePickerLocale.zh_cn,
                   onConfirm: (DateTime dateTime, List<int> days) async {
                 _dateControll.text = dateTime.toString().split(' ').first;
+                model.date = dateTime.toString();
+                model.initData();
               });
             }),
             simpleRecordInput(
@@ -131,6 +155,10 @@ class _RecordedCode extends State<RecordedCode> {
               keyType: TextInputType.visiblePassword,
               onController: _barCodeControll,
               maxLength: 12,
+              onSubmitted: (value) {
+                model.barcode = _barCodeControll.text;
+                model.initData();
+              },
               rightWidget: InkWell(
                   onTap: () {
                     var p = new BarcodeScanner(success: (String code) {
@@ -146,16 +174,19 @@ class _RecordedCode extends State<RecordedCode> {
         ));
   }
 
-  Widget buildTaps() {
+  Widget buildTaps(RecordedListModel model) {
     return Container(
       color: Colors.white,
       padding: EdgeInsets.only(top: ScreenUtil().setWidth(30)),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: taps.map((e) {
-          bool isPicked = e['status'] == status;
+          bool isPicked = e['status'] == model.status;
           return InkWell(
-              onTap: () => getData(e['status']),
+              onTap: () {
+                model.status = e['status'];
+                model.initData();
+              },
               child: Container(
                 child: Column(children: [
                   Text(
@@ -178,7 +209,7 @@ class _RecordedCode extends State<RecordedCode> {
     );
   }
 
-  Widget buildItem(CodeItem item) {
+  Widget buildItem(RecordedItem item) {
     return InkWell(
         onTap: () {
           Navigator.push(
@@ -198,10 +229,10 @@ class _RecordedCode extends State<RecordedCode> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: <Widget>[
-                    Text(item.date),
+                    Text(item.recordAt.split(' ').first),
                     Container(
                       margin: EdgeInsets.only(left: ScreenUtil().setWidth(40)),
-                      child: Text(item.billno),
+                      child: Text(item.boxNo),
                     )
                   ],
                 ),
@@ -213,18 +244,29 @@ class _RecordedCode extends State<RecordedCode> {
                     Container(
                       alignment: Alignment.center,
                       child: Text(
-                        item.number,
+                        item.barcode,
                       ),
                     ),
                     Container(
                       margin: EdgeInsets.only(
-                          left: ScreenUtil().setWidth(40),
-                          right: ScreenUtil().setWidth(40)),
+                          left: ScreenUtil().setWidth(20),
+                          right: ScreenUtil().setWidth(10)),
                       padding: EdgeInsets.symmetric(
                           horizontal: ScreenUtil().setWidth(20),
                           vertical: ScreenUtil().setWidth(15)),
                       alignment: Alignment.center,
-                      child: Text(item.status),
+                      child: Text(item.statusName),
+                    ),
+                    Container(
+                      margin: EdgeInsets.only(right: ScreenUtil().setWidth(20)),
+                      alignment: Alignment.center,
+                      child: new Image(
+                          color: Colors.black,
+                          width: ScreenUtil().setWidth(60),
+                          height: ScreenUtil().setWidth(60),
+                          image: new AssetImage(
+                              ImageHelper.wrapAssets("right_more.png")),
+                          fit: BoxFit.fill),
                     )
                   ],
                 ),

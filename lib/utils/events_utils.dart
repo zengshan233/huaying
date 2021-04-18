@@ -6,4 +6,5 @@ class GlobalEvents {
   GlobalEvents._();
 
   final StreamController<bool> showHeader = StreamController<bool>.broadcast();
+  final StreamController clearImages = StreamController.broadcast();
 }

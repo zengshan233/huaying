@@ -5,6 +5,7 @@ import 'package:huayin_logistics/model/event_manager_data_model.dart';
 import 'package:huayin_logistics/model/file_upload_data_model.dart';
 import 'package:huayin_logistics/model/login_data_model.dart';
 import 'package:huayin_logistics/model/oss_model.dart';
+import 'package:huayin_logistics/model/recorded_code_model.dart';
 import 'package:huayin_logistics/model/select_item_company_data_model.dart';
 import 'package:huayin_logistics/model/specimen_box_arrive_data_model.dart';
 import 'package:huayin_logistics/model/specimen_box_send_data_model.dart';
@@ -199,7 +200,6 @@ class Repository {
       "keyword": keyword,
       "status": 0,
     });
-    print('data ${response.data}');
     return response.data;
   }
 
@@ -216,10 +216,70 @@ class Repository {
     return DocumentaryTakePhoneDataModel.fromJson(response.data);
   }
 
+  //根据条码号查询已录入条码
+  static Future<RecordedItem> fetchRecordedBarcode(
+      {String labId,
+      String barCode,
+      String recordId,
+      String recordAt,
+      String status}) async {
+    Response<Map<String, dynamic>> response = await http
+        .post<Map<String, dynamic>>(
+            '/order/lab/$labId/box/recorded/barcode',
+            data: {
+          "barcode": barCode,
+          "recordId": recordId,
+          "recordAt": recordAt,
+          "status": status
+        });
+    return RecordedItem.fromJson(response.data);
+  }
+
+  //根据条码号查询已录入条码
+  static Future fetchRecordedBarcodeList(
+      {String labId,
+      String barCode,
+      String recordId,
+      String recordAt,
+      String status}) async {
+    var response = await http.post('/order/lab/$labId/box/recorded/page/list',
+        data: {"recordId": recordId, "status": status});
+  }
+
   //拍照录单保存
   static Future fetchDocumentaryTakePhoneSubmit(
       List<Map<String, dynamic>> list) async {
     await http.post('/recordSheet/apply/photo/record', data: list);
+  }
+
+  //列表查询标本箱交接表
+  static Future fetchDeliveryList({String labId, String recordId}) async {
+    await http.post('/order/lab/$labId/box/join/page/list', data: {
+      // "confirmStatus": '0',
+      // "keyWords": "",
+      "pageNumber": 1,
+      "pageSize": 20,
+      // "signForStatus": '0',
+      // "status": '0',
+      // "transportStatus": '0',
+      // "recordId": recordId
+    });
+  }
+
+  //拍照录单保存
+  static Future<bool> fetchCheckCompany(
+      {String labId,
+      String boxNo,
+      String inspectionUnitId,
+      String recordId}) async {
+    Response<bool> response = await http.post<bool>(
+        '/order/lab/${labId}box/join/item/inspection/unit/check/confirm',
+        data: {
+          "boxNo": boxNo,
+          "inspectionUnitId": inspectionUnitId,
+          "recordId": recordId
+        });
+    return response?.data ?? false;
   }
 
   //标本状态查询
@@ -261,7 +321,7 @@ class Repository {
     return response.data;
   }
 
-  //批量录单判断标本箱是否存在
+  //判断条码列表中已经使用过
   static Future fetchJudgeSpecimenCodeExist(String barCodes) async {
     var response = await http.post<List<dynamic>>(
         '/recordSheet/apply/already/applied',
@@ -386,16 +446,38 @@ class Repository {
   }
 
   ///新增标本箱交接表
+  // static Future fetchAddDelivery(
+  //     {String labId, Map<String, dynamic> data}) async {
+  //   Response response =
+  //       await http.post('/order/lab/$labId/box/join/create', data: data);
+  //   return response;
+  // }
+
+  ///新增标本箱交接表
   static Future fetchAddDelivery(
-      {String labId, Map<String, dynamic> data}) async {
+      {String labId, String id, Map<String, dynamic> data}) async {
     Response response =
-        await http.post('/order/lab/$labId/box/join/create', data: data);
+        await http.put('/order/lab/$labId/box/join/item/$id', data: data);
     return response;
   }
 
   ///新增标本箱交接表
   static Future fetchConfirmDelivery(String id) async {
     Response response = await http.put('/order/lab/box/join/confirm/$id');
+    return response;
+  }
+
+  ///修改标本箱交接明细状态
+  static Future fetchConfirmDeliveryItem(String id, String status) async {
+    Response response = await http.put('/order/lab/box/join/item/$id/$status');
+    return response;
+  }
+
+  ///修改标本箱交接明细温度表
+  static Future fetchChangeDeliveryTemperature(
+      {String id, String labId, Map<String, dynamic> data}) async {
+    Response response = await http
+        .put('/order/lab/$labId/box/join/item/temperature/$id', data: data);
     return response;
   }
 
@@ -414,5 +496,13 @@ class Repository {
     List<FileUploadItem> items = List<FileUploadItem>.from(
         response.data.map((e) => FileUploadItem.fromJson(e)));
     return items;
+  }
+
+  ///待合箱标本箱列表查询
+  static Future fetchCombinedBoxes({String userId, String labId}) async {
+    Response response = await http.post(
+        '/order/lab/$labId/box/transport/wait/combined',
+        data: {"userId": userId});
+    return response;
   }
 }

@@ -307,7 +307,8 @@ class KumiPopupWindow extends StatefulWidget {
 
   ///收起弹框
   ///popup window dismiss
-  Future dismiss(BuildContext context, {bool notStartAnimation, Function(KumiPopupWindow pop) onFinish}) async {
+  Future dismiss(BuildContext context,
+      {bool notStartAnimation, Function(KumiPopupWindow pop) onFinish}) async {
     _isShow = false;
     if (notStartAnimation == true) {
       Navigator.pop(context);
@@ -340,13 +341,15 @@ class KumiPopupWindow extends StatefulWidget {
   bool get isShow => _isShow;
 }
 
-class _KumiPopupWindowState extends State<KumiPopupWindow> with SingleTickerProviderStateMixin {
+class _KumiPopupWindowState extends State<KumiPopupWindow>
+    with SingleTickerProviderStateMixin {
   Animation<Offset> animation;
 
   @override
   void initState() {
     super.initState();
-    widget._controller = AnimationController(duration: widget._duration, vsync: this);
+    widget._controller =
+        AnimationController(duration: widget._duration, vsync: this);
     widget._controller.addStatusListener((status) {
       switch (status) {
         case AnimationStatus.forward:
@@ -399,7 +402,8 @@ class _KumiPopupWindowState extends State<KumiPopupWindow> with SingleTickerProv
       if (widget._childSize == null) {
         ///那么此时可以直接获取弹出框绘制完成之后的尺寸
         ///Then you can directly get the size after the popup window is drawn.
-        widget._childSize = (widget._child.key as GlobalKey).currentContext.size;
+        widget._childSize =
+            (widget._child.key as GlobalKey).currentContext.size;
 
         ///并且开始动画，必须放在setState里面
         ///And start the animation, must be placed in setState
@@ -432,7 +436,9 @@ class _KumiPopupWindowState extends State<KumiPopupWindow> with SingleTickerProv
   ///判断是否需要将弹出框显示在statusBar或者appBar下方，并返回偏移量
   ///Determines whether the pop-up window needs to be displayed below the statusBar or appBar and returns the offset
   double _getTopPadding(BuildContext context) {
-    return widget._underAppBar == true ? _getStatusBarAndAppBarHeight(context) : (widget._underStatusBar == true ? _getStatusBar(context) : 0);
+    return widget._underAppBar == true
+        ? _getStatusBarAndAppBarHeight(context)
+        : (widget._underStatusBar == true ? _getStatusBar(context) : 0);
   }
 
   ///当popup window的中心点与屏幕中心点重合时，此时popup window的x轴坐标
@@ -480,7 +486,8 @@ class _KumiPopupWindowState extends State<KumiPopupWindow> with SingleTickerProv
                 Positioned(
                   child: GestureDetector(
                     child: FadeTransition(
-                      opacity: Tween(begin: 0.0, end: 1.0).animate(widget._controller),
+                      opacity: Tween(begin: 0.0, end: 1.0)
+                          .animate(widget._controller),
                       child: Container(
                         alignment: Alignment.center,
                         color: widget._bgColor,
@@ -542,11 +549,14 @@ class _KumiPopupWindowState extends State<KumiPopupWindow> with SingleTickerProv
             child: widget._customAnimation
                 ? widget._child
                 : ScaleTransition(
-                    scale: Tween(begin: 0.0, end: 1.0).animate(widget._controller),
+                    scale:
+                        Tween(begin: 0.0, end: 1.0).animate(widget._controller),
                     child: SlideTransition(
-                      position: Tween(begin: Offset(-1, -1), end: Offset(0, 0)).animate(widget._controller),
+                      position: Tween(begin: Offset(-1, -1), end: Offset(0, 0))
+                          .animate(widget._controller),
                       child: FadeTransition(
-                        opacity: Tween(begin: -1.0, end: 1.0).animate(widget._controller),
+                        opacity: Tween(begin: -1.0, end: 1.0)
+                            .animate(widget._controller),
                         child: widget._child,
                       ),
                     ),
@@ -563,11 +573,14 @@ class _KumiPopupWindowState extends State<KumiPopupWindow> with SingleTickerProv
             child: widget._customAnimation
                 ? widget._child
                 : ScaleTransition(
-                    scale: Tween(begin: 0.0, end: 1.0).animate(widget._controller),
+                    scale:
+                        Tween(begin: 0.0, end: 1.0).animate(widget._controller),
                     child: SlideTransition(
-                      position: Tween(begin: Offset(0, 0), end: Offset(-1, -1)).animate(widget._controller),
+                      position: Tween(begin: Offset(0, 0), end: Offset(-1, -1))
+                          .animate(widget._controller),
                       child: FadeTransition(
-                        opacity: Tween(begin: -1.0, end: 1.0).animate(widget._controller),
+                        opacity: Tween(begin: -1.0, end: 1.0)
+                            .animate(widget._controller),
                         child: widget._child,
                       ),
                     ),
@@ -585,9 +598,11 @@ class _KumiPopupWindowState extends State<KumiPopupWindow> with SingleTickerProv
             child: widget._customAnimation
                 ? widget._child
                 : SlideTransition(
-                    position: Tween(begin: Offset(0, -1), end: Offset(0, 0)).animate(widget._controller),
+                    position: Tween(begin: Offset(0, -1), end: Offset(0, 0))
+                        .animate(widget._controller),
                     child: FadeTransition(
-                      opacity: Tween(begin: -1.0, end: 1.0).animate(widget._controller),
+                      opacity: Tween(begin: -1.0, end: 1.0)
+                          .animate(widget._controller),
                       child: widget._child,
                     ),
                   ),
@@ -598,16 +613,24 @@ class _KumiPopupWindowState extends State<KumiPopupWindow> with SingleTickerProv
           ///If the position is relative to the target widget, pop up from directly above the target widget
           ///Before the pop-up, the x-axis center point of the popup window is aligned with the x-axis center point of the target widget, and the top of the popup window is aligned with the top of the target widget
           childView = Positioned(
-            left: targetOffset.dx - (widget._childSize == null ? 0 : widget._childSize.width - targetSize.width) / 2 + widget._offsetX,
+            left: targetOffset.dx -
+                (widget._childSize == null
+                        ? 0
+                        : widget._childSize.width - targetSize.width) /
+                    2 +
+                widget._offsetX,
             top: targetOffset.dy + widget._offsetY,
             child: widget._customAnimation
                 ? widget._child
                 : ScaleTransition(
-                    scale: Tween(begin: 0.0, end: 1.0).animate(widget._controller),
+                    scale:
+                        Tween(begin: 0.0, end: 1.0).animate(widget._controller),
                     child: SlideTransition(
-                      position: Tween(begin: Offset(0, 0), end: Offset(0, -1)).animate(widget._controller),
+                      position: Tween(begin: Offset(0, 0), end: Offset(0, -1))
+                          .animate(widget._controller),
                       child: FadeTransition(
-                        opacity: Tween(begin: -1.0, end: 1.0).animate(widget._controller),
+                        opacity: Tween(begin: -1.0, end: 1.0)
+                            .animate(widget._controller),
                         child: widget._child,
                       ),
                     ),
@@ -625,11 +648,14 @@ class _KumiPopupWindowState extends State<KumiPopupWindow> with SingleTickerProv
             child: widget._customAnimation
                 ? widget._child
                 : ScaleTransition(
-                    scale: Tween(begin: 0.0, end: 1.0).animate(widget._controller),
+                    scale:
+                        Tween(begin: 0.0, end: 1.0).animate(widget._controller),
                     child: SlideTransition(
-                      position: Tween(begin: Offset(1, -1), end: Offset(0, 0)).animate(widget._controller),
+                      position: Tween(begin: Offset(1, -1), end: Offset(0, 0))
+                          .animate(widget._controller),
                       child: FadeTransition(
-                        opacity: Tween(begin: -1.0, end: 1.0).animate(widget._controller),
+                        opacity: Tween(begin: -1.0, end: 1.0)
+                            .animate(widget._controller),
                         child: widget._child,
                       ),
                     ),
@@ -641,16 +667,23 @@ class _KumiPopupWindowState extends State<KumiPopupWindow> with SingleTickerProv
           ///If the position is relative to the target widget, pop up from the upper right of the target widget
           ///Before popup, the upper right corner of the popup box is aligned with the upper right corner of the target widget
           childView = Positioned(
-            left: targetOffset.dx - (widget._childSize == null ? 0 : widget._childSize.width - targetSize.width) + widget._offsetX,
+            left: targetOffset.dx -
+                (widget._childSize == null
+                    ? 0
+                    : widget._childSize.width - targetSize.width) +
+                widget._offsetX,
             top: targetOffset.dy + widget._offsetY,
             child: widget._customAnimation
                 ? widget._child
                 : ScaleTransition(
-                    scale: Tween(begin: 0.0, end: 1.0).animate(widget._controller),
+                    scale:
+                        Tween(begin: 0.0, end: 1.0).animate(widget._controller),
                     child: SlideTransition(
-                      position: Tween(begin: Offset(0, 0), end: Offset(1, -1)).animate(widget._controller),
+                      position: Tween(begin: Offset(0, 0), end: Offset(1, -1))
+                          .animate(widget._controller),
                       child: FadeTransition(
-                        opacity: Tween(begin: -1.0, end: 1.0).animate(widget._controller),
+                        opacity: Tween(begin: -1.0, end: 1.0)
+                            .animate(widget._controller),
                         child: widget._child,
                       ),
                     ),
@@ -664,13 +697,17 @@ class _KumiPopupWindowState extends State<KumiPopupWindow> with SingleTickerProv
           ///If the position is relative to the screen, pop up from the left of the screen
           childView = Positioned(
             left: widget._offsetX,
-            top: _getScreenCenterY() + widget._offsetY + _getTopPadding(context) / 2,
+            top: _getScreenCenterY() +
+                widget._offsetY +
+                _getTopPadding(context) / 2,
             child: widget._customAnimation
                 ? widget._child
                 : SlideTransition(
-                    position: Tween(begin: Offset(-1, 0), end: Offset(0, 0)).animate(widget._controller),
+                    position: Tween(begin: Offset(-1, 0), end: Offset(0, 0))
+                        .animate(widget._controller),
                     child: FadeTransition(
-                      opacity: Tween(begin: -1.0, end: 1.0).animate(widget._controller),
+                      opacity: Tween(begin: -1.0, end: 1.0)
+                          .animate(widget._controller),
                       child: widget._child,
                     ),
                   ),
@@ -682,15 +719,23 @@ class _KumiPopupWindowState extends State<KumiPopupWindow> with SingleTickerProv
           ///Before the pop-up, the y-axis center point of the popup window is aligned with the y-axis center point of the target widget, and the left side of the popup window is aligned with the left side of the target widget
           childView = Positioned(
             left: targetOffset.dx + widget._offsetX,
-            top: targetOffset.dy - (widget._childSize == null ? 0 : widget._childSize.height - targetSize.height) / 2 + widget._offsetY,
+            top: targetOffset.dy -
+                (widget._childSize == null
+                        ? 0
+                        : widget._childSize.height - targetSize.height) /
+                    2 +
+                widget._offsetY,
             child: widget._customAnimation
                 ? widget._child
                 : ScaleTransition(
-                    scale: Tween(begin: 0.0, end: 1.0).animate(widget._controller),
+                    scale:
+                        Tween(begin: 0.0, end: 1.0).animate(widget._controller),
                     child: SlideTransition(
-                      position: Tween(begin: Offset(0, 0), end: Offset(-1, 0)).animate(widget._controller),
+                      position: Tween(begin: Offset(0, 0), end: Offset(-1, 0))
+                          .animate(widget._controller),
                       child: FadeTransition(
-                        opacity: Tween(begin: -1.0, end: 1.0).animate(widget._controller),
+                        opacity: Tween(begin: -1.0, end: 1.0)
+                            .animate(widget._controller),
                         child: widget._child,
                       ),
                     ),
@@ -704,13 +749,17 @@ class _KumiPopupWindowState extends State<KumiPopupWindow> with SingleTickerProv
           ///If the position is relative to the screen, pop up from the center of the screen
           childView = Positioned(
             left: _getScreenCenterX() + widget._offsetX,
-            top: _getScreenCenterY() + widget._offsetY + _getTopPadding(context) / 2,
+            top: _getScreenCenterY() +
+                widget._offsetY +
+                _getTopPadding(context) / 2,
             child: widget._customAnimation
                 ? widget._child
                 : ScaleTransition(
-                    scale: Tween(begin: 0.0, end: 1.0).animate(widget._controller),
+                    scale:
+                        Tween(begin: 0.0, end: 1.0).animate(widget._controller),
                     child: FadeTransition(
-                      opacity: Tween(begin: -1.0, end: 1.0).animate(widget._controller),
+                      opacity: Tween(begin: -1.0, end: 1.0)
+                          .animate(widget._controller),
                       child: widget._child,
                     ),
                   ),
@@ -721,14 +770,26 @@ class _KumiPopupWindowState extends State<KumiPopupWindow> with SingleTickerProv
           ///If the position is relative to the target widget, pop it up from the center of the target widget
           ///Before pop-up, the center point of the popup window is aligned with the center point of the target widget
           childView = Positioned(
-            left: targetOffset.dx - (widget._childSize == null ? 0 : widget._childSize.width - targetSize.width) / 2 + widget._offsetX,
-            top: targetOffset.dy - (widget._childSize == null ? 0 : widget._childSize.height - targetSize.height) / 2 + widget._offsetY,
+            left: targetOffset.dx -
+                (widget._childSize == null
+                        ? 0
+                        : widget._childSize.width - targetSize.width) /
+                    2 +
+                widget._offsetX,
+            top: targetOffset.dy -
+                (widget._childSize == null
+                        ? 0
+                        : widget._childSize.height - targetSize.height) /
+                    2 +
+                widget._offsetY,
             child: widget._customAnimation
                 ? widget._child
                 : ScaleTransition(
-                    scale: Tween(begin: 0.0, end: 1.0).animate(widget._controller),
+                    scale:
+                        Tween(begin: 0.0, end: 1.0).animate(widget._controller),
                     child: FadeTransition(
-                      opacity: Tween(begin: -1.0, end: 1.0).animate(widget._controller),
+                      opacity: Tween(begin: -1.0, end: 1.0)
+                          .animate(widget._controller),
                       child: widget._child,
                     )),
           );
@@ -740,13 +801,17 @@ class _KumiPopupWindowState extends State<KumiPopupWindow> with SingleTickerProv
           ///If the position is relative to the screen, pop up from the right of the screen
           childView = Positioned(
             right: -widget._offsetX,
-            top: _getScreenCenterY() + widget._offsetY + _getTopPadding(context) / 2,
+            top: _getScreenCenterY() +
+                widget._offsetY +
+                _getTopPadding(context) / 2,
             child: widget._customAnimation
                 ? widget._child
                 : SlideTransition(
-                    position: Tween(begin: Offset(1, 0), end: Offset(0, 0)).animate(widget._controller),
+                    position: Tween(begin: Offset(1, 0), end: Offset(0, 0))
+                        .animate(widget._controller),
                     child: FadeTransition(
-                      opacity: Tween(begin: -1.0, end: 1.0).animate(widget._controller),
+                      opacity: Tween(begin: -1.0, end: 1.0)
+                          .animate(widget._controller),
                       child: widget._child,
                     ),
                   ),
@@ -757,16 +822,28 @@ class _KumiPopupWindowState extends State<KumiPopupWindow> with SingleTickerProv
           ///If the position is relative to the target widget, pop up from the left of the target widget
           ///Before the pop-up, the y-axis center point of the popup window is aligned with the y-axis center point of the target widget, and the right side of the popup window is aligned with the right side of the target widget
           childView = Positioned(
-            left: targetOffset.dx - (widget._childSize == null ? 0 : widget._childSize.width - targetSize.width) + widget._offsetX,
-            top: targetOffset.dy - (widget._childSize == null ? 0 : widget._childSize.height - targetSize.height) / 2 + widget._offsetY,
+            left: targetOffset.dx -
+                (widget._childSize == null
+                    ? 0
+                    : widget._childSize.width - targetSize.width) +
+                widget._offsetX,
+            top: targetOffset.dy -
+                (widget._childSize == null
+                        ? 0
+                        : widget._childSize.height - targetSize.height) /
+                    2 +
+                widget._offsetY,
             child: widget._customAnimation
                 ? widget._child
                 : ScaleTransition(
-                    scale: Tween(begin: 0.0, end: 1.0).animate(widget._controller),
+                    scale:
+                        Tween(begin: 0.0, end: 1.0).animate(widget._controller),
                     child: SlideTransition(
-                      position: Tween(begin: Offset(0, 0), end: Offset(1, 0)).animate(widget._controller),
+                      position: Tween(begin: Offset(0, 0), end: Offset(1, 0))
+                          .animate(widget._controller),
                       child: FadeTransition(
-                        opacity: Tween(begin: -1.0, end: 1.0).animate(widget._controller),
+                        opacity: Tween(begin: -1.0, end: 1.0)
+                            .animate(widget._controller),
                         child: widget._child,
                       ),
                     ),
@@ -784,11 +861,14 @@ class _KumiPopupWindowState extends State<KumiPopupWindow> with SingleTickerProv
             child: widget._customAnimation
                 ? widget._child
                 : ScaleTransition(
-                    scale: Tween(begin: 0.0, end: 1.0).animate(widget._controller),
+                    scale:
+                        Tween(begin: 0.0, end: 1.0).animate(widget._controller),
                     child: SlideTransition(
-                      position: Tween(begin: Offset(-1, 1), end: Offset(0, 0)).animate(widget._controller),
+                      position: Tween(begin: Offset(-1, 1), end: Offset(0, 0))
+                          .animate(widget._controller),
                       child: FadeTransition(
-                        opacity: Tween(begin: -1.0, end: 1.0).animate(widget._controller),
+                        opacity: Tween(begin: -1.0, end: 1.0)
+                            .animate(widget._controller),
                         child: widget._child,
                       ),
                     ),
@@ -801,15 +881,22 @@ class _KumiPopupWindowState extends State<KumiPopupWindow> with SingleTickerProv
           ///Before popping up, the bottom left corner of the popup box is aligned with the bottom left corner of the target widget
           childView = Positioned(
             left: targetOffset.dx + widget._offsetX,
-            top: targetOffset.dy - (widget._childSize == null ? 0 : widget._childSize.height - targetSize.height) + widget._offsetY,
+            top: targetOffset.dy -
+                (widget._childSize == null
+                    ? 0
+                    : widget._childSize.height - targetSize.height) +
+                widget._offsetY,
             child: widget._customAnimation
                 ? widget._child
                 : ScaleTransition(
-                    scale: Tween(begin: 0.0, end: 1.0).animate(widget._controller),
+                    scale:
+                        Tween(begin: 0.0, end: 1.0).animate(widget._controller),
                     child: SlideTransition(
-                      position: Tween(begin: Offset(0, 0), end: Offset(-1, 1)).animate(widget._controller),
+                      position: Tween(begin: Offset(0, 0), end: Offset(-1, 1))
+                          .animate(widget._controller),
                       child: FadeTransition(
-                        opacity: Tween(begin: -1.0, end: 1.0).animate(widget._controller),
+                        opacity: Tween(begin: -1.0, end: 1.0)
+                            .animate(widget._controller),
                         child: widget._child,
                       ),
                     ),
@@ -827,9 +914,11 @@ class _KumiPopupWindowState extends State<KumiPopupWindow> with SingleTickerProv
             child: widget._customAnimation
                 ? widget._child
                 : SlideTransition(
-                    position: Tween(begin: Offset(0, 1), end: Offset(0, 0)).animate(widget._controller),
+                    position: Tween(begin: Offset(0, 1), end: Offset(0, 0))
+                        .animate(widget._controller),
                     child: FadeTransition(
-                      opacity: Tween(begin: -1.0, end: 1.0).animate(widget._controller),
+                      opacity: Tween(begin: -1.0, end: 1.0)
+                          .animate(widget._controller),
                       child: widget._child,
                     ),
                   ),
@@ -840,16 +929,28 @@ class _KumiPopupWindowState extends State<KumiPopupWindow> with SingleTickerProv
           ///If the position is relative to the target widget, pop up from directly below the target widget
           ///Before the pop-up, the x-axis center point of the popup window is aligned with the x-axis center point of the target widget, and the right side of the popup window is aligned with the bottom of the target widget
           childView = Positioned(
-            left: targetOffset.dx - (widget._childSize == null ? 0 : widget._childSize.width - targetSize.width) / 2 + widget._offsetX,
-            top: targetOffset.dy - (widget._childSize == null ? 0 : widget._childSize.height - targetSize.height) + widget._offsetY,
+            left: targetOffset.dx -
+                (widget._childSize == null
+                        ? 0
+                        : widget._childSize.width - targetSize.width) /
+                    2 +
+                widget._offsetX,
+            top: targetOffset.dy -
+                (widget._childSize == null
+                    ? 0
+                    : widget._childSize.height - targetSize.height) +
+                widget._offsetY,
             child: widget._customAnimation
                 ? widget._child
                 : ScaleTransition(
-                    scale: Tween(begin: 0.0, end: 1.0).animate(widget._controller),
+                    scale:
+                        Tween(begin: 0.0, end: 1.0).animate(widget._controller),
                     child: SlideTransition(
-                      position: Tween(begin: Offset(0, 0), end: Offset(0, 1)).animate(widget._controller),
+                      position: Tween(begin: Offset(0, 0), end: Offset(0, 1))
+                          .animate(widget._controller),
                       child: FadeTransition(
-                        opacity: Tween(begin: -1.0, end: 1.0).animate(widget._controller),
+                        opacity: Tween(begin: -1.0, end: 1.0)
+                            .animate(widget._controller),
                         child: widget._child,
                       ),
                     ),
@@ -867,11 +968,14 @@ class _KumiPopupWindowState extends State<KumiPopupWindow> with SingleTickerProv
             child: widget._customAnimation
                 ? widget._child
                 : ScaleTransition(
-                    scale: Tween(begin: 0.0, end: 1.0).animate(widget._controller),
+                    scale:
+                        Tween(begin: 0.0, end: 1.0).animate(widget._controller),
                     child: SlideTransition(
-                      position: Tween(begin: Offset(1, 1), end: Offset(0, 0)).animate(widget._controller),
+                      position: Tween(begin: Offset(1, 1), end: Offset(0, 0))
+                          .animate(widget._controller),
                       child: FadeTransition(
-                        opacity: Tween(begin: -1.0, end: 1.0).animate(widget._controller),
+                        opacity: Tween(begin: -1.0, end: 1.0)
+                            .animate(widget._controller),
                         child: widget._child,
                       ),
                     ),
@@ -883,16 +987,27 @@ class _KumiPopupWindowState extends State<KumiPopupWindow> with SingleTickerProv
           ///If the position is relative to the target widget, pop up from the bottom right of the target widget
           ///Before popping up, the bottom right corner of the popup box is aligned with the bottom right corner of the target widget
           childView = Positioned(
-            left: targetOffset.dx - (widget._childSize == null ? 0 : widget._childSize.width - targetSize.width) + widget._offsetX,
-            top: targetOffset.dy - (widget._childSize == null ? 0 : widget._childSize.height - targetSize.height) + widget._offsetY,
+            left: targetOffset.dx -
+                (widget._childSize == null
+                    ? 0
+                    : widget._childSize.width - targetSize.width) +
+                widget._offsetX,
+            top: targetOffset.dy -
+                (widget._childSize == null
+                    ? 0
+                    : widget._childSize.height - targetSize.height) +
+                widget._offsetY,
             child: widget._customAnimation
                 ? widget._child
                 : ScaleTransition(
-                    scale: Tween(begin: 0.0, end: 1.0).animate(widget._controller),
+                    scale:
+                        Tween(begin: 0.0, end: 1.0).animate(widget._controller),
                     child: SlideTransition(
-                      position: Tween(begin: Offset(0, 0), end: Offset(1, 1)).animate(widget._controller),
+                      position: Tween(begin: Offset(0, 0), end: Offset(1, 1))
+                          .animate(widget._controller),
                       child: FadeTransition(
-                        opacity: Tween(begin: -1.0, end: 1.0).animate(widget._controller),
+                        opacity: Tween(begin: -1.0, end: 1.0)
+                            .animate(widget._controller),
                         child: widget._child,
                       ),
                     ),
@@ -912,7 +1027,8 @@ class _KumiPopupWindowState extends State<KumiPopupWindow> with SingleTickerProv
               Positioned(
                 child: GestureDetector(
                   child: FadeTransition(
-                    opacity: Tween(begin: 0.0, end: 1.0).animate(widget._controller),
+                    opacity:
+                        Tween(begin: 0.0, end: 1.0).animate(widget._controller),
                     child: Container(
                       alignment: Alignment.center,
                       color: widget._bgColor,
@@ -951,4 +1067,14 @@ class _KumiPopupWindowState extends State<KumiPopupWindow> with SingleTickerProv
   }
 }
 
-enum KumiPopupGravity { leftTop, centerTop, rightTop, leftCenter, center, rightCenter, leftBottom, centerBottom, rightBottom }
+enum KumiPopupGravity {
+  leftTop,
+  centerTop,
+  rightTop,
+  leftCenter,
+  center,
+  rightCenter,
+  leftBottom,
+  centerBottom,
+  rightBottom
+}

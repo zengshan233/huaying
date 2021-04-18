@@ -17,20 +17,25 @@ class MutilProjects extends StatelessWidget {
   Widget build(BuildContext context) {
     YYDialog.init(context);
     return new Container(
-        margin: EdgeInsets.only(bottom: ScreenUtil().setHeight(60)),
-        padding: EdgeInsets.symmetric(horizontal: ScreenUtil().setWidth(0)),
-        child: Column(
-          children: <Widget>[
-            _listView(context),
-          ],
-        ));
+      margin: EdgeInsets.only(bottom: ScreenUtil().setHeight(60)),
+      padding: EdgeInsets.symmetric(horizontal: ScreenUtil().setWidth(0)),
+      child: _listView(context),
+    );
   }
 
   Widget _listView(BuildContext context) {
-    return Column(
-      children: List.generate(
-          submitData.length, (index) => _recordItem(context, index)),
-    );
+    return submitData.length <= 5
+        ? Column(
+            children: List.generate(
+                submitData.length, (index) => _recordItem(context, index)),
+          )
+        : Container(
+            height: ScreenUtil().setHeight(700),
+            child: ListView(
+              children: List.generate(
+                  submitData.length, (index) => _recordItem(context, index)),
+            ),
+          );
 
     // CustomScrollView(
     //   slivers: <Widget>[
@@ -46,7 +51,7 @@ class MutilProjects extends StatelessWidget {
 
   Widget _recordItem(BuildContext context, int index) {
     var item = submitData[index];
-    String barCode = item['apply']['barCode'].toString();
+    String barCode = item['main']['barCode'].toString();
     return Container(
       color: Colors.white,
       child: Column(
@@ -93,7 +98,7 @@ class MutilProjects extends StatelessWidget {
                   flex: 2,
                   child: Container(
                     child: Image.asset(
-                      ImageHelper.wrapAssets(item['imageItems'].length > 0
+                      ImageHelper.wrapAssets(item['imageIds'].length > 0
                           ? 'record_photo.png'
                           : 'record_photo_empty.png'),
                       width: ScreenUtil().setWidth(60),
@@ -117,7 +122,7 @@ class MutilProjects extends StatelessWidget {
                         yyAlertDialogWithDivider(
                             tip: "确认是否删除？",
                             success: () {
-                              delete(item['apply']['barCode']);
+                              delete(item['main']['barCode']);
                             });
                       },
                     ),

@@ -128,7 +128,8 @@ class Router {
       case RouteName.deliveryDetail:
         var param = settings.arguments as Map;
         return CupertinoPageRoute(
-            builder: (_) => DeliveryDetail(boxNo: param['boxNo']));
+            builder: (_) =>
+                DeliveryDetail(boxNo: param['boxNo'], detail: param['detail']));
 
       case RouteName.eventDetail:
         var param = settings.arguments as Map;

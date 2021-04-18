@@ -9,44 +9,34 @@ import 'package:huayin_logistics/ui/widget/comon_widget.dart'
 import 'package:huayin_logistics/ui/widget/info_form_item.dart';
 import 'package:huayin_logistics/view_model/mine/mine_model.dart';
 import 'package:provider/provider.dart';
-import 'package:intl/intl.dart';
 
 import 'company_details.dart';
 
-class DeliveryDetail extends StatelessWidget {
+class DeliveryDetail extends StatefulWidget {
+  final DeliveryDetailModel detail;
   final String boxNo;
-  DeliveryDetail({this.boxNo});
-
+  DeliveryDetail({this.detail, this.boxNo});
   @override
-  Widget build(BuildContext context) {
-    // TODO: implement build
-    return DeliveryDetailPage(
-      boxNo: boxNo,
-      context: context,
-    );
-  }
+  _DeliveryDetail createState() => _DeliveryDetail();
 }
 
-class DeliveryDetailPage extends StatefulWidget {
-  final String boxNo;
-  BuildContext context;
-  DeliveryDetailPage({this.boxNo, this.context});
-  @override
-  _DeliveryDetailPage createState() => _DeliveryDetailPage();
-}
-
-class _DeliveryDetailPage extends State<DeliveryDetailPage> {
+class _DeliveryDetail extends State<DeliveryDetail> {
   DeliveryDetailModel detail;
 
   @override
   void initState() {
     super.initState();
-    getDetail(widget.context);
+    if (widget.detail != null) {
+      detail = widget.detail;
+    } else {
+      WidgetsBinding.instance.addPostFrameCallback((_) => getDetail());
+    }
   }
 
-  getDetail(context) async {
-    MineModel model = Provider.of<MineModel>(context);
+  getDetail() async {
+    MineModel model = Provider.of<MineModel>(context, listen: false);
 
+    /// 426519329613053990
     /// 426519329613053982
     /// 先写死
     String labId = '82858490362716212';
@@ -54,10 +44,10 @@ class _DeliveryDetailPage extends State<DeliveryDetailPage> {
     var responseId;
     DeliveryDetailModel detailResponse;
     try {
-      // responseId = await Repository.fetchDeliveryId(
-      //     boxNo: widget.boxNo, labId: labId, recordId: userId);
+      responseId = await Repository.fetchDeliveryId(
+          boxNo: widget.boxNo, labId: labId, recordId: userId);
       detailResponse = await Repository.fetchDeliveryDetail(
-          labId: labId, id: '426519329613053982');
+          labId: labId, id: responseId.toString());
     } catch (e) {
       print('getBoxlist error $e');
       return;

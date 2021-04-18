@@ -65,6 +65,9 @@ class _ApplyProject extends State<ApplyProject> {
                             arguments: {'hasSelectItem': _hasSelectItem})
                         .then((value) {
                       //print('接收到的项目返回值：'+value.toString());
+                      if (value == null) {
+                        return;
+                      }
                       _projectItemArray.clear();
                       _hasSelectItem = value;
                       for (var x in jsonDecode(value.toString())) {

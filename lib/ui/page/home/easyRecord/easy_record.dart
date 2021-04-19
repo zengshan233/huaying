@@ -9,7 +9,7 @@ import 'package:huayin_logistics/provider/provider_widget.dart';
 import 'package:huayin_logistics/ui/color/DiyColors.dart';
 import 'package:huayin_logistics/ui/widget/upload_image.dart';
 import 'package:huayin_logistics/ui/widget/comon_widget.dart'
-    show appBarWithName, showMsgToast, radiusButton, simpleRecordInput;
+    show appBarWithName, showMsgToast;
 import 'package:huayin_logistics/ui/widget/dialog/notice_dialog.dart';
 import 'package:huayin_logistics/ui/widget/dialog/progress_dialog.dart';
 import 'package:huayin_logistics/ui/widget/form_check.dart';

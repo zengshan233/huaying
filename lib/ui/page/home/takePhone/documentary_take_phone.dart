@@ -13,8 +13,6 @@ import 'package:huayin_logistics/ui/widget/comon_widget.dart'
 import 'package:huayin_logistics/ui/widget/dialog/notice_dialog.dart';
 import 'package:huayin_logistics/ui/widget/dialog/progress_dialog.dart';
 import 'package:huayin_logistics/ui/widget/form_check.dart';
-import 'package:huayin_logistics/ui/widget/pop_window/kumi_popup_window.dart';
-import 'package:huayin_logistics/utils/popUtils.dart';
 import 'package:huayin_logistics/view_model/home/documentary_take_phone_model.dart';
 import 'package:huayin_logistics/ui/widget/upload_image.dart';
 
@@ -131,17 +129,13 @@ class _DocumentaryTakePhone extends State<DocumentaryTakePhone> {
                 textInputAction: TextInputAction.search,
                 rightWidget: InkWell(
                     onTap: () {
-                      Repository.fetchDeliveryList(
-                          labId: '82858490362716212',
-                          recordId: '118736914412920997');
-
-                      // var p = new BarcodeScanner(success: (String code) {
-                      //   //print('条形码'+code);
-                      //   if (code == '-1') return;
-                      //   _barCodeControll.text = code;
-                      //   _serchInfoByBarCode(model);
-                      // });
-                      // p.scanBarcodeNormal();
+                      var p = new BarcodeScanner(success: (String code) {
+                        //print('条形码'+code);
+                        if (code == '-1') return;
+                        _barCodeControll.text = code;
+                        _serchInfoByBarCode(model);
+                      });
+                      p.scanBarcodeNormal();
                     },
                     child: radiusButton(text: '扫码', img: "scan.png")),
                 onSubmitted: (v) {

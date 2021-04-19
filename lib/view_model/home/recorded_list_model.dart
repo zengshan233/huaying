@@ -14,12 +14,12 @@ class RecordedListModel extends ViewStateRefreshListModel {
       this.barcode = "",
       this.labId,
       this.recordId,
-      this.status = '1'});
+      this.status = '0'});
 
   @override
   Future<List<RecordedItem>> loadData({int pageNum}) async {
     bool isSearch = barcode.isNotEmpty || date.isNotEmpty;
-    var response;
+    List<RecordedItem> response;
     if (isSearch) {
       RecordedItem item = await Repository.fetchRecordedBarcode(
           labId: labId,

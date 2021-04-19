@@ -11,13 +11,17 @@ import 'package:huayin_logistics/ui/widget/datePicker/src/date_picker.dart';
 import 'package:huayin_logistics/ui/widget/datePicker/src/i18n/date_picker_i18n.dart';
 import 'package:huayin_logistics/ui/widget/dialog/notice_dialog.dart';
 import 'package:huayin_logistics/ui/widget/dialog/progress_dialog.dart';
+import 'package:huayin_logistics/ui/widget/pop_window/kumi_popup_window.dart';
 import 'package:huayin_logistics/ui/widget/switch.dart';
+import 'package:huayin_logistics/utils/popUtils.dart';
 import 'package:intl/intl.dart';
+import 'package:oktoast/oktoast.dart';
 
 class CompanyDetails extends StatefulWidget {
   Items item;
   DeliveryDetailModel detail;
-  CompanyDetails({this.item, this.detail});
+  Function() updateStatus;
+  CompanyDetails({this.item, this.detail, this.updateStatus});
 
   @override
   _CompanyDetails createState() => _CompanyDetails();
@@ -287,10 +291,11 @@ class _CompanyDetails extends State<CompanyDetails> {
   submit() async {
     // if (!_checkLoginInput(_imageList)) return;
     String labId = '82858490362716212';
-    var formatter = new DateFormat('yyyy-MM-dd H:mm:ss');
     DateTime now = DateTime.now();
+    KumiPopupWindow pop = PopUtils.showLoading();
+    DeliveryDetailModel detailResponse;
     try {
-      await Repository.fetchAddDelivery(
+      detailResponse = await Repository.fetchAddDelivery(
           labId: labId,
           id: widget.item.id,
           data: {
@@ -319,30 +324,32 @@ class _CompanyDetails extends State<CompanyDetails> {
             "temperatureList": [
               {
                 "createAt": widget.item.createAt,
-                "updateAt": widget.item.updateAt,
+                "updateAt": now.toString(),
                 "dcId": widget.item.dcId,
                 "id": widget.item.id,
                 "joinItemId": widget.item.joinId,
                 "orgId": widget.item.orgId,
-                "temperature": '35',
+                "temperature": temperatureCon.text,
               }
             ],
             "createAt": widget.item.createAt,
-            "updateAt": widget.item.updateAt,
+            "updateAt": now.toString(),
             "stas": widget.item.status,
           });
-      // await Repository.fetchConfirmDelivery(widget.detail.id);
+      await Repository.fetchConfirmDelivery(widget.detail.id);
     } catch (e) {
       print('submit error $e');
+      showToast(e.toString());
+      pop.dismiss(context);
       return;
     }
-
-    print('提交成功');
-    var yyDialog;
-    yyDialog = yyNoticeDialog(text: '提交成功');
-    Future.delayed(Duration(milliseconds: 1500), () {
-      dialogDismiss(yyDialog);
-      setState(() {});
+    await widget.updateStatus?.call();
+    pop.dismiss(context, onFinish: (_p) {
+      var yyDialog;
+      yyDialog = yyNoticeDialog(text: '确认成功');
+      Future.delayed(Duration(milliseconds: 1500), () {
+        dialogDismiss(yyDialog);
+      });
     });
   }
 }

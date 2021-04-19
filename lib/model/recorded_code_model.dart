@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 class CodeItem {
   final String date;
   final String billno;
@@ -27,6 +29,45 @@ class CodeProject {
   final String category;
   final String type;
   CodeProject({this.name, this.category, this.type});
+}
+
+class RecordedListResponse {
+  int pageCount;
+  int pageNumber;
+  int pageSize;
+  int rowsCount;
+  List<RecordedItem> records;
+
+  RecordedListResponse.fromParams(
+      {this.pageCount,
+      this.pageNumber,
+      this.pageSize,
+      this.rowsCount,
+      this.records});
+
+  factory RecordedListResponse(jsonStr) => jsonStr == null
+      ? null
+      : jsonStr is String
+          ? new RecordedListResponse.fromJson(json.decode(jsonStr))
+          : new RecordedListResponse.fromJson(jsonStr);
+
+  RecordedListResponse.fromJson(jsonRes) {
+    pageCount = jsonRes['pageCount'];
+    pageNumber = jsonRes['pageNumber'];
+    pageSize = jsonRes['pageSize'];
+    rowsCount = jsonRes['rowsCount'];
+    records = jsonRes['records'] == null ? null : [];
+
+    for (var recordsItem in records == null ? [] : jsonRes['records']) {
+      records.add(
+          recordsItem == null ? null : new RecordedItem.fromJson(recordsItem));
+    }
+  }
+
+  @override
+  String toString() {
+    return '{"pageCount": $pageCount,"pageNumber": $pageNumber,"pageSize": $pageSize,"rowsCount": $rowsCount,"records": $records}';
+  }
 }
 
 class RecordedItem {

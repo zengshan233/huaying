@@ -236,7 +236,7 @@ class Repository {
   }
 
   //根据条码号查询已录入条码
-  static Future fetchRecordedBarcodeList(
+  static Future<List<RecordedItem>> fetchRecordedBarcodeList(
       {String labId,
       String barCode,
       String recordId,
@@ -244,6 +244,13 @@ class Repository {
       String status}) async {
     var response = await http.post('/order/lab/$labId/box/recorded/page/list',
         data: {"recordId": recordId, "status": status});
+    return RecordedListResponse.fromJson(response.data).records;
+  }
+
+  //查询条码详情
+  static Future fetchCodeDetail(String id) async {
+    Response<Map> response = await http.get<Map>('/recordSheet/apply/$id');
+    return response.data;
   }
 
   //拍照录单保存
@@ -446,22 +453,14 @@ class Repository {
   }
 
   ///新增标本箱交接表
-  // static Future fetchAddDelivery(
-  //     {String labId, Map<String, dynamic> data}) async {
-  //   Response response =
-  //       await http.post('/order/lab/$labId/box/join/create', data: data);
-  //   return response;
-  // }
-
-  ///新增标本箱交接表
-  static Future fetchAddDelivery(
+  static Future<DeliveryDetailModel> fetchAddDelivery(
       {String labId, String id, Map<String, dynamic> data}) async {
     Response response =
         await http.put('/order/lab/$labId/box/join/item/$id', data: data);
-    return response;
+    return DeliveryDetailModel.fromJson(response.data);
   }
 
-  ///新增标本箱交接表
+  ///确认标本箱交接表
   static Future fetchConfirmDelivery(String id) async {
     Response response = await http.put('/order/lab/box/join/confirm/$id');
     return response;

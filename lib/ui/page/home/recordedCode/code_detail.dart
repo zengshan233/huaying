@@ -1,14 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_custom_dialog/flutter_custom_dialog.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:huayin_logistics/config/net/repository.dart';
+import 'package:huayin_logistics/model/file_upload_data_model.dart';
 import 'package:huayin_logistics/ui/color/DiyColors.dart';
 import 'package:huayin_logistics/ui/widget/comon_widget.dart'
     show appBarWithName, simpleRecordInput;
 import 'package:huayin_logistics/model/recorded_code_model.dart';
+import 'package:huayin_logistics/ui/widget/pop_window/kumi_popup_window.dart';
+import 'package:huayin_logistics/utils/popUtils.dart';
+import 'package:oktoast/oktoast.dart';
 
 class CodeDetail extends StatefulWidget {
-  final String id;
-  CodeDetail({this.id});
+  final RecordedItem item;
+  CodeDetail({this.item});
   @override
   _CodeDetailPage createState() => _CodeDetailPage();
 }
@@ -16,32 +21,55 @@ class CodeDetail extends StatefulWidget {
 class _CodeDetailPage extends State<CodeDetail> {
   CodeDetailItem item;
   bool loading = false;
+  List<FileUploadItem> _imageList = [];
+
+  TextEditingController _barCodeCon = TextEditingController();
+  TextEditingController _boxNoCon = TextEditingController();
+  TextEditingController _dateCon = TextEditingController();
+  TextEditingController _companyCon = TextEditingController();
+  List<CodeProject> projects = [];
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-    getData();
+    WidgetsBinding.instance.addPostFrameCallback((_) => getData());
   }
 
   Future getData() async {
     setState(() {
       loading = true;
     });
-    await Future.delayed(Duration(seconds: 1));
+    Map response;
+    KumiPopupWindow pop = PopUtils.showLoading();
+    try {
+      response = await Repository.fetchCodeDetail(
+        widget.item.applyId,
+      );
+    } catch (e) {
+      showToast(e.toString());
+      pop.dismiss(context);
+      return;
+    }
+    pop.dismiss(context);
+    List<CodeProject> _projects = List<CodeProject>.from(response['items'].map(
+        (i) => CodeProject(
+            category: i['labName'],
+            name: i['itemName'],
+            type: i['specimenTypeName'])));
+
+    _barCodeCon.text = response['apply']['barCode'];
+    _boxNoCon.text = response['apply']['barCode'];
+    _dateCon.text = response['apply']['barCode'];
+    _companyCon.text = response['apply']['inspectionUnitName'];
     setState(() {
       loading = false;
+      projects = _projects;
       item = CodeDetailItem(
-          number: '20210313001',
-          specimen: '002号标本箱',
-          date: '2021-03-13 16:18',
-          end: '广东省第二人民医院',
-          projects: [
-            CodeProject(category: '仪器法', name: 'IGH基因断裂检测', type: '组织样本'),
-            CodeProject(category: '仪器法', name: 'IGH基因断裂检测', type: '组织样本'),
-            CodeProject(category: '仪器法', name: 'IGH基因断裂检测', type: '组织样本'),
-            CodeProject(category: '仪器法', name: 'IGH基因断裂检测', type: '组织样本'),
-            CodeProject(category: '仪器法', name: 'IGH基因断裂检测', type: '组织样本'),
-          ],
+          number: response['apply']['barCode'],
+          specimen: response['apply']['barCode'],
+          date: response['apply']['barCode'],
+          end: response['apply']['inspectionUnitName'],
+          projects: projects,
           pics: [
             'https://ss0.bdstatic.com/70cFuHSh_Q1YnxGkpoWK1HF6hhy/it/u=3644052506,1876986348&fm=26&gp=0.jpg',
             'https://ss0.bdstatic.com/70cFuHSh_Q1YnxGkpoWK1HF6hhy/it/u=3644052506,1876986348&fm=26&gp=0.jpg',
@@ -83,25 +111,26 @@ class _CodeDetailPage extends State<CodeDetail> {
             simpleRecordInput(
               context,
               preText: '条码号',
-              hintText: item.number,
+              onController: _barCodeCon,
               enbleInput: false,
             ),
             simpleRecordInput(
               context,
               preText: '标本箱号',
               hintText: item.specimen,
+              onController: _boxNoCon,
               enbleInput: false,
             ),
             simpleRecordInput(
               context,
               preText: '录入时间',
-              hintText: item.date,
+              onController: _dateCon,
               enbleInput: false,
             ),
             simpleRecordInput(
               context,
               preText: '送检单位',
-              hintText: item.end,
+              onController: _companyCon,
               enbleInput: false,
             ),
           ],
@@ -122,7 +151,7 @@ class _CodeDetailPage extends State<CodeDetail> {
             Container(
               child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: item.projects
+                  children: projects
                       .map((e) => Container(
                             padding: EdgeInsets.only(
                               left: ScreenUtil().setWidth(50),

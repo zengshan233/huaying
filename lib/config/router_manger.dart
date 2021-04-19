@@ -5,6 +5,7 @@ import 'package:huayin_logistics/ui/page/home/mutilRecord/mutil_record.dart';
 import 'package:huayin_logistics/ui/page/home/receiptCheck/receipt_check.dart';
 import 'package:huayin_logistics/ui/page/home/receiptCheck/receipt_confirm.dart';
 import 'package:huayin_logistics/ui/page/home/receiptCheck/receipt_details.dart';
+import 'package:huayin_logistics/ui/page/home/recordedCode/code_detail.dart';
 import 'package:huayin_logistics/ui/page/home/selectProject/select_specimen_type.dart';
 import 'package:huayin_logistics/ui/page/home/specimen_box_combine.dart';
 import 'package:huayin_logistics/ui/page/home/specimentJoin/speciment_box_join.dart';
@@ -40,6 +41,7 @@ class RouteName {
   static const String documentaryTakephone = 'documentaryTakephone';
   static const String deliveryReceipt = 'deliveryReceipt';
   static const String recordedCode = 'recordedCode';
+  static const String recordedCodeDetail = 'recordedCodeDetail';
   static const String specimenBoxSend = 'specimenBoxSend';
   static const String transferPicker = 'transferPicker';
   static const String mutilRecord = 'mutilRecord';
@@ -81,6 +83,10 @@ class Router {
         return CupertinoPageRoute(builder: (_) => DeliveryReceipt());
       case RouteName.recordedCode:
         return CupertinoPageRoute(builder: (_) => RecordedCode());
+      case RouteName.recordedCodeDetail:
+        var param = settings.arguments as Map;
+        return CupertinoPageRoute(
+            builder: (_) => CodeDetail(item: param['item']));
       case RouteName.specimenBoxSend:
         return CupertinoPageRoute(builder: (_) => SpecimenBoxSend());
       case RouteName.transferPicker:
@@ -128,9 +134,11 @@ class Router {
       case RouteName.deliveryDetail:
         var param = settings.arguments as Map;
         return CupertinoPageRoute(
-            builder: (_) =>
-                DeliveryDetail(boxNo: param['boxNo'], detail: param['detail']));
-
+            builder: (_) => DeliveryDetail(
+                  boxNo: param['boxNo'],
+                  detail: param['detail'],
+                  updateStatus: param['updateStatus'],
+                ));
       case RouteName.eventDetail:
         var param = settings.arguments as Map;
         return CupertinoPageRoute(

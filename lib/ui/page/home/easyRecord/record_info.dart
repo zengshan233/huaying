@@ -126,8 +126,12 @@ class _RecordInfo extends State<RecordInfo> {
                     Navigator.pushNamed(context, RouteName.deliveryDetail,
                         arguments: {
                           "boxNo": _pickedBox?.boxNo ?? '',
-                          'detail': boxDetail
-                        }).then((value) => checkConfirm(showLoading: true));
+                          'detail': boxDetail,
+                          "updateStatus": (DeliveryDetailModel _boxDetail) {
+                            boxDetail = _boxDetail;
+                            checkConfirm();
+                          }
+                        });
                   },
                   child: radiusButton(text: '交接单', img: "transfer_ticket.png"))
             ],
@@ -244,19 +248,26 @@ class _RecordInfo extends State<RecordInfo> {
     checkConfirm();
   }
 
-  Future getDetail(String boxNo, {KumiPopupWindow pop}) async {
+  Future getDetail(String boxNo,
+      {KumiPopupWindow pop, bool showLoading = true}) async {
     var responseId;
     DeliveryDetailModel detailResponse;
-    pop = pop ?? PopUtils.showLoading();
+    if (showLoading) {
+      pop = pop ?? PopUtils.showLoading();
+    }
     try {
       responseId = await Repository.fetchDeliveryId(
           boxNo: boxNo, labId: _labId, recordId: _userId);
     } catch (e) {
       print('fetchDeliveryId error $e');
+      showToast(e.toString());
+      pop?.dismiss?.call(context);
       return;
     }
+    print('responseId $responseId');
     if (responseId == null) {
-      pop.dismiss(context);
+      pop?.dismiss?.call(context);
+
       return;
     }
     try {
@@ -264,9 +275,12 @@ class _RecordInfo extends State<RecordInfo> {
           labId: _labId, id: responseId.toString());
     } catch (e) {
       print('fetchDeliveryDetail error $e');
+      showToast(e.toString());
+      pop?.dismiss?.call(context);
+
       return;
     }
-    pop.dismiss(context);
+    pop?.dismiss?.call(context);
     setState(() {
       boxDetail = detailResponse;
       Items item = detailResponse.items.last;
@@ -292,14 +306,10 @@ class _RecordInfo extends State<RecordInfo> {
           inspectionUnitId: _companyId);
     } catch (e) {
       print('checkConfirm error $e');
-      if (showLoading) {
-        pop.dismiss(context);
-      }
+      pop?.dismiss?.call(context);
       return;
     }
-    if (showLoading) {
-      pop.dismiss(context);
-    }
+    pop?.dismiss?.call(context);
     _needConfirm = response;
   }
 

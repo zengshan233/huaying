@@ -7,7 +7,10 @@ import 'package:huayin_logistics/ui/color/DiyColors.dart';
 import 'package:huayin_logistics/ui/widget/comon_widget.dart'
     show appBarWithName;
 import 'package:huayin_logistics/ui/widget/info_form_item.dart';
+import 'package:huayin_logistics/ui/widget/pop_window/kumi_popup_window.dart';
+import 'package:huayin_logistics/utils/popUtils.dart';
 import 'package:huayin_logistics/view_model/mine/mine_model.dart';
+import 'package:oktoast/oktoast.dart';
 import 'package:provider/provider.dart';
 
 import 'company_details.dart';
@@ -15,7 +18,8 @@ import 'company_details.dart';
 class DeliveryDetail extends StatefulWidget {
   final DeliveryDetailModel detail;
   final String boxNo;
-  DeliveryDetail({this.detail, this.boxNo});
+  Function(DeliveryDetailModel) updateStatus;
+  DeliveryDetail({this.detail, this.boxNo, this.updateStatus});
   @override
   _DeliveryDetail createState() => _DeliveryDetail();
 }
@@ -33,7 +37,7 @@ class _DeliveryDetail extends State<DeliveryDetail> {
     }
   }
 
-  getDetail() async {
+  getDetail({bool showLoading = true}) async {
     MineModel model = Provider.of<MineModel>(context, listen: false);
 
     /// 426519329613053990
@@ -43,6 +47,10 @@ class _DeliveryDetail extends State<DeliveryDetail> {
     String userId = model.user.user.id;
     var responseId;
     DeliveryDetailModel detailResponse;
+    KumiPopupWindow pop;
+    if (showLoading) {
+      pop = PopUtils.showLoading();
+    }
     try {
       responseId = await Repository.fetchDeliveryId(
           boxNo: widget.boxNo, labId: labId, recordId: userId);
@@ -50,37 +58,55 @@ class _DeliveryDetail extends State<DeliveryDetail> {
           labId: labId, id: responseId.toString());
     } catch (e) {
       print('getBoxlist error $e');
+      showToast(e.toString());
+      pop?.dismiss?.call(context);
       return;
     }
 
+    pop?.dismiss?.call(context);
     setState(() {
       detail = detailResponse;
     });
+    widget.updateStatus?.call(detail);
   }
 
   @override
   Widget build(BuildContext context) {
     YYDialog.init(context);
-    return Scaffold(
-        backgroundColor: DiyColors.background_grey,
-        appBar: appBarWithName(context, '交接单详情', '外勤:', withName: true),
-        body: detail != null
-            ? SingleChildScrollView(
-                padding: EdgeInsets.only(bottom: ScreenUtil().setWidth(100)),
-                child: Column(
-                  children: <Widget>[
-                    buildStatus(),
-                    InfoFormItem(
-                        lable: '日期', text: detail.recordDate.split(' ').first),
-                    InfoFormItem(lable: '标本箱号', text: detail.boxNo),
-                    Column(
-                      children: detail.items
-                          .map((e) => CompanyDetails(item: e, detail: detail))
-                          .toList(),
-                    )
-                  ],
-                ))
-            : Container());
+    return GestureDetector(
+        behavior: HitTestBehavior.translucent,
+        onTap: () {
+          // 触摸收起键盘
+          FocusScope.of(context).requestFocus(FocusNode());
+        },
+        child: Scaffold(
+            backgroundColor: DiyColors.background_grey,
+            appBar: appBarWithName(context, '交接单详情', '外勤:', withName: true),
+            body: detail != null
+                ? SingleChildScrollView(
+                    padding:
+                        EdgeInsets.only(bottom: ScreenUtil().setWidth(100)),
+                    child: Column(
+                      children: <Widget>[
+                        buildStatus(),
+                        InfoFormItem(
+                            lable: '日期',
+                            text: detail.recordDate.split(' ').first),
+                        InfoFormItem(lable: '标本箱号', text: detail.boxNo),
+                        Column(
+                          children: detail.items
+                              .map((e) => CompanyDetails(
+                                    item: e,
+                                    detail: detail,
+                                    updateStatus: () {
+                                      getDetail(showLoading: false);
+                                    },
+                                  ))
+                              .toList(),
+                        )
+                      ],
+                    ))
+                : Container()));
   }
 
   Widget buildStatus() {

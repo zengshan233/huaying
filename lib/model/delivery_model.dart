@@ -238,11 +238,11 @@ class Items {
 class Temperatures {
   String createAt;
   String dcId;
-  int id;
+  String id;
   String joinItemId;
   String orgId;
   String recordAt;
-  int temperature;
+  String temperature;
   String updateAt;
 
   Temperatures(

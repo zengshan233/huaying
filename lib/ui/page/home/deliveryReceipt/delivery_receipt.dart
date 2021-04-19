@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_custom_dialog/flutter_custom_dialog.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:huayin_logistics/config/net/repository.dart';
 import 'package:huayin_logistics/config/resource_mananger.dart';
 import 'package:huayin_logistics/ui/color/DiyColors.dart';
 import 'package:huayin_logistics/ui/widget/comon_widget.dart'
@@ -24,7 +25,9 @@ class _DeliveryReceipt extends State<DeliveryReceipt> {
 
   Future getData() async {
     loading = true;
-    await Future.delayed(Duration(seconds: 1));
+
+    await Repository.fetchDeliveryList(
+        labId: '82858490362716212', recordId: '118736914412920997');
     setState(() {
       data = [
         DeliveryItem(

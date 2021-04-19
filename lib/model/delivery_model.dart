@@ -279,3 +279,80 @@ class Temperatures {
     return data;
   }
 }
+
+class JoinListItem {
+  String dcId;
+  String orgId;
+  String orderNo;
+  String boxNo;
+  String recordDate;
+  String recordId;
+  String recordName;
+  int confirmStatus;
+  String confirmAt;
+  int signForStatus;
+  int transportStatus;
+  String signForRemark;
+  List<Null> items;
+  String id;
+  String createAt;
+  String updateAt;
+
+  JoinListItem(
+      {this.dcId,
+      this.orgId,
+      this.orderNo,
+      this.boxNo,
+      this.recordDate,
+      this.recordId,
+      this.recordName,
+      this.confirmStatus,
+      this.confirmAt,
+      this.signForStatus,
+      this.transportStatus,
+      this.signForRemark,
+      this.items,
+      this.id,
+      this.createAt,
+      this.updateAt});
+
+  JoinListItem.fromJson(Map<String, dynamic> json) {
+    dcId = json['dcId'];
+    orgId = json['orgId'];
+    orderNo = json['orderNo'];
+    boxNo = json['boxNo'];
+    recordDate = json['recordDate'];
+    recordId = json['recordId'];
+    recordName = json['recordName'];
+    confirmStatus = json['confirmStatus'];
+    confirmAt = json['confirmAt'];
+    signForStatus = json['signForStatus'];
+    transportStatus = json['transportStatus'];
+    signForRemark = json['signForRemark'];
+    items = json['items'];
+    id = json['id'];
+    createAt = json['createAt'];
+    updateAt = json['updateAt'];
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = new Map<String, dynamic>();
+    data['dcId'] = this.dcId;
+    data['orgId'] = this.orgId;
+    data['orderNo'] = this.orderNo;
+    data['boxNo'] = this.boxNo;
+    data['recordDate'] = this.recordDate;
+    data['recordId'] = this.recordId;
+    data['recordName'] = this.recordName;
+    data['confirmStatus'] = this.confirmStatus;
+    data['confirmAt'] = this.confirmAt;
+    data['signForStatus'] = this.signForStatus;
+    data['transportStatus'] = this.transportStatus;
+    data['signForRemark'] = this.signForRemark;
+    data['items'] = this.items;
+    data['id'] = this.id;
+    data['createAt'] = this.createAt;
+    data['updateAt'] = this.updateAt;
+    return data;
+  }
+}

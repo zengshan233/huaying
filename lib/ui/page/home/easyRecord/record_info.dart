@@ -50,6 +50,8 @@ class _RecordInfo extends State<RecordInfo> {
 
   DeliveryDetailModel boxDetail;
 
+  String _joinId;
+
   String _labId;
 
   String _userId;
@@ -125,7 +127,7 @@ class _RecordInfo extends State<RecordInfo> {
                   onTap: () {
                     Navigator.pushNamed(context, RouteName.deliveryDetail,
                         arguments: {
-                          "boxNo": _pickedBox?.boxNo ?? '',
+                          "id": _joinId,
                           'detail': boxDetail,
                           "updateStatus": (DeliveryDetailModel _boxDetail) {
                             boxDetail = _boxDetail;
@@ -174,7 +176,7 @@ class _RecordInfo extends State<RecordInfo> {
                         confirm: () {
                           Navigator.pushNamed(
                               context, RouteName.deliveryDetail, arguments: {
-                            "boxNo": _pickedBox?.boxNo ?? '',
+                            "id": _pickedBox?.boxNo ?? '',
                             'detail': boxDetail
                           }).then((value) => checkConfirm(showLoading: true));
                         });
@@ -245,18 +247,16 @@ class _RecordInfo extends State<RecordInfo> {
     _pickedBox = _specimentBoxes.first;
     updateInfo();
     setState(() {});
-    checkConfirm();
   }
 
   Future getDetail(String boxNo,
       {KumiPopupWindow pop, bool showLoading = true}) async {
-    var responseId;
     DeliveryDetailModel detailResponse;
     if (showLoading) {
       pop = pop ?? PopUtils.showLoading();
     }
     try {
-      responseId = await Repository.fetchDeliveryId(
+      _joinId = await Repository.fetchDeliveryId(
           boxNo: boxNo, labId: _labId, recordId: _userId);
     } catch (e) {
       print('fetchDeliveryId error $e');
@@ -264,15 +264,14 @@ class _RecordInfo extends State<RecordInfo> {
       pop?.dismiss?.call(context);
       return;
     }
-    print('responseId $responseId');
-    if (responseId == null) {
+    if (_joinId == null) {
       pop?.dismiss?.call(context);
 
       return;
     }
     try {
       detailResponse = await Repository.fetchDeliveryDetail(
-          labId: _labId, id: responseId.toString());
+          labId: _labId, id: _joinId.toString());
     } catch (e) {
       print('fetchDeliveryDetail error $e');
       showToast(e.toString());
@@ -283,7 +282,7 @@ class _RecordInfo extends State<RecordInfo> {
     pop?.dismiss?.call(context);
     setState(() {
       boxDetail = detailResponse;
-      Items item = detailResponse.items.last;
+      Items item = detailResponse.items.first;
       _pickedCompanyItem = SelectCompanyListItem.fromParams(
           custName: item.inspectionUnitName, custId: item.inspectionUnitId);
       _companyId = item.inspectionUnitId;

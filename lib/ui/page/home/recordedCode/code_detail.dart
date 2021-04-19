@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_custom_dialog/flutter_custom_dialog.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:huayin_logistics/base/flavor_config.dart';
 import 'package:huayin_logistics/config/net/repository.dart';
 import 'package:huayin_logistics/model/file_upload_data_model.dart';
 import 'package:huayin_logistics/ui/color/DiyColors.dart';
@@ -9,6 +10,7 @@ import 'package:huayin_logistics/ui/widget/comon_widget.dart'
 import 'package:huayin_logistics/model/recorded_code_model.dart';
 import 'package:huayin_logistics/ui/widget/pop_window/kumi_popup_window.dart';
 import 'package:huayin_logistics/utils/popUtils.dart';
+import 'package:image_pickers/image_pickers.dart';
 import 'package:oktoast/oktoast.dart';
 
 class CodeDetail extends StatefulWidget {
@@ -19,9 +21,7 @@ class CodeDetail extends StatefulWidget {
 }
 
 class _CodeDetailPage extends State<CodeDetail> {
-  CodeDetailItem item;
-  bool loading = false;
-  List<FileUploadItem> _imageList = [];
+  List<String> _imageList = [];
 
   TextEditingController _barCodeCon = TextEditingController();
   TextEditingController _boxNoCon = TextEditingController();
@@ -36,15 +36,12 @@ class _CodeDetailPage extends State<CodeDetail> {
   }
 
   Future getData() async {
-    setState(() {
-      loading = true;
-    });
     Map response;
     KumiPopupWindow pop = PopUtils.showLoading();
+    String labId = '82858490362716212';
     try {
       response = await Repository.fetchCodeDetail(
-        widget.item.applyId,
-      );
+          applyId: widget.item.applyId, labId: labId);
     } catch (e) {
       showToast(e.toString());
       pop.dismiss(context);
@@ -58,25 +55,12 @@ class _CodeDetailPage extends State<CodeDetail> {
             type: i['specimenTypeName'])));
 
     _barCodeCon.text = response['apply']['barCode'];
-    _boxNoCon.text = response['apply']['barCode'];
-    _dateCon.text = response['apply']['barCode'];
+    _boxNoCon.text = widget.item.boxNo;
+    _dateCon.text = response['apply']['recordTime'].toString().substring(0, 19);
     _companyCon.text = response['apply']['inspectionUnitName'];
+    _imageList = List<String>.from(response['images'].map((i) => i['url']));
     setState(() {
-      loading = false;
       projects = _projects;
-      item = CodeDetailItem(
-          number: response['apply']['barCode'],
-          specimen: response['apply']['barCode'],
-          date: response['apply']['barCode'],
-          end: response['apply']['inspectionUnitName'],
-          projects: projects,
-          pics: [
-            'https://ss0.bdstatic.com/70cFuHSh_Q1YnxGkpoWK1HF6hhy/it/u=3644052506,1876986348&fm=26&gp=0.jpg',
-            'https://ss0.bdstatic.com/70cFuHSh_Q1YnxGkpoWK1HF6hhy/it/u=3644052506,1876986348&fm=26&gp=0.jpg',
-            'https://ss0.bdstatic.com/70cFuHSh_Q1YnxGkpoWK1HF6hhy/it/u=3644052506,1876986348&fm=26&gp=0.jpg',
-            'https://ss0.bdstatic.com/70cFuHSh_Q1YnxGkpoWK1HF6hhy/it/u=3644052506,1876986348&fm=26&gp=0.jpg',
-            'https://ss0.bdstatic.com/70cFuHSh_Q1YnxGkpoWK1HF6hhy/it/u=3644052506,1876986348&fm=26&gp=0.jpg',
-          ]);
     });
   }
 
@@ -86,17 +70,15 @@ class _CodeDetailPage extends State<CodeDetail> {
     return Scaffold(
         backgroundColor: DiyColors.background_grey,
         appBar: appBarWithName(context, '条码详情', '外勤:', withName: true),
-        body: loading
-            ? Container()
-            : SingleChildScrollView(
-                padding: EdgeInsets.only(bottom: 50),
-                child: Column(
-                  children: <Widget>[
-                    _baseInfo(context),
-                    buildProjects(),
-                    buildPics()
-                  ],
-                )));
+        body: SingleChildScrollView(
+            padding: EdgeInsets.only(bottom: 50),
+            child: Column(
+              children: <Widget>[
+                _baseInfo(context),
+                buildProjects(),
+                buildPics()
+              ],
+            )));
   }
 
   // 基本信息
@@ -117,7 +99,6 @@ class _CodeDetailPage extends State<CodeDetail> {
             simpleRecordInput(
               context,
               preText: '标本箱号',
-              hintText: item.specimen,
               onController: _boxNoCon,
               enbleInput: false,
             ),
@@ -144,6 +125,7 @@ class _CodeDetailPage extends State<CodeDetail> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
             Container(
+                width: ScreenUtil.screenWidth,
                 padding:
                     EdgeInsets.symmetric(vertical: ScreenUtil().setWidth(20)),
                 margin: EdgeInsets.only(left: ScreenUtil().setWidth(40)),
@@ -211,16 +193,22 @@ class _CodeDetailPage extends State<CodeDetail> {
                         top: BorderSide(width: 1, color: Color(0xFFf0f0f0)))),
                 child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: item.pics
+                    children: _imageList
                         .map(
-                          (e) => Container(
-                            margin: EdgeInsets.symmetric(
-                                vertical: ScreenUtil().setWidth(40)),
-                            width: ScreenUtil().setWidth(158),
-                            height: ScreenUtil().setWidth(158),
-                            color: Color(0xFFf0f2f5),
-                            child: Image.network(e ?? ''),
-                          ),
+                          (e) => GestureDetector(
+                              onTap: () {
+                                ImagePickers.previewImage(
+                                    FlavorConfig.instance.imgPre + e);
+                              },
+                              child: Container(
+                                margin: EdgeInsets.symmetric(
+                                    vertical: ScreenUtil().setWidth(40)),
+                                width: ScreenUtil().setWidth(158),
+                                height: ScreenUtil().setWidth(158),
+                                color: Color(0xFFf0f2f5),
+                                child: Image.network(
+                                    FlavorConfig.instance.imgPre + e),
+                              )),
                         )
                         .toList())),
           ],

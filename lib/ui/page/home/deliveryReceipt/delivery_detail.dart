@@ -9,17 +9,15 @@ import 'package:huayin_logistics/ui/widget/comon_widget.dart'
 import 'package:huayin_logistics/ui/widget/info_form_item.dart';
 import 'package:huayin_logistics/ui/widget/pop_window/kumi_popup_window.dart';
 import 'package:huayin_logistics/utils/popUtils.dart';
-import 'package:huayin_logistics/view_model/mine/mine_model.dart';
 import 'package:oktoast/oktoast.dart';
-import 'package:provider/provider.dart';
 
 import 'company_details.dart';
 
 class DeliveryDetail extends StatefulWidget {
   final DeliveryDetailModel detail;
-  final String boxNo;
+  final String id;
   Function(DeliveryDetailModel) updateStatus;
-  DeliveryDetail({this.detail, this.boxNo, this.updateStatus});
+  DeliveryDetail({this.detail, this.id, this.updateStatus});
   @override
   _DeliveryDetail createState() => _DeliveryDetail();
 }
@@ -38,24 +36,16 @@ class _DeliveryDetail extends State<DeliveryDetail> {
   }
 
   getDetail({bool showLoading = true}) async {
-    MineModel model = Provider.of<MineModel>(context, listen: false);
-
-    /// 426519329613053990
-    /// 426519329613053982
     /// 先写死
     String labId = '82858490362716212';
-    String userId = model.user.user.id;
-    var responseId;
     DeliveryDetailModel detailResponse;
     KumiPopupWindow pop;
     if (showLoading) {
       pop = PopUtils.showLoading();
     }
     try {
-      responseId = await Repository.fetchDeliveryId(
-          boxNo: widget.boxNo, labId: labId, recordId: userId);
-      detailResponse = await Repository.fetchDeliveryDetail(
-          labId: labId, id: responseId.toString());
+      detailResponse =
+          await Repository.fetchDeliveryDetail(labId: labId, id: widget.id);
     } catch (e) {
       print('getBoxlist error $e');
       showToast(e.toString());
@@ -135,21 +125,21 @@ class _DeliveryDetail extends State<DeliveryDetail> {
                     vertical: ScreenUtil().setHeight(5),
                     horizontal: ScreenUtil().setWidth(20)),
                 decoration: BoxDecoration(
-                    color: detail.confirmStatus == 0
+                    color: detail.confirmStatus == 1
                         ? Colors.transparent
                         : Color(0xffd6e6ff),
                     border: Border.all(
                         width: 1,
-                        color: detail.confirmStatus == 0
+                        color: detail.confirmStatus == 1
                             ? Color(0xFFf0f0f0)
                             : Colors.transparent),
                     borderRadius: BorderRadius.all(Radius.circular(6))),
                 alignment: Alignment.center,
                 child: Text(
-                  '已确认',
+                  detail.confirmStatus == 0 ? '未确认' : '已确认',
                   style: TextStyle(
                       fontSize: ScreenUtil().setSp(34),
-                      color: detail.confirmStatus == 0
+                      color: detail.confirmStatus == 1
                           ? Color(0xFFcccccc)
                           : DiyColors.heavy_blue),
                 ),
@@ -159,21 +149,21 @@ class _DeliveryDetail extends State<DeliveryDetail> {
                     vertical: ScreenUtil().setHeight(5),
                     horizontal: ScreenUtil().setWidth(20)),
                 decoration: BoxDecoration(
-                    color: detail.signForStatus == 0
+                    color: detail.signForStatus == 1
                         ? Colors.transparent
                         : Color(0xffd6e6ff),
                     border: Border.all(
                         width: 1,
-                        color: detail.signForStatus == 0
+                        color: detail.signForStatus == 1
                             ? Color(0xFFf0f0f0)
                             : Colors.transparent),
                     borderRadius: BorderRadius.all(Radius.circular(6))),
                 alignment: Alignment.center,
                 child: Text(
-                  '未签收',
+                  detail.signForStatus == 0 ? '未签收' : '已签收',
                   style: TextStyle(
                       fontSize: ScreenUtil().setSp(34),
-                      color: detail.signForStatus == 0
+                      color: detail.signForStatus == 1
                           ? Color(0xFFcccccc)
                           : DiyColors.heavy_blue),
                 ),

@@ -51,7 +51,10 @@ class _CompanyDetails extends State<CompanyDetails> {
 
   initValue() {
     barCodeCon.text = widget.item.barcodeTotal.toString();
-    dateCon.text = widget.item.temperatures?.first?.recordAt;
+    dateCon.text = widget.item.temperatures?.first?.recordAt?.toString
+        ?.call()
+        ?.substring
+        ?.call(0, 19);
     temperatureCon.text =
         widget.item.temperatures?.first?.temperature?.toString() ?? '';
     bloodCon.text = widget.item.routineSecretion;
@@ -83,6 +86,7 @@ class _CompanyDetails extends State<CompanyDetails> {
                         maxLength: 50,
                         onController: barCodeCon,
                         enbleInput: widget.item.status != 1,
+                        keyType: TextInputType.number,
                         needBorder: true),
                     simpleRecordInput(context,
                         preText: '时间',
@@ -94,6 +98,9 @@ class _CompanyDetails extends State<CompanyDetails> {
                           width: ScreenUtil().setHeight(40),
                           height: ScreenUtil().setHeight(40),
                         ), onTap: () {
+                      if (widget.item.status == 1) {
+                        return;
+                      }
                       DatePicker.showDatePicker(context,
                           locale: DateTimePickerLocale.zh_cn,
                           pickerMode: DateTimePickerMode.datetime,
@@ -106,6 +113,7 @@ class _CompanyDetails extends State<CompanyDetails> {
                       preText: '温度(℃)',
                       hintText: '(必填)请输入温度',
                       onController: temperatureCon,
+                      keyType: TextInputType.number,
                       enbleInput: widget.item.status != 1,
                     ),
                     buildTab('常规'),
@@ -150,6 +158,7 @@ class _CompanyDetails extends State<CompanyDetails> {
                       preText: '组织标本数',
                       hintText: '请输入组织标本数',
                       onController: sampleCountCon,
+                      keyType: TextInputType.number,
                       enbleInput: widget.item.status != 1,
                     ),
                     simpleRecordInput(
@@ -190,10 +199,12 @@ class _CompanyDetails extends State<CompanyDetails> {
               Border(bottom: BorderSide(width: 0.5, color: Color(0xFFf0f0f0)))),
       child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
         GestureDetector(
-          onTap: () {
+          onTap: () async {
             setState(() {
               showDetail = !showDetail;
             });
+            // Repository.fetchConfirmDelivery(widget.detail.id);
+            // widget.updateStatus?.call();
           },
           child: Container(
               child: Row(
@@ -249,7 +260,9 @@ class _CompanyDetails extends State<CompanyDetails> {
             inactiveText: '未确认',
             activeText: '已确认',
             onToggle: (val) {
-              submit();
+              if (widget.detail.signForStatus != 1) {
+                submit(confirm: widget.item.status != 1);
+              }
             },
           ),
         )
@@ -272,71 +285,57 @@ class _CompanyDetails extends State<CompanyDetails> {
     );
   }
 
-  changeT() {
-    String labId = '82858490362716212';
-    Repository.fetchChangeDeliveryTemperature(
-        labId: labId,
-        id: widget.item.id,
-        data: {
-          "createAt": widget.item.createAt,
-          "updateAt": widget.item.updateAt,
-          "dcId": widget.item.dcId,
-          "id": widget.item.id,
-          "joinItemId": widget.item.joinId,
-          "orgId": widget.item.orgId,
-          "temperature": '35',
-        });
-  }
-
-  submit() async {
+  submit({bool confirm = true}) async {
     // if (!_checkLoginInput(_imageList)) return;
     String labId = '82858490362716212';
     DateTime now = DateTime.now();
     KumiPopupWindow pop = PopUtils.showLoading();
-    DeliveryDetailModel detailResponse;
     try {
-      detailResponse = await Repository.fetchAddDelivery(
-          labId: labId,
-          id: widget.item.id,
-          data: {
-            "dcId": widget.item.dcId,
-            "id": widget.item.id,
-            "barcodeTotal": widget.item.barcodeTotal.toString(),
-            "inspectionUnitId": widget.item.inspectionUnitId,
-            "inspectionUnitName": widget.item.inspectionUnitName,
-            "joinId": widget.item.joinId,
-            "pathologyLiquidSpecimen": "",
-            "pathologyOther": "",
-            "pathologyQfc": "",
-            "pathologySlideGlassConsultation": "",
-            "pathologySlideGlassCooperate": "",
-            "pathologySmear": sliceCon.text,
-            "pathologyTissueOrder": applyCon.text,
-            "pathologyTissueSample": sampleCountCon.text,
-            "pathologyTissueTct": tctCon.text,
-            "pathologyWaxBlockConsultation": "",
-            "pathologyWaxBlockCooperate": "",
-            "routineIce": iceCon.text,
-            "routineMic": microCon.text,
-            "routineOther": othersCon.text,
-            "routineSecretion": bloodCon.text,
-            "routineSmear": sliceNormalCon.text,
-            "temperatureList": [
-              {
-                "createAt": widget.item.createAt,
-                "updateAt": now.toString(),
-                "dcId": widget.item.dcId,
-                "id": widget.item.id,
-                "joinItemId": widget.item.joinId,
-                "orgId": widget.item.orgId,
-                "temperature": temperatureCon.text,
-              }
-            ],
-            "createAt": widget.item.createAt,
-            "updateAt": now.toString(),
-            "stas": widget.item.status,
-          });
-      await Repository.fetchConfirmDelivery(widget.detail.id);
+      if (confirm) {
+        await Repository.fetchAddDelivery(
+            labId: labId,
+            id: widget.item.id,
+            data: {
+              "dcId": widget.item.dcId,
+              "id": widget.item.id,
+              "barcodeTotal": widget.item.barcodeTotal.toString(),
+              "inspectionUnitId": widget.item.inspectionUnitId,
+              "inspectionUnitName": widget.item.inspectionUnitName,
+              "joinId": widget.item.joinId,
+              "pathologyLiquidSpecimen": "",
+              "pathologyOther": "",
+              "pathologyQfc": "",
+              "pathologySlideGlassConsultation": "",
+              "pathologySlideGlassCooperate": "",
+              "pathologySmear": sliceCon.text,
+              "pathologyTissueOrder": applyCon.text,
+              "pathologyTissueSample": sampleCountCon.text,
+              "pathologyTissueTct": tctCon.text,
+              "pathologyWaxBlockConsultation": "",
+              "pathologyWaxBlockCooperate": "",
+              "routineIce": iceCon.text,
+              "routineMic": microCon.text,
+              "routineOther": othersCon.text,
+              "routineSecretion": bloodCon.text,
+              "routineSmear": sliceNormalCon.text,
+              "temperatureList": [
+                {
+                  "createAt": widget.item.createAt,
+                  "updateAt": now.toString(),
+                  "dcId": widget.item.dcId,
+                  "id": widget.item.id,
+                  "joinItemId": widget.item.joinId,
+                  "orgId": widget.item.orgId,
+                  "temperature": temperatureCon.text,
+                }
+              ],
+              "createAt": widget.item.createAt,
+              "updateAt": now.toString(),
+              "stas": widget.item.status,
+            });
+      }
+      await Repository.fetchConfirmDeliveryItem(
+          widget.item.id, confirm ? '1' : '0');
     } catch (e) {
       print('submit error $e');
       showToast(e.toString());
@@ -346,7 +345,7 @@ class _CompanyDetails extends State<CompanyDetails> {
     await widget.updateStatus?.call();
     pop.dismiss(context, onFinish: (_p) {
       var yyDialog;
-      yyDialog = yyNoticeDialog(text: '确认成功');
+      yyDialog = yyNoticeDialog(text: '${confirm ? '' : '取消'}确认成功');
       Future.delayed(Duration(milliseconds: 1500), () {
         dialogDismiss(yyDialog);
       });

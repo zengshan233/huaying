@@ -11,6 +11,7 @@ import 'package:huayin_logistics/model/specimen_box_arrive_data_model.dart';
 import 'package:huayin_logistics/model/specimen_box_send_data_model.dart';
 import 'package:huayin_logistics/model/specimen_status_inquiry_data_model.dart';
 import 'package:huayin_logistics/model/transfer_picker_model_data.dart';
+import 'package:huayin_logistics/view_model/home/join_list_model.dart';
 
 import 'huayin_api.dart';
 
@@ -248,8 +249,9 @@ class Repository {
   }
 
   //查询条码详情
-  static Future fetchCodeDetail(String id) async {
-    Response<Map> response = await http.get<Map>('/recordSheet/apply/$id');
+  static Future fetchCodeDetail({String applyId, String labId}) async {
+    Response<Map> response =
+        await http.get<Map>('/lab/$labId/new/simple/record/apply/$applyId');
     return response.data;
   }
 
@@ -260,17 +262,14 @@ class Repository {
   }
 
   //列表查询标本箱交接表
-  static Future fetchDeliveryList({String labId, String recordId}) async {
-    await http.post('/order/lab/$labId/box/join/page/list', data: {
-      // "confirmStatus": '0',
-      // "keyWords": "",
+  static Future<List<JoinListItem>> fetchDeliveryList(
+      {String labId, String recordId}) async {
+    var response =
+        await http.post('/order/lab/$labId/box/join/page/list', data: {
       "pageNumber": 1,
       "pageSize": 20,
-      // "signForStatus": '0',
-      // "status": '0',
-      // "transportStatus": '0',
-      // "recordId": recordId
     });
+    return JoinListResponse.fromJson(response.data).records;
   }
 
   //拍照录单保存
@@ -437,12 +436,12 @@ class Repository {
   }
 
   ///根据箱号和人员查询当前未完成最新交接单ID
-  static Future fetchDeliveryId(
+  static Future<String> fetchDeliveryId(
       {String boxNo, String labId, String recordId}) async {
     Response response = await http.post(
         '/order/lab/$labId/box/join/un/finish/current/new',
         data: {"boxNo": boxNo, 'recordId': recordId});
-    return response;
+    return response.data.toString();
   }
 
   ///查询标本箱交接表详情

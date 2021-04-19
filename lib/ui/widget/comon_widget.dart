@@ -258,7 +258,9 @@ Widget simpleRecordInput(BuildContext context,
                 textInputAction: textInputAction,
                 keyboardType: keyType,
                 inputFormatters: keyType == TextInputType.number
-                    ? [WhitelistingTextInputFormatter.digitsOnly]
+                    ? [
+                        WhitelistingTextInputFormatter(RegExp("[0-9.]")),
+                      ]
                     : [],
                 //只允许输入数字
                 onSubmitted: onSubmitted,

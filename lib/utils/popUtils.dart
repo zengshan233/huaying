@@ -108,10 +108,12 @@ class PopUtils {
             child: Align(alignment: alignment, child: infoWidget)));
   }
 
-  static showTip({String title, Function confirm, String message}) {
+  static showTip(
+      {String title, Function confirm, String message, String confirmText}) {
     BuildContext context =
         GlobalConfig.navigatorKey.currentState.overlay.context;
     return showPop(
+        opacity: 0.3,
         clickDismiss: true,
         childFun: (pop) => Container(
               width: ScreenUtil().setWidth(800),
@@ -153,7 +155,7 @@ class PopUtils {
                         horizontal: ScreenUtil().setWidth(50)),
                     padding: EdgeInsets.symmetric(
                         vertical: ScreenUtil().setWidth(30)),
-                    child: gradualButton('确定', onTap: () {
+                    child: gradualButton(confirmText ?? '确定', onTap: () {
                       if (confirm != null) {
                         Navigator.pop(context);
                         confirm();

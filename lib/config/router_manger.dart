@@ -135,7 +135,7 @@ class Router {
         var param = settings.arguments as Map;
         return CupertinoPageRoute(
             builder: (_) => DeliveryDetail(
-                  boxNo: param['boxNo'],
+                  id: param['id'],
                   detail: param['detail'],
                   updateStatus: param['updateStatus'],
                 ));

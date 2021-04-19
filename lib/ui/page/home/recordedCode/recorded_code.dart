@@ -74,7 +74,7 @@ class _RecordedCode extends State<RecordedCode> {
                               onRefresh: model.refresh,
                               onLoading: model.loadMore,
                               enablePullUp: true,
-                              enablePullDown: false,
+                              enablePullDown: true,
                               child: _listChild(model)),
                         ),
                       )
@@ -177,8 +177,9 @@ class _RecordedCode extends State<RecordedCode> {
 
   Widget buildTaps(RecordedListModel model) {
     return Container(
-      color: Colors.white,
-      padding: EdgeInsets.only(top: ScreenUtil().setWidth(30)),
+      color: Colors.transparent,
+      padding: EdgeInsets.only(
+          top: ScreenUtil().setWidth(10), bottom: ScreenUtil().setWidth(40)),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: taps.map((e) {
@@ -195,7 +196,7 @@ class _RecordedCode extends State<RecordedCode> {
                     style: TextStyle(
                         color: isPicked
                             ? DiyColors.heavy_blue
-                            : Color(0xFFcccccc)),
+                            : Color(0xFF666666)),
                   ),
                   Container(
                     margin: EdgeInsets.only(top: ScreenUtil().setWidth(10)),

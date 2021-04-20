@@ -56,7 +56,7 @@ class _RecordInfo extends State<RecordInfo> {
 
   String _userId;
 
-  bool _needConfirm = false;
+  bool _hasConfirm = false;
 
   @override
   void initState() {
@@ -169,16 +169,21 @@ class _RecordInfo extends State<RecordInfo> {
                 onChange: (v) => updateInfo(),
                 onController: _companyNameControll,
                 onTap: () {
-                  if (_needConfirm) {
+                  if (!_hasConfirm) {
                     PopUtils.showTip(
                         title: '提示',
                         message: '存在未确认的交接单，请确认后再更换送检单位',
                         confirm: () {
-                          Navigator.pushNamed(
-                              context, RouteName.deliveryDetail, arguments: {
-                            "id": _pickedBox?.boxNo ?? '',
-                            'detail': boxDetail
-                          }).then((value) => checkConfirm(showLoading: true));
+                          Navigator.pushNamed(context, RouteName.deliveryDetail,
+                              arguments: {
+                                "id": _joinId,
+                                'detail': boxDetail,
+                                "updateStatus":
+                                    (DeliveryDetailModel _boxDetail) {
+                                  boxDetail = _boxDetail;
+                                  checkConfirm();
+                                }
+                              });
                         });
                     return;
                   }
@@ -299,7 +304,7 @@ class _RecordInfo extends State<RecordInfo> {
     }
     try {
       response = await Repository.fetchCheckCompany(
-          boxNo: _pickedBox.boxNo,
+          boxNo: boxDetail.boxNo,
           labId: _labId,
           recordId: _userId,
           inspectionUnitId: _companyId);
@@ -309,7 +314,7 @@ class _RecordInfo extends State<RecordInfo> {
       return;
     }
     pop?.dismiss?.call(context);
-    _needConfirm = response;
+    _hasConfirm = response;
   }
 
   updateInfo() {

@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_custom_dialog/flutter_custom_dialog.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:huayin_logistics/config/net/repository.dart';
 import 'package:huayin_logistics/config/resource_mananger.dart';
 import 'package:huayin_logistics/model/delivery_model.dart';
 import 'package:huayin_logistics/ui/color/DiyColors.dart';
 import 'package:huayin_logistics/ui/widget/comon_widget.dart'
     show appBarWithName, simpleRecordInput;
+import 'package:huayin_logistics/view_model/mine/mine_model.dart';
+import 'package:provider/provider.dart';
 
 class SpecimentBoxJoin extends StatefulWidget {
   @override
@@ -22,10 +25,14 @@ class _SpecimentBoxJoin extends State<SpecimentBoxJoin> {
   @override
   void initState() {
     super.initState();
-    getBoxList();
+    WidgetsBinding.instance.addPostFrameCallback((_) => getBoxList());
   }
 
   getBoxList() {
+    MineModel model = Provider.of<MineModel>(context, listen: false);
+    String labId = '82858490362716212';
+    String userId = model.user.user.id;
+    Repository.fetchJoinBoxes(labId: labId, userId: userId);
     combineList = [
       SpecimenBoxItem(code: '1', name: '01号标本箱'),
       SpecimenBoxItem(code: '2', name: '02号标本箱'),
@@ -54,7 +61,7 @@ class _SpecimentBoxJoin extends State<SpecimentBoxJoin> {
                         vertical: ScreenUtil().setWidth(20)),
                     alignment: Alignment.centerLeft,
                     child: Text(
-                      '待合标本箱',
+                      '可交接标本箱',
                       style: TextStyle(fontWeight: FontWeight.bold),
                     ),
                   ),

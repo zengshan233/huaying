@@ -363,8 +363,7 @@ Widget recordInput(BuildContext context,
                 //只允许输入数字
                 onSubmitted: onSubmitted,
                 style: TextStyle(
-                    fontSize: ScreenUtil().setSp(40),
-                    color: Color.fromRGBO(0, 117, 255, 1)),
+                    fontSize: ScreenUtil().setSp(40), color: Color(0xFF666666)),
                 decoration: InputDecoration(
                     hintText: hintText,
                     hintStyle: TextStyle(

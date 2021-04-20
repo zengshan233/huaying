@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:huayin_logistics/config/net/repository.dart';
 import 'package:huayin_logistics/model/documentary_take_phone_data_model.dart';
+import 'package:huayin_logistics/model/recorded_code_model.dart';
 import 'package:huayin_logistics/provider/view_state_model.dart';
 import 'package:huayin_logistics/ui/widget/dialog/progress_dialog.dart';
 import 'package:huayin_logistics/ui/widget/pop_window/kumi_popup_window.dart';
@@ -12,12 +13,17 @@ class DocumentaryTakePhoneModel extends ViewStateModel {
 
   var yyDialog;
   //根据条码号查询信息
-  Future<DocumentaryTakePhoneDataModel> documentaryTakePhoneData(
-      BuildContext context, String barCode) async {
+  Future<Map> documentaryTakePhoneData(
+      {BuildContext context,
+      String barCode,
+      String labId,
+      String recordId}) async {
     KumiPopupWindow pop = PopUtils.showLoading();
     try {
-      var response = await Repository.fetchDocumentaryTakePhoneInfo(barCode);
-      //print('响应数据'+response.toString());
+      Map response = await Repository.fetchDocumentaryTakePhoneInfo(barCode);
+      RecordedItem item = await Repository.fetchRecordedBarcode(
+          labId: labId, barCode: barCode, recordId: recordId);
+      response['boxNo'] = item.boxNo;
       setIdle();
       pop.dismiss(context);
       return response;

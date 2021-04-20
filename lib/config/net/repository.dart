@@ -211,10 +211,10 @@ class Repository {
   }
 
   //拍照录单
-  static Future fetchDocumentaryTakePhoneInfo(String barCode) async {
-    var response =
+  static Future<Map> fetchDocumentaryTakePhoneInfo(String barCode) async {
+    Response<Map> response =
         await http.get<Map>('/specimen/state/find/barcode?barCode=$barCode');
-    return DocumentaryTakePhoneDataModel.fromJson(response.data);
+    return response.data;
   }
 
   //根据条码号查询已录入条码
@@ -501,6 +501,29 @@ class Repository {
     Response response = await http.post(
         '/order/lab/$labId/box/transport/wait/combined',
         data: {"userId": userId});
+    return response;
+  }
+
+  ///查询待发出标本箱列表
+  static Future fetchSendBoxes({String userId, String labId}) async {
+    Response response = await http.post(
+        '/order/lab/$labId/box/transport/wait/send/list',
+        data: {"userId": userId});
+    return response;
+  }
+
+  ///查询待交接标本箱列表
+  static Future fetchJoinBoxes({String userId, String labId}) async {
+    Response response = await http.post(
+        '/order/lab/$labId/box/transport/wait/join/list',
+        data: {"userId": userId});
+    return response;
+  }
+
+  ///主键查询标本箱运输单
+  static Future fetchTransportList({String userId, String labId}) async {
+    Response response =
+        await http.get('/order/lab/$labId/box/transport/$userId');
     return response;
   }
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_custom_dialog/flutter_custom_dialog.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:huayin_logistics/config/net/repository.dart';
 import 'package:huayin_logistics/config/resource_mananger.dart';
 import 'package:huayin_logistics/model/transfer_picker_model_data.dart';
 import 'package:huayin_logistics/provider/provider_widget.dart';
@@ -10,6 +11,8 @@ import 'package:huayin_logistics/ui/widget/barcode_scanner.dart';
 import 'package:huayin_logistics/ui/widget/comon_widget.dart'
     show appBarWithName, listTitleDecoration, showMsgToast;
 import 'package:huayin_logistics/view_model/home/transfer_picker_model.dart';
+import 'package:huayin_logistics/view_model/mine/mine_model.dart';
+import 'package:provider/provider.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 import './teke_item.dart';
 
@@ -25,6 +28,14 @@ class _SpecimentBoxTake extends State<SpecimentBoxTake> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => getTransportList());
+  }
+
+  getTransportList() {
+    MineModel model = Provider.of<MineModel>(context, listen: false);
+    String labId = '82858490362716212';
+    String userId = model.user.user.id;
+    Repository.fetchTransportList(labId: labId, userId: userId);
   }
 
   @override

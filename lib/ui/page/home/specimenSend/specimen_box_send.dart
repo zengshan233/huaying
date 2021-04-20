@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_custom_dialog/flutter_custom_dialog.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:huayin_logistics/base/global_config.dart';
+import 'package:huayin_logistics/config/net/repository.dart';
 import 'package:huayin_logistics/config/resource_mananger.dart';
 import 'package:huayin_logistics/model/file_upload_data_model.dart';
 import 'package:huayin_logistics/model/specimen_box_send_data_model.dart';
@@ -44,6 +45,14 @@ class _SpecimenBoxSend extends State<SpecimenBoxSend> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => getSendBoxes());
+  }
+
+  getSendBoxes() {
+    MineModel model = Provider.of<MineModel>(context, listen: false);
+    String labId = '82858490362716212';
+    String userId = model.user.user.id;
+    Repository.fetchSendBoxes(labId: labId, userId: userId);
   }
 
   @override

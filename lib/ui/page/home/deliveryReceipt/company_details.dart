@@ -52,24 +52,27 @@ class _CompanyDetails extends State<CompanyDetails> {
   initValue() {
     barCodeCon.text = widget.item.barcodeTotal.toString();
     dateCon.text = widget.item.temperatures?.first?.recordAt?.toString
-        ?.call()
-        ?.substring
-        ?.call(0, 19);
+            ?.call()
+            ?.substring
+            ?.call(0, 19) ??
+        '';
     temperatureCon.text =
         widget.item.temperatures?.first?.temperature?.toString() ?? '';
-    bloodCon.text = widget.item.routineSecretion;
-    iceCon.text = widget.item.routineIce;
-    sliceNormalCon.text = widget.item.routineSmear;
-    microCon.text = widget.item.routineMic;
-    othersCon.text = widget.item.routineOther;
-    sampleCountCon.text = widget.item.pathologyTissueSample;
-    applyCon.text = widget.item.pathologyTissueOrder;
-    tctCon.text = widget.item.pathologyTissueTct;
-    sliceCon.text = widget.item.pathologySmear;
+    bloodCon.text = widget.item.routineSecretion ?? '';
+    iceCon.text = widget.item.routineIce ?? '';
+    sliceNormalCon.text = widget.item.routineSmear ?? '';
+    microCon.text = widget.item.routineMic ?? '';
+    othersCon.text = widget.item.routineOther ?? '';
+    sampleCountCon.text = widget.item.pathologyTissueSample ?? '';
+    applyCon.text = widget.item.pathologyTissueOrder ?? '';
+    tctCon.text = widget.item.pathologyTissueTct ?? '';
+    sliceCon.text = widget.item.pathologySmear ?? '';
   }
 
   @override
   Widget build(BuildContext context) {
+    bool signed = widget.detail.signForStatus == 1;
+    bool confirmed = widget.item.status == 1;
     return Container(
       color: Colors.white,
       margin: EdgeInsets.only(top: ScreenUtil().setWidth(50)),
@@ -85,7 +88,7 @@ class _CompanyDetails extends State<CompanyDetails> {
                         preText: '条码总数',
                         maxLength: 50,
                         onController: barCodeCon,
-                        enbleInput: widget.item.status != 1,
+                        enbleInput: !confirmed && !signed,
                         keyType: TextInputType.number,
                         needBorder: true),
                     simpleRecordInput(context,
@@ -114,7 +117,7 @@ class _CompanyDetails extends State<CompanyDetails> {
                       hintText: '(必填)请输入温度',
                       onController: temperatureCon,
                       keyType: TextInputType.number,
-                      enbleInput: widget.item.status != 1,
+                      enbleInput: !confirmed && !signed,
                     ),
                     buildTab('常规'),
                     simpleRecordInput(
@@ -122,35 +125,35 @@ class _CompanyDetails extends State<CompanyDetails> {
                       preText: '血/分泌物',
                       hintText: '请输入血/分泌物',
                       onController: bloodCon,
-                      enbleInput: widget.item.status != 1,
+                      enbleInput: !confirmed && !signed,
                     ),
                     simpleRecordInput(
                       context,
                       preText: '冰敷',
                       hintText: '请输入冰敷',
                       onController: iceCon,
-                      enbleInput: widget.item.status != 1,
+                      enbleInput: !confirmed && !signed,
                     ),
                     simpleRecordInput(
                       context,
                       preText: '涂片',
                       hintText: '请输入涂片',
                       onController: sliceNormalCon,
-                      enbleInput: widget.item.status != 1,
+                      enbleInput: !confirmed && !signed,
                     ),
                     simpleRecordInput(
                       context,
                       preText: '微生物',
                       hintText: '请输入微生物',
                       onController: microCon,
-                      enbleInput: widget.item.status != 1,
+                      enbleInput: !confirmed && !signed,
                     ),
                     simpleRecordInput(
                       context,
                       preText: '其他',
                       hintText: '请输入其他',
                       onController: othersCon,
-                      enbleInput: widget.item.status != 1,
+                      enbleInput: !confirmed && !signed,
                     ),
                     buildTab('病理'),
                     simpleRecordInput(
@@ -159,28 +162,28 @@ class _CompanyDetails extends State<CompanyDetails> {
                       hintText: '请输入组织标本数',
                       onController: sampleCountCon,
                       keyType: TextInputType.number,
-                      enbleInput: widget.item.status != 1,
+                      enbleInput: !confirmed && !signed,
                     ),
                     simpleRecordInput(
                       context,
                       preText: '组织申请单',
                       hintText: '请输入组织申请单',
                       onController: applyCon,
-                      enbleInput: widget.item.status != 1,
+                      enbleInput: !confirmed && !signed,
                     ),
                     simpleRecordInput(
                       context,
                       preText: 'TCT',
                       hintText: '请输入TCT',
                       onController: tctCon,
-                      enbleInput: widget.item.status != 1,
+                      enbleInput: !confirmed && !signed,
                     ),
                     simpleRecordInput(
                       context,
                       preText: '涂片',
                       hintText: '请输入涂片',
                       onController: sliceCon,
-                      enbleInput: widget.item.status != 1,
+                      enbleInput: !confirmed && !signed,
                     ),
                   ],
                 )
@@ -203,8 +206,6 @@ class _CompanyDetails extends State<CompanyDetails> {
             setState(() {
               showDetail = !showDetail;
             });
-            // Repository.fetchConfirmDelivery(widget.detail.id);
-            // widget.updateStatus?.call();
           },
           child: Container(
               child: Row(

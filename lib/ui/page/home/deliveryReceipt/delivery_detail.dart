@@ -120,7 +120,6 @@ class _DeliveryDetail extends State<DeliveryDetail> {
               child: Row(
             children: <Widget>[
               Container(
-                margin: EdgeInsets.only(right: ScreenUtil().setWidth(50)),
                 padding: EdgeInsets.symmetric(
                     vertical: ScreenUtil().setHeight(5),
                     horizontal: ScreenUtil().setWidth(20)),
@@ -144,30 +143,6 @@ class _DeliveryDetail extends State<DeliveryDetail> {
                           : DiyColors.heavy_blue),
                 ),
               ),
-              Container(
-                padding: EdgeInsets.symmetric(
-                    vertical: ScreenUtil().setHeight(5),
-                    horizontal: ScreenUtil().setWidth(20)),
-                decoration: BoxDecoration(
-                    color: detail.signForStatus == 1
-                        ? Colors.transparent
-                        : Color(0xffd6e6ff),
-                    border: Border.all(
-                        width: 1,
-                        color: detail.signForStatus == 1
-                            ? Color(0xFFf0f0f0)
-                            : Colors.transparent),
-                    borderRadius: BorderRadius.all(Radius.circular(6))),
-                alignment: Alignment.center,
-                child: Text(
-                  detail.signForStatus == 0 ? '未签收' : '已签收',
-                  style: TextStyle(
-                      fontSize: ScreenUtil().setSp(34),
-                      color: detail.signForStatus == 1
-                          ? Color(0xFFcccccc)
-                          : DiyColors.heavy_blue),
-                ),
-              )
             ],
           ))
         ],

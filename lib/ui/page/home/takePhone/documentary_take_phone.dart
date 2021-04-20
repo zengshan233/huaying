@@ -15,6 +15,8 @@ import 'package:huayin_logistics/ui/widget/dialog/progress_dialog.dart';
 import 'package:huayin_logistics/ui/widget/form_check.dart';
 import 'package:huayin_logistics/view_model/home/documentary_take_phone_model.dart';
 import 'package:huayin_logistics/ui/widget/upload_image.dart';
+import 'package:huayin_logistics/view_model/mine/mine_model.dart';
+import 'package:provider/provider.dart';
 
 class DocumentaryTakePhone extends StatefulWidget {
   @override
@@ -84,22 +86,25 @@ class _DocumentaryTakePhone extends State<DocumentaryTakePhone> {
       _companyNameControll.text = "";
       _dateControll.text = "";
       _boxControll.text = "";
+      MineModel userModel = Provider.of<MineModel>(context, listen: false);
+      String labId = '82858490362716212';
+      String userId = userModel.user.user.id;
       model
-          .documentaryTakePhoneData(context, _barCodeControll.text)
+          .documentaryTakePhoneData(
+              context: context,
+              barCode: _barCodeControll.text,
+              labId: labId,
+              recordId: userId)
           .then((res) {
         if (res != null) {
-          //print('返回数据'+res.toString());
-          var jsonRes = jsonDecode(res.toString());
-          _companyNameControll.text = jsonRes['apply']['inspectionUnitName'];
-          // _boxControll.text = jsonRes['apply']['inspectionUnitName'];
+          _companyNameControll.text = res['apply']['inspectionUnitName'];
+          _boxControll.text = res['boxNo'];
           _dateControll.text =
-              jsonRes['apply']['recordTime'].toString().substring(0, 16);
-          var tempImgList = jsonRes['images'] == null ? [] : jsonRes['images'];
-          //print(tempImgList.toString());
+              res['apply']['recordTime'].toString().substring(0, 16);
+          var tempImgList = res['images'] == null ? [] : res['images'];
           for (var x in tempImgList) {
             var tempObj = {};
             if (x['url'] == null || x['fileId'] == null) continue;
-            //print(x['fileId'].toString());
             tempObj['fileName'] = x['name'].toString();
             tempObj['innerUrl'] = x['url'].toString();
             tempObj['id'] = x['fileId'].toString();

@@ -43,6 +43,7 @@ class DatePicker {
     DateTime minDateTime,
     DateTime maxDateTime,
     DateTime initialDateTime,
+    String title,
     String dateFormat,
     DateTimePickerLocale locale: DATETIME_PICKER_LOCALE_DEFAULT,
     DateTimePickerMode pickerMode: DateTimePickerMode.date,
@@ -100,6 +101,7 @@ class DatePicker {
         onCancel: onCancel,
         onChange: onChange,
         onConfirm: onConfirm,
+        title: title,
         theme: Theme.of(context),
         barrierLabel:
             MaterialLocalizations.of(context).modalBarrierDismissLabel,
@@ -125,6 +127,7 @@ class _DatePickerRoute<T> extends PopupRoute<T> {
     this.theme,
     this.barrierLabel,
     this.minuteDivider,
+    this.title,
     RouteSettings settings,
   }) : super(settings: settings);
 
@@ -138,6 +141,7 @@ class _DatePickerRoute<T> extends PopupRoute<T> {
   final DateValueCallback onConfirm;
   final int minuteDivider;
   final bool onMonthChangeStartWithFirstDate;
+  final String title;
 
   final ThemeData theme;
 
@@ -236,6 +240,7 @@ class _DatePickerComponent extends StatelessWidget {
           onChange: route.onChange,
           onConfirm: route.onConfirm,
           minuteDivider: route.minuteDivider,
+          title: route.title,
         );
         break;
     }

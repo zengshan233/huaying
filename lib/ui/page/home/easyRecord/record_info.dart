@@ -56,7 +56,7 @@ class _RecordInfo extends State<RecordInfo> {
 
   String _userId;
 
-  bool _hasConfirm = false;
+  bool _hasConfirm = true;
 
   @override
   void initState() {
@@ -96,7 +96,7 @@ class _RecordInfo extends State<RecordInfo> {
                     _pickedBox = _specimentBoxes[index];
                   });
                   updateInfo();
-                  getDetail(_pickedBox.boxNo);
+                  getDetail(_pickedBox);
                 },
               ));
         },
@@ -125,6 +125,10 @@ class _RecordInfo extends State<RecordInfo> {
                   fit: BoxFit.fill),
               InkWell(
                   onTap: () {
+                    if (boxDetail == null) {
+                      showMsgToast('该标本箱暂未生成交接单');
+                      return;
+                    }
                     Navigator.pushNamed(context, RouteName.deliveryDetail,
                         arguments: {
                           "id": _joinId,
@@ -248,13 +252,13 @@ class _RecordInfo extends State<RecordInfo> {
     }
     _specimentBoxes = List<SpecimentBox>.from(
         response.data.map((r) => SpecimentBox.fromJson(r)));
-    await getDetail(_specimentBoxes.first.boxNo, pop: pop);
+    await getDetail(_specimentBoxes.first, pop: pop);
     _pickedBox = _specimentBoxes.first;
     updateInfo();
     setState(() {});
   }
 
-  Future getDetail(String boxNo,
+  Future getDetail(SpecimentBox box,
       {KumiPopupWindow pop, bool showLoading = true}) async {
     DeliveryDetailModel detailResponse;
     if (showLoading) {
@@ -262,16 +266,21 @@ class _RecordInfo extends State<RecordInfo> {
     }
     try {
       _joinId = await Repository.fetchDeliveryId(
-          boxNo: boxNo, labId: _labId, recordId: _userId);
+          boxId: box.id, boxNo: box.boxNo, labId: _labId, recordId: _userId);
     } catch (e) {
       print('fetchDeliveryId error $e');
       showToast(e.toString());
       pop?.dismiss?.call(context);
       return;
     }
-    if (_joinId == null) {
+    if (_joinId == null || _joinId == 'null') {
       pop?.dismiss?.call(context);
-
+      setState(() {
+        boxDetail = null;
+        _pickedCompanyItem = null;
+        _companyId = null;
+        _companyNameControll.text = '';
+      });
       return;
     }
     try {
@@ -327,6 +336,7 @@ class _RecordInfo extends State<RecordInfo> {
       "barCode": widget.barCodeControll.text,
       "boxNo": _pickedBox.boxNo,
       "joinId": boxDetail?.id,
+      "boxId": _pickedBox.id,
       "name": widget.recordNameControll?.text ?? ''
     };
     widget.updateInfo(info);
@@ -341,6 +351,7 @@ class _RecordInfo extends State<RecordInfo> {
       "inspectionUnitId": _companyId,
       "barCode": widget.barCodeControll.text,
       "boxNo": _pickedBox.boxNo,
+      "boxId": _pickedBox.id,
       "joinId": boxDetail?.id,
     };
     widget.onBarcodeSubmit(info);

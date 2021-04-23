@@ -27,6 +27,7 @@ class DateTimePickerWidget extends StatefulWidget {
     this.onCancel,
     this.onChange,
     this.onConfirm,
+    this.title,
   }) : super(key: key) {
     DateTime minTime = minDateTime ?? DateTime.parse(DATE_PICKER_MIN_DATETIME);
     DateTime maxTime = maxDateTime ?? DateTime.parse(DATE_PICKER_MAX_DATETIME);
@@ -40,6 +41,7 @@ class DateTimePickerWidget extends StatefulWidget {
   final DateVoidCallback onCancel;
   final DateValueCallback onChange, onConfirm;
   final int minuteDivider;
+  final String title;
 
   @override
   State<StatefulWidget> createState() => _DateTimePickerWidgetState(
@@ -150,6 +152,7 @@ class _DateTimePickerWidgetState extends State<DateTimePickerWidget> {
       Widget titleWidget = DatePickerTitleWidget(
         pickerTheme: widget.pickerTheme,
         locale: widget.locale,
+        title: widget.title,
         onCancel: () => _onPressedCancel(),
         onConfirm: () => _onPressedConfirm(),
       );
@@ -232,7 +235,6 @@ class _DateTimePickerWidgetState extends State<DateTimePickerWidget> {
           _renderDayPickerItemComponent(_dayRange.first + index, dayFormat),
     );
     pickers.add(dayPickerColumn);
-
     // render time picker column
     formatArr.forEach((format) {
       List<int> valueRange = _findPickerItemRange(format);
@@ -255,8 +257,19 @@ class _DateTimePickerWidgetState extends State<DateTimePickerWidget> {
       );
       pickers.add(pickerColumn);
     });
-    return Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween, children: pickers);
+    pickers.insert(
+        2,
+        Container(
+          child: Text(':',
+              style: TextStyle(
+                  color: widget.pickerTheme.itemTextStyle.color,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16)),
+        ));
+    return Container(
+        color: Colors.white,
+        child: Row(
+            mainAxisAlignment: MainAxisAlignment.center, children: pickers));
   }
 
   Widget _renderDatePickerColumnComponent({
@@ -276,7 +289,6 @@ class _DateTimePickerWidgetState extends State<DateTimePickerWidget> {
             if (format.contains('m')) {
               value = minuteDivider * index;
             }
-
             return _renderDatePickerItemComponent(value, format);
           };
 

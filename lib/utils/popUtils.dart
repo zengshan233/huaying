@@ -17,6 +17,7 @@ class PopUtils {
       int duration = -1,
       Function callback,
       Widget Function(KumiPopupWindow popup) childFun,
+      bool animated = true,
       bool clickDismiss = false}) {
     context = context ?? GlobalConfig.navigatorKey.currentState.overlay.context;
     return showPopupWindow(
@@ -25,7 +26,10 @@ class PopUtils {
       bgColor: Colors.black.withOpacity(opacity == null ? 0 : opacity),
       clickOutDismiss: clickDismiss,
       clickBackDismiss: clickDismiss,
-      duration: Duration(milliseconds: 200),
+      duration: Duration(milliseconds: animated ? 200 : 0),
+      onClickOut: (p) {
+        print("onClickOut");
+      },
       childFun: (pop) {
         if (duration > 0) {
           Timer(Duration(seconds: duration), () async {

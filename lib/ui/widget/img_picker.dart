@@ -70,18 +70,19 @@ class ImgPicker {
 
   Future imageUpload(List<Media> resultList) async {
     var yyDialog = yyProgressDialogBody(text: '正在上传...');
-    ossData = await Repository.fetchOssSts();
-    List<String> paths = resultList.map((e) => e.path).toList();
-    Iterable<Future<FileUploadItem>> futures = paths.map((e) => ossUpload(e));
     List<FileUploadItem> uploadResponse;
-    List<String> ossPaths =
-        resultList.map((e) => getOssFilePath(e.path)).toList();
     try {
+      ossData = await Repository.fetchOssSts();
+      List<String> paths = resultList.map((e) => e.path).toList();
+      Iterable<Future<FileUploadItem>> futures = paths.map((e) => ossUpload(e));
+      List<String> ossPaths =
+          resultList.map((e) => getOssFilePath(e.path)).toList();
       await Future.wait(futures);
       uploadResponse = await Repository.fetchFileSave('1', ossPaths);
     } catch (e) {
       print('upload erro $e');
       Future.microtask(() {
+        dialogDismiss(yyDialog);
         yyDialog = yyNoticeFailedDialog(text: '上传失败！');
         Future.delayed(Duration(milliseconds: 1500), () {
           dialogDismiss(yyDialog);

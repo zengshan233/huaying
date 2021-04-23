@@ -9,10 +9,129 @@ class DeliveryItem {
 }
 
 class SpecimenBoxItem {
-  final String name;
-  final bool ice;
-  final String code;
-  SpecimenBoxItem({this.name, this.ice, this.code});
+  List<String> joinIds;
+  String boxNo;
+  int boxType;
+  bool ice;
+
+  SpecimenBoxItem({this.joinIds, this.boxNo, this.boxType, this.ice = false});
+
+  SpecimenBoxItem.fromJson(Map<String, dynamic> json) {
+    joinIds = json['joinIds'].cast<String>();
+    boxNo = json['boxNo'];
+    boxType = json['boxType'];
+    ice = json['ice'] ?? false;
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = new Map<String, dynamic>();
+    data['joinIds'] = this.joinIds;
+    data['boxNo'] = this.boxNo;
+    data['boxType'] = this.boxType;
+    data['ice'] = this.ice;
+    return data;
+  }
+}
+
+class SpecimenJoinItem {
+  String boxNo;
+  String id;
+  List<String> joinIds;
+
+  SpecimenJoinItem({this.id, this.boxNo, this.joinIds});
+
+  SpecimenJoinItem.fromJson(Map<String, dynamic> json) {
+    joinIds = json['joinIds'].cast<String>();
+    boxNo = json['boxNo'];
+    id = json['id'];
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = new Map<String, dynamic>();
+    data['joinIds'] = this.joinIds;
+    data['id'] = this.id;
+    data['boxNo'] = this.boxNo;
+    return data;
+  }
+}
+
+class SpecimenCombinedItem {
+  String joinId;
+  String boxNo;
+  String boxId;
+
+  SpecimenCombinedItem({this.joinId, this.boxNo, this.boxId});
+
+  SpecimenCombinedItem.fromJson(Map<String, dynamic> json) {
+    joinId = json['joinId'];
+    boxNo = json['boxNo'];
+    boxId = json['boxId'];
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = new Map<String, dynamic>();
+    data['joinId'] = this.joinId;
+    data['boxNo'] = this.boxNo;
+    data['boxId'] = this.boxId;
+    return data;
+  }
+}
+
+class SpecimenUnusedItem {
+  String dcId;
+  String orgId;
+  String lineId;
+  String lineName;
+  String lineCodeNo;
+  String boxNo;
+  String recordId;
+  String recordName;
+  String id;
+  String createAt;
+  String updateAt;
+
+  SpecimenUnusedItem(
+      {this.dcId,
+      this.orgId,
+      this.lineId,
+      this.lineName,
+      this.lineCodeNo,
+      this.boxNo,
+      this.recordId,
+      this.recordName,
+      this.id,
+      this.createAt,
+      this.updateAt});
+
+  SpecimenUnusedItem.fromJson(Map<String, dynamic> json) {
+    dcId = json['dcId'];
+    orgId = json['orgId'];
+    lineId = json['lineId'];
+    lineName = json['lineName'];
+    lineCodeNo = json['lineCodeNo'];
+    boxNo = json['boxNo'];
+    recordId = json['recordId'];
+    recordName = json['recordName'];
+    id = json['id'];
+    createAt = json['createAt'];
+    updateAt = json['updateAt'];
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = new Map<String, dynamic>();
+    data['dcId'] = this.dcId;
+    data['orgId'] = this.orgId;
+    data['lineId'] = this.lineId;
+    data['lineName'] = this.lineName;
+    data['lineCodeNo'] = this.lineCodeNo;
+    data['boxNo'] = this.boxNo;
+    data['recordId'] = this.recordId;
+    data['recordName'] = this.recordName;
+    data['id'] = this.id;
+    data['createAt'] = this.createAt;
+    data['updateAt'] = this.updateAt;
+    return data;
+  }
 }
 
 class DeliveryInputItem {

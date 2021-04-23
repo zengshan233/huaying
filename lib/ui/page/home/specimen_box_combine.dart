@@ -7,7 +7,12 @@ import 'package:huayin_logistics/model/delivery_model.dart';
 import 'package:huayin_logistics/ui/color/DiyColors.dart';
 import 'package:huayin_logistics/ui/widget/comon_widget.dart'
     show appBarWithName;
+import 'package:huayin_logistics/ui/widget/dialog/notice_dialog.dart';
+import 'package:huayin_logistics/ui/widget/dialog/progress_dialog.dart';
+import 'package:huayin_logistics/ui/widget/pop_window/kumi_popup_window.dart';
+import 'package:huayin_logistics/utils/popUtils.dart';
 import 'package:huayin_logistics/view_model/mine/mine_model.dart';
+import 'package:oktoast/oktoast.dart';
 import 'package:provider/provider.dart';
 
 class SpecimentBoxCombine extends StatefulWidget {
@@ -18,42 +23,37 @@ class SpecimentBoxCombine extends StatefulWidget {
 class _SpecimentBoxCombine extends State<SpecimentBoxCombine> {
   TextEditingController customCon = TextEditingController();
 
-  List<SpecimenBoxItem> combineList = [];
+  List<SpecimenCombinedItem> combineList = [];
 
-  List<SpecimenBoxItem> boxList = [];
+  List<SpecimenUnusedItem> boxList = [];
 
-  List<String> combineBoxes = [];
+  List<SpecimenCombinedItem> combineBoxes = [];
 
-  String box;
+  SpecimenUnusedItem box;
 
   @override
   void initState() {
     super.initState();
-    getCombineList();
-    getBoxList();
-    WidgetsBinding.instance.addPostFrameCallback((_) => getCombineList());
+    WidgetsBinding.instance.addPostFrameCallback((_) => getData());
   }
 
-  getCombineList() {
-    MineModel model = Provider.of<MineModel>(context, listen: false);
+  getData() async {
+    var userInfo = Provider.of<MineModel>(context, listen: false).user?.user;
     String labId = '82858490362716212';
-    String userId = model.user.user.id;
-    Repository.fetchCombinedBoxes(labId: labId, userId: userId);
-    combineList = [
-      SpecimenBoxItem(code: '1', name: '01号标本箱'),
-      SpecimenBoxItem(code: '2', name: '02号标本箱'),
-      SpecimenBoxItem(code: '3', name: '03号标本箱'),
-      SpecimenBoxItem(code: '4', name: '04号标本箱'),
-    ];
-  }
-
-  getBoxList() {
-    boxList = [
-      SpecimenBoxItem(code: '5', name: '21号标本箱'),
-      SpecimenBoxItem(code: '6', name: '22号标本箱'),
-      SpecimenBoxItem(code: '7', name: '23号标本箱'),
-      SpecimenBoxItem(code: '8', name: '24号标本箱'),
-    ];
+    String userId = userInfo.id;
+    KumiPopupWindow pop = PopUtils.showLoading();
+    try {
+      combineList =
+          await Repository.fetchCombinedBoxes(labId: labId, userId: userId);
+      boxList = await Repository.fetchUnUsedBoxes(labId: labId, userId: userId);
+    } catch (e) {
+      print("getSendBoxes err $e");
+      showToast(e.toString());
+      pop.dismiss(context);
+      return null;
+    }
+    pop.dismiss(context);
+    setState(() {});
   }
 
   @override
@@ -105,8 +105,7 @@ class _SpecimentBoxCombine extends State<SpecimentBoxCombine> {
                   ),
                   Container(
                     child: Column(
-                      children:
-                          combineList.map((e) => buildBoxItem(e)).toList(),
+                      children: boxList.map((e) => buildBoxItem(e)).toList(),
                     ),
                   )
                 ],
@@ -118,13 +117,13 @@ class _SpecimentBoxCombine extends State<SpecimentBoxCombine> {
         )));
   }
 
-  Widget buildCombineItem(SpecimenBoxItem item) {
+  Widget buildCombineItem(SpecimenCombinedItem item) {
     return InkWell(
         onTap: () {
-          if (combineBoxes.contains(item.code)) {
-            combineBoxes.removeWhere((c) => c == item.code);
+          if (combineBoxes.contains(item)) {
+            combineBoxes.removeWhere((c) => c.boxNo == item.boxNo);
           } else {
-            combineBoxes.add(item.code);
+            combineBoxes.add(item);
           }
           setState(() {});
         },
@@ -144,7 +143,7 @@ class _SpecimentBoxCombine extends State<SpecimentBoxCombine> {
                       left: ScreenUtil().setWidth(50),
                       right: ScreenUtil().setWidth(50)),
                   child: Image.asset(
-                    ImageHelper.wrapAssets(combineBoxes.contains(item.code)
+                    ImageHelper.wrapAssets(combineBoxes.contains(item)
                         ? 'record_sg.png'
                         : 'record_so.png'),
                     fit: BoxFit.fitWidth,
@@ -153,22 +152,22 @@ class _SpecimentBoxCombine extends State<SpecimentBoxCombine> {
               ),
               Container(
                   alignment: Alignment.center,
-                  child: Text(item.name,
+                  child: Text(item.boxNo,
                       style: TextStyle(color: Color(0xFF666666)))),
             ],
           ),
         ));
   }
 
-  Widget buildBoxItem(SpecimenBoxItem item) {
+  Widget buildBoxItem(SpecimenUnusedItem item) {
     return InkWell(
         onTap: () {
           setState(() {
-            box = item.code;
+            box = item;
           });
         },
         child: Container(
-          padding: EdgeInsets.symmetric(vertical: ScreenUtil().setWidth(20)),
+          padding: EdgeInsets.symmetric(vertical: ScreenUtil().setWidth(35)),
           decoration: BoxDecoration(
               color: Colors.white,
               border:
@@ -177,21 +176,22 @@ class _SpecimentBoxCombine extends State<SpecimentBoxCombine> {
             children: <Widget>[
               Container(
                 child: Container(
-                  width: ScreenUtil().setWidth(80),
-                  height: ScreenUtil().setWidth(80),
+                  width: ScreenUtil().setWidth(55),
+                  height: ScreenUtil().setWidth(55),
                   margin: EdgeInsets.only(
-                      left: ScreenUtil().setWidth(50),
+                      left: ScreenUtil().setWidth(60),
                       right: ScreenUtil().setWidth(50)),
                   child: Image.asset(
-                    ImageHelper.wrapAssets(
-                        box == item.code ? 'record_sg.png' : 'record_so.png'),
+                    ImageHelper.wrapAssets(box?.boxNo == item.boxNo
+                        ? 'select_on.png'
+                        : 'select_off.png'),
                     fit: BoxFit.fitWidth,
                   ),
                 ),
               ),
               Container(
                   alignment: Alignment.center,
-                  child: Text(item.name,
+                  child: Text(item.boxNo,
                       style: TextStyle(color: Color(0xFF666666)))),
             ],
           ),
@@ -202,7 +202,7 @@ class _SpecimentBoxCombine extends State<SpecimentBoxCombine> {
     return InkWell(
         onTap: () {
           setState(() {
-            box = 'custom';
+            box = null;
           });
         },
         child: Container(
@@ -215,14 +215,14 @@ class _SpecimentBoxCombine extends State<SpecimentBoxCombine> {
             children: <Widget>[
               Container(
                 child: Container(
-                  width: ScreenUtil().setWidth(80),
-                  height: ScreenUtil().setWidth(80),
+                  width: ScreenUtil().setWidth(55),
+                  height: ScreenUtil().setWidth(55),
                   margin: EdgeInsets.only(
-                      left: ScreenUtil().setWidth(50),
+                      left: ScreenUtil().setWidth(60),
                       right: ScreenUtil().setWidth(50)),
                   child: Image.asset(
                     ImageHelper.wrapAssets(
-                        box == 'custom' ? 'record_sg.png' : 'record_so.png'),
+                        box == null ? 'select_on.png' : 'select_off.png'),
                     fit: BoxFit.fitWidth,
                   ),
                 ),
@@ -264,7 +264,7 @@ class _SpecimentBoxCombine extends State<SpecimentBoxCombine> {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: <Widget>[
           InkWell(
-              onTap: () {},
+              onTap: submit,
               child: Container(
                 width: ScreenUtil().setWidth(1000),
                 padding:
@@ -281,5 +281,35 @@ class _SpecimentBoxCombine extends State<SpecimentBoxCombine> {
         ],
       ),
     );
+  }
+
+  submit() async {
+    var userInfo = Provider.of<MineModel>(context, listen: false).user?.user;
+    String labId = '82858490362716212';
+    List items = combineBoxes
+        .map((e) => {"boxNo": e.boxNo, "joinId": e.joinId, "boxId": e.boxId})
+        .toList();
+    KumiPopupWindow pop = PopUtils.showLoading();
+    try {
+      await Repository.fetchBoxesCombine(data: {
+        "boxId": box.id,
+        "boxNo": box.boxNo,
+        "items": items,
+        "userId": userInfo.id,
+        "userName": userInfo.name
+      }, labId: labId);
+    } catch (e) {
+      showToast(e.toString());
+      pop.dismiss(context);
+      return;
+    }
+    pop.dismiss(context);
+    Future.microtask(() {
+      var yyDialog;
+      yyDialog = yyNoticeDialog(text: '提交成功');
+      Future.delayed(Duration(milliseconds: 1500), () {
+        dialogDismiss(yyDialog);
+      });
+    });
   }
 }

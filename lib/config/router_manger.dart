@@ -9,6 +9,7 @@ import 'package:huayin_logistics/ui/page/home/recordedCode/code_detail.dart';
 import 'package:huayin_logistics/ui/page/home/selectProject/select_specimen_type.dart';
 import 'package:huayin_logistics/ui/page/home/specimen_box_combine.dart';
 import 'package:huayin_logistics/ui/page/home/specimentJoin/speciment_box_join.dart';
+import 'package:huayin_logistics/ui/page/home/specimentJoin/user_list.dart';
 import 'package:huayin_logistics/ui/page/home/specimentTake/speciment_box_take.dart';
 import 'package:huayin_logistics/ui/page/mine/change_password.dart';
 import 'package:huayin_logistics/ui/widget/page_route_anim.dart';
@@ -23,7 +24,7 @@ import 'package:huayin_logistics/ui/page/home/deliveryReceipt/delivery_receipt.d
 import 'package:huayin_logistics/ui/page/home/recordedCode/recorded_code.dart'; //已录条码
 import 'package:huayin_logistics/ui/page/home/specimenSend/specimen_box_send.dart'; //标本箱发出
 import 'package:huayin_logistics/ui/page/home/tansferPicker/transfer_picker.dart'; //中转取件
-import 'package:huayin_logistics/ui/page/home/specimen_box_arrive.dart'; //标本箱送达
+import 'package:huayin_logistics/ui/page/home/specimenArrive/speciment_box_arrive.dart'; //标本箱送达
 import 'package:huayin_logistics/ui/page/home/eventManagement/event_management.dart'; //标本箱送达
 import 'package:huayin_logistics/ui/page/home/select_company.dart'; //选择送检单位
 import 'package:huayin_logistics/ui/page/home/selectProject/select_project.dart'; //选择项目
@@ -64,6 +65,7 @@ class RouteName {
   static const String changePassword = 'changePassword';
   static const String deliveryDetail = 'deliveryDetail';
   static const String specimentSpecimenType = 'specimentSpecimenType';
+  static const String selectUserList = 'selectUserList';
 }
 
 class Router {
@@ -87,6 +89,10 @@ class Router {
         var param = settings.arguments as Map;
         return CupertinoPageRoute(
             builder: (_) => CodeDetail(item: param['item']));
+      case RouteName.selectUserList:
+        var param = settings.arguments as Map;
+        return CupertinoPageRoute(
+            builder: (_) => SelectUserList(item: param['item']));
       case RouteName.specimenBoxSend:
         return CupertinoPageRoute(builder: (_) => SpecimenBoxSend());
       case RouteName.transferPicker:
@@ -106,7 +112,7 @@ class Router {
       case RouteName.specimentBoxJoin:
         return CupertinoPageRoute(builder: (_) => SpecimentBoxJoin());
       case RouteName.specimentBoxTake:
-        return CupertinoPageRoute(builder: (_) => SpecimentBoxTake());
+        return CupertinoPageRoute(builder: (_) => SpecimenBoxTake());
       case RouteName.specimentSpecimenType:
         return CupertinoPageRoute(builder: (_) => SelectSpecimenType());
       case RouteName.selectCompany:

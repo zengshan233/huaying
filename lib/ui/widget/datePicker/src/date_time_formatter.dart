@@ -1,5 +1,7 @@
 import 'dart:math';
 
+import 'package:common_utils/common_utils.dart';
+
 import 'date_picker.dart';
 import 'date_picker_constants.dart';
 import 'i18n/date_picker_i18n.dart';
@@ -136,6 +138,13 @@ class DateTimeFormatter {
     if (result == format) {
       return dateTime.toString();
     }
+    if (format == "MMdd") {
+      int month = int.parse(result.substring(0, 2));
+      int day = int.parse(result.substring(2, 4));
+      String weekDay = DateUtil.getWeekday(dateTime, languageCode: 'zh');
+      result = '$month月$day日$weekDay';
+    }
+
     return result;
   }
 

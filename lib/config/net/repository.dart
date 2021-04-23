@@ -7,10 +7,12 @@ import 'package:huayin_logistics/model/login_data_model.dart';
 import 'package:huayin_logistics/model/oss_model.dart';
 import 'package:huayin_logistics/model/recorded_code_model.dart';
 import 'package:huayin_logistics/model/select_item_company_data_model.dart';
+import 'package:huayin_logistics/model/site_model.dart';
 import 'package:huayin_logistics/model/specimen_box_arrive_data_model.dart';
 import 'package:huayin_logistics/model/specimen_box_send_data_model.dart';
 import 'package:huayin_logistics/model/specimen_status_inquiry_data_model.dart';
 import 'package:huayin_logistics/model/transfer_picker_model_data.dart';
+import 'package:huayin_logistics/model/user_model.dart';
 import 'package:huayin_logistics/view_model/home/join_list_model.dart';
 
 import 'huayin_api.dart';
@@ -113,26 +115,25 @@ class Repository {
   }
 
   //标本箱送达-根据标本箱号查询标本箱信息
-  static Future fetchSpecimenArriveInquiryByBoxNo(String boxNo) async {
-    var response = await http
-        .post<Map>('/specimen/logistics/sign/no/sign', data: {'boxNo': boxNo});
-    return SpecimenboxArriveItem.fromJson(response.data);
+  static Future<List<SpecimenboxArriveItem>> fetchSpecimenArriveInquiryByBoxNo(
+      {String boxNo, String labId, bool isDelivered = false}) async {
+    Response<List> response = await http.post<List>(
+        '/order/lab/$labId/box/transport/list',
+        data: {'boxNo': boxNo, 'isDelivered': isDelivered});
+    return List<SpecimenboxArriveItem>.from(
+        response.data.map((e) => SpecimenboxArriveItem.fromJson(e)));
   }
 
   //标本箱送达-送达操作
   static Future fetchSpecimenArriveOperate(
+      {String labId,
       String id,
-      String updateAt,
-      String driverContactNumber,
-      String nodeHandlerId,
-      String nodeHandlerName) async {
-    await http.post('/specimen/logistics/sign/node', data: {
-      'status': '3',
-      'id': id,
-      'updateAt': updateAt,
-      'driverContactNumber': driverContactNumber,
-      'nodeHandlerId': nodeHandlerId,
-      'nodeHandlerName': nodeHandlerName
+      String deliveredId,
+      String deliveredName}) async {
+    await http.post('/order/lab/$labId/box/transport/delivered', data: {
+      "deliveredId": deliveredId,
+      "deliveredName": deliveredName,
+      "id": id
     });
   }
 
@@ -145,20 +146,8 @@ class Repository {
 
   //标本想送达-提交
   static Future fetchSpecimenSendSubmit(
-      String boxNo,
-      String specimenAmount,
-      List<Map<String, String>> images,
-      String logisticsLine,
-      String sender,
-      String senderId) async {
-    await http.post<Map>('/specimen/logistics/hair', data: {
-      "boxNo": boxNo,
-      "specimenAmount": specimenAmount,
-      "images": images,
-      "logisticsLine": logisticsLine,
-      "sender": sender,
-      "senderId": senderId
-    });
+      {Map<String, dynamic> data, String labId}) async {
+    await http.post('/lab/$labId/box/transport/batch/create', data: data);
   }
 
   //获取选择项目左侧菜单
@@ -437,10 +426,10 @@ class Repository {
 
   ///根据箱号和人员查询当前未完成最新交接单ID
   static Future<String> fetchDeliveryId(
-      {String boxNo, String labId, String recordId}) async {
+      {String boxNo, String labId, String recordId, String boxId}) async {
     Response response = await http.post(
         '/order/lab/$labId/box/join/un/finish/current/new',
-        data: {"boxNo": boxNo, 'recordId': recordId});
+        data: {"boxId": boxId, "boxNo": boxNo, 'recordId': recordId});
     return response.data.toString();
   }
 
@@ -497,27 +486,67 @@ class Repository {
   }
 
   ///待合箱标本箱列表查询
-  static Future fetchCombinedBoxes({String userId, String labId}) async {
-    Response response = await http.post(
-        '/order/lab/$labId/box/transport/wait/combined',
+  static Future<List<SpecimenCombinedItem>> fetchCombinedBoxes(
+      {String userId, String labId}) async {
+    Response<List> response = await http.post<List>(
+        '/order/lab/$labId/box/join/wait/combined',
         data: {"userId": userId});
-    return response;
+    return List<SpecimenCombinedItem>.from(
+        response.data.map((l) => SpecimenCombinedItem.fromJson(l)));
   }
 
   ///查询待发出标本箱列表
-  static Future fetchSendBoxes({String userId, String labId}) async {
-    Response response = await http.post(
+  static Future<List<SpecimenBoxItem>> fetchSendBoxes(
+      {String userId, String labId}) async {
+    Response<List> response = await http.post<List>(
         '/order/lab/$labId/box/transport/wait/send/list',
         data: {"userId": userId});
-    return response;
+    return List<SpecimenBoxItem>.from(
+        response.data.map((l) => SpecimenBoxItem.fromJson(l)));
+  }
+
+  ///查询用户未使用标本箱列表
+  static Future<List<SpecimenUnusedItem>> fetchUnUsedBoxes(
+      {String userId, String labId}) async {
+    Response<List> response =
+        await http.post<List>('/lab/$labId/box/conf/un/use/list/$userId');
+    return List<SpecimenUnusedItem>.from(
+        response.data.map((l) => SpecimenUnusedItem.fromJson(l)));
+  }
+
+  ///标本箱合箱
+  static Future fetchBoxesCombine(
+      {String labId, Map<String, dynamic> data}) async {
+    Response response =
+        await http.post('/order/lab/$labId/box/join/combined', data: data);
+    return Response;
   }
 
   ///查询待交接标本箱列表
-  static Future fetchJoinBoxes({String userId, String labId}) async {
-    Response response = await http.post(
+  static Future<List<SpecimenJoinItem>> fetchJoinBoxes(
+      {String userId, String labId}) async {
+    Response<List> response = await http.post<List>(
         '/order/lab/$labId/box/transport/wait/join/list',
         data: {"userId": userId});
-    return response;
+    return List<SpecimenJoinItem>.from(
+        response.data.map((r) => SpecimenJoinItem.fromJson(r)));
+  }
+
+  ///发起标本箱交接
+  static Future fetchBoxesJoin(
+      {String labId, Map<String, dynamic> data}) async {
+    Response response =
+        await http.post('/order/lab/$labId/box/sponse/join', data: data);
+    return;
+  }
+
+  ///查询查询所有物流人员
+  static Future<List<UserModel>> fetchUserList(
+      {String userId, String labId}) async {
+    Response<List> response =
+        await http.get<List>('/lab/$labId/logistics/user/list');
+    return List<UserModel>.from(
+        response.data.map((r) => UserModel.fromJson(r)));
   }
 
   ///主键查询标本箱运输单
@@ -525,5 +554,37 @@ class Repository {
     Response response =
         await http.get('/order/lab/$labId/box/transport/$userId');
     return response;
+  }
+
+  ///根据组织查询标本箱到达站点表
+  static Future<List<SiteModel>> fetchArriveSiteList({String labId}) async {
+    Response<List> response =
+        await http.get<List>('/order/lab/$labId/arrive/site/list');
+    return List<SiteModel>.from(
+        response.data.map((r) => SiteModel.fromJson(r)));
+  }
+
+  ///对象查询标本箱运输单
+  static Future<List<SpecimenboxArriveItem>> fetchTransportData(
+      {String labId,
+      bool isDelivered,
+      String boxNo,
+      String receiveStatus}) async {
+    Map<String, dynamic> params = {};
+    print('isDeliveredsssssssssssssssssssssss $isDelivered');
+    if (receiveStatus != null) {
+      params['receiveStatus'] = receiveStatus;
+    }
+    if (isDelivered != null) {
+      params['isDelivered'] = isDelivered;
+    }
+    if (boxNo != null && boxNo.isNotEmpty) {
+      params['boxNo'] = boxNo;
+    }
+
+    Response<List> response = await http
+        .post<List>('/order/lab/$labId/box/transport/list', data: params);
+    return List<SpecimenboxArriveItem>.from(
+        response.data.map((r) => SpecimenboxArriveItem.fromJson(r)));
   }
 }

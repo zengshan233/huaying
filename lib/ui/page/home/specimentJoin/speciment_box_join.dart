@@ -3,11 +3,18 @@ import 'package:flutter_custom_dialog/flutter_custom_dialog.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:huayin_logistics/config/net/repository.dart';
 import 'package:huayin_logistics/config/resource_mananger.dart';
+import 'package:huayin_logistics/config/router_manger.dart';
 import 'package:huayin_logistics/model/delivery_model.dart';
+import 'package:huayin_logistics/model/user_model.dart';
 import 'package:huayin_logistics/ui/color/DiyColors.dart';
 import 'package:huayin_logistics/ui/widget/comon_widget.dart'
     show appBarWithName, simpleRecordInput;
+import 'package:huayin_logistics/ui/widget/dialog/notice_dialog.dart';
+import 'package:huayin_logistics/ui/widget/dialog/progress_dialog.dart';
+import 'package:huayin_logistics/ui/widget/pop_window/kumi_popup_window.dart';
+import 'package:huayin_logistics/utils/popUtils.dart';
 import 'package:huayin_logistics/view_model/mine/mine_model.dart';
+import 'package:oktoast/oktoast.dart';
 import 'package:provider/provider.dart';
 
 class SpecimentBoxJoin extends StatefulWidget {
@@ -19,88 +26,107 @@ class _SpecimentBoxJoin extends State<SpecimentBoxJoin> {
   TextEditingController takeCon = TextEditingController();
   TextEditingController textCon = TextEditingController();
 
-  List<SpecimenBoxItem> combineList = [];
+  List<SpecimenJoinItem> combineList = [];
 
-  String box;
+  UserModel _userItem;
+
+  SpecimenJoinItem box;
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) => getBoxList());
   }
 
-  getBoxList() {
+  getBoxList() async {
     MineModel model = Provider.of<MineModel>(context, listen: false);
     String labId = '82858490362716212';
     String userId = model.user.user.id;
-    Repository.fetchJoinBoxes(labId: labId, userId: userId);
-    combineList = [
-      SpecimenBoxItem(code: '1', name: '01号标本箱'),
-      SpecimenBoxItem(code: '2', name: '02号标本箱'),
-      SpecimenBoxItem(code: '3', name: '03号标本箱'),
-      SpecimenBoxItem(code: '4', name: '04号标本箱'),
-    ];
+    List reponse;
+    KumiPopupWindow pop = PopUtils.showLoading();
+    try {
+      combineList =
+          await Repository.fetchJoinBoxes(labId: labId, userId: userId);
+    } catch (e) {
+      showToast(e.toString());
+      pop.dismiss(context);
+    }
+    pop.dismiss(context);
+    setState(() {});
   }
 
   @override
   Widget build(BuildContext context) {
     YYDialog.init(context);
-    return Scaffold(
-        backgroundColor: DiyColors.background_grey,
-        appBar: appBarWithName(context, '标本箱交接', '外勤:', withName: true),
-        body: SingleChildScrollView(
-            child: Column(
-          children: <Widget>[
-            Container(
-              margin: EdgeInsets.only(bottom: ScreenUtil().setWidth(50)),
-              child: Column(
-                children: <Widget>[
-                  Container(
-                    color: Colors.white,
-                    padding: EdgeInsets.symmetric(
-                        horizontal: ScreenUtil().setWidth(50),
-                        vertical: ScreenUtil().setWidth(20)),
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      '可交接标本箱',
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
+    return GestureDetector(
+        behavior: HitTestBehavior.translucent,
+        onTap: () {
+          // 触摸收起键盘
+          FocusScope.of(context).requestFocus(FocusNode());
+        },
+        child: Scaffold(
+            backgroundColor: DiyColors.background_grey,
+            appBar: appBarWithName(context, '标本箱交接', '外勤:', withName: true),
+            body: SingleChildScrollView(
+                child: Column(
+              children: <Widget>[
+                Container(
+                  margin: EdgeInsets.only(bottom: ScreenUtil().setWidth(50)),
+                  child: Column(
+                    children: <Widget>[
+                      Container(
+                        color: Colors.white,
+                        padding: EdgeInsets.symmetric(
+                            horizontal: ScreenUtil().setWidth(50),
+                            vertical: ScreenUtil().setWidth(20)),
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          '可交接标本箱',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                      Container(
+                        child: Column(
+                          children:
+                              combineList.map((e) => buildBoxItem(e)).toList(),
+                        ),
+                      )
+                    ],
                   ),
-                  Container(
-                    child: Column(
-                      children:
-                          combineList.map((e) => buildBoxItem(e)).toList(),
-                    ),
-                  )
-                ],
-              ),
-            ),
-            Container(
-                color: Colors.white,
-                padding: EdgeInsets.only(
-                    left: ScreenUtil().setWidth(40),
-                    right: ScreenUtil().setWidth(40)),
-                child: simpleRecordInput(context,
-                    preText: '接收人',
-                    hintText: '(必填)请选择接收人',
-                    enbleInput: false,
-                    rightWidget: new Image.asset(
-                      ImageHelper.wrapAssets('mine_rarrow.png'),
-                      width: ScreenUtil().setHeight(40),
-                      height: ScreenUtil().setHeight(40),
-                    ),
-                    onController: takeCon,
-                    onTap: () {})),
-            buildContent(),
-            confirm()
-          ],
-        )));
+                ),
+                Container(
+                    color: Colors.white,
+                    padding: EdgeInsets.only(
+                        left: ScreenUtil().setWidth(40),
+                        right: ScreenUtil().setWidth(40)),
+                    child: simpleRecordInput(context,
+                        preText: '接收人',
+                        hintText: '(必填)请选择接收人',
+                        enbleInput: false,
+                        rightWidget: new Image.asset(
+                          ImageHelper.wrapAssets('mine_rarrow.png'),
+                          width: ScreenUtil().setHeight(40),
+                          height: ScreenUtil().setHeight(40),
+                        ),
+                        onController: takeCon, onTap: () {
+                      Navigator.pushNamed(context, RouteName.selectUserList,
+                          arguments: {"item": _userItem}).then((value) {
+                        if (value != null) {
+                          _userItem = value;
+                          takeCon.text = _userItem.name;
+                        }
+                      });
+                    })),
+                buildContent(),
+                confirm()
+              ],
+            ))));
   }
 
-  Widget buildBoxItem(SpecimenBoxItem item) {
+  Widget buildBoxItem(SpecimenJoinItem item) {
     return InkWell(
         onTap: () {
           setState(() {
-            box = item.code;
+            box = item;
           });
         },
         child: Container(
@@ -119,15 +145,16 @@ class _SpecimentBoxJoin extends State<SpecimentBoxJoin> {
                       left: ScreenUtil().setWidth(50),
                       right: ScreenUtil().setWidth(50)),
                   child: Image.asset(
-                    ImageHelper.wrapAssets(
-                        box == item.code ? 'record_sg.png' : 'record_so.png'),
+                    ImageHelper.wrapAssets(box?.boxNo == item.boxNo
+                        ? 'record_sg.png'
+                        : 'record_so.png'),
                     fit: BoxFit.fitWidth,
                   ),
                 ),
               ),
               Container(
                   alignment: Alignment.center,
-                  child: Text(item.name,
+                  child: Text(item.boxNo,
                       style: TextStyle(color: Color(0xFF666666)))),
             ],
           ),
@@ -182,7 +209,7 @@ class _SpecimentBoxJoin extends State<SpecimentBoxJoin> {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: <Widget>[
           InkWell(
-              onTap: () {},
+              onTap: submit,
               child: Container(
                 width: ScreenUtil().setWidth(1000),
                 padding:
@@ -199,5 +226,34 @@ class _SpecimentBoxJoin extends State<SpecimentBoxJoin> {
         ],
       ),
     );
+  }
+
+  submit() async {
+    MineModel model = Provider.of<MineModel>(context, listen: false);
+    String labId = '82858490362716212';
+    KumiPopupWindow pop = PopUtils.showLoading();
+    try {
+      await Repository.fetchBoxesJoin(labId: labId, data: {
+        "joinIdsList": [box.joinIds],
+        "receiveId": _userItem.id,
+        "receiveName": _userItem.name,
+        "receiveRemark": textCon.text,
+        "receiveSponsorId": model.user.user.id,
+        "receiveSponsorName": model.user.user.name
+      });
+    } catch (e) {
+      print('fetchBoxesJoin error $e');
+      showToast(e.toString());
+      pop.dismiss(context);
+      return;
+    }
+    pop.dismiss(context);
+    Future.microtask(() {
+      var yyDialog;
+      yyDialog = yyNoticeDialog(text: '提交成功');
+      Future.delayed(Duration(milliseconds: 1500), () {
+        dialogDismiss(yyDialog);
+      });
+    });
   }
 }

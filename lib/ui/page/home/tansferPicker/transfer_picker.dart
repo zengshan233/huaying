@@ -298,10 +298,10 @@ class _TransferPicker extends State<TransferPicker> {
                                   fontSize: ScreenUtil().setSp(42),
                                   color: DiyColors.heavy_blue),
                               textInputAction: TextInputAction.search,
-                              keyboardType: TextInputType.number,
-                              inputFormatters: [
-                                WhitelistingTextInputFormatter.digitsOnly
-                              ], //只允许输入数字
+                              // keyboardType: TextInputType.number,
+                              // inputFormatters: [
+                              //   WhitelistingTextInputFormatter.digitsOnly
+                              // ], //只允许输入数字
                               decoration: InputDecoration(
                                   hintText: '请扫描或输入标本箱编号',
                                   hintStyle: TextStyle(

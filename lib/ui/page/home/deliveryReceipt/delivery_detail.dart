@@ -84,7 +84,7 @@ class _DeliveryDetail extends State<DeliveryDetail> {
                             text: detail.recordDate.split(' ').first),
                         InfoFormItem(lable: '标本箱号', text: detail.boxNo),
                         Column(
-                          children: detail.items
+                          children: (detail.items ?? [])
                               .map((e) => CompanyDetails(
                                     item: e,
                                     detail: detail,

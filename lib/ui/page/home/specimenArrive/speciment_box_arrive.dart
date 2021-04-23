@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_custom_dialog/flutter_custom_dialog.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:huayin_logistics/config/net/repository.dart';
 import 'package:huayin_logistics/config/resource_mananger.dart';
 import 'package:huayin_logistics/model/transfer_picker_model_data.dart';
 import 'package:huayin_logistics/provider/provider_widget.dart';
@@ -9,16 +10,19 @@ import 'package:huayin_logistics/ui/color/DiyColors.dart';
 import 'package:huayin_logistics/ui/widget/barcode_scanner.dart';
 import 'package:huayin_logistics/ui/widget/comon_widget.dart'
     show appBarWithName, listTitleDecoration, noDataWidget, showMsgToast;
-import 'package:huayin_logistics/view_model/home/specimen_box_take_model.dart';
+import 'package:huayin_logistics/view_model/home/specimen_box_arrive_model.dart';
+import 'package:huayin_logistics/view_model/home/transfer_picker_model.dart';
+import 'package:huayin_logistics/view_model/mine/mine_model.dart';
+import 'package:provider/provider.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'arrive_item.dart';
 
-class SpecimenBoxTake extends StatefulWidget {
+class SpecimenBoxArrive extends StatefulWidget {
   @override
-  _SpecimenBoxTake createState() => _SpecimenBoxTake();
+  _SpecimenBoxArrive createState() => _SpecimenBoxArrive();
 }
 
-class _SpecimenBoxTake extends State<SpecimenBoxTake> {
+class _SpecimenBoxArrive extends State<SpecimenBoxArrive> {
   List<TransferPickerData> data = [];
   int _currentTabIndex = 0;
 
@@ -38,12 +42,10 @@ class _SpecimenBoxTake extends State<SpecimenBoxTake> {
         },
         child: Scaffold(
             backgroundColor: Colors.white,
-            appBar: appBarWithName(context, '标本箱接收', '外勤:', withName: true),
-            body: ProviderWidget<SpecimenBoxTakeModel>(
-                model: SpecimenBoxTakeModel(
-                    context: context,
-                    labId: '82858490362716212',
-                    isRecived: false),
+            appBar: appBarWithName(context, '标本箱送达', '外勤:', withName: true),
+            body: ProviderWidget<SpecimenBoxArriveModel>(
+                model: SpecimenBoxArriveModel(
+                    context: context, labId: '82858490362716212'),
                 onModelReady: (model) {
                   model.initData();
                 },
@@ -55,7 +57,7 @@ class _SpecimenBoxTake extends State<SpecimenBoxTake> {
                     ))));
   }
 
-  Widget _listContent(SpecimenBoxTakeModel model) {
+  Widget _listContent(SpecimenBoxArriveModel model) {
     return Container(
         margin: EdgeInsets.only(bottom: ScreenUtil().setHeight(20)),
         child: PhysicalModel(
@@ -72,17 +74,17 @@ class _SpecimenBoxTake extends State<SpecimenBoxTake> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: <Widget>[
                       tabItem(
-                          text: '未接收',
+                          text: '未送达',
                           index: 0,
                           onTap: () {
-                            model.isRecived = false;
+                            model.isDelivered = false;
                             model.initData();
                           }),
                       tabItem(
-                          text: '已接收',
+                          text: '已送达',
                           index: 1,
                           onTap: () {
-                            model.isRecived = true;
+                            model.isDelivered = true;
                             model.initData();
                           })
                     ],
@@ -115,7 +117,7 @@ class _SpecimenBoxTake extends State<SpecimenBoxTake> {
   }
 
   //单项列表
-  Widget _listChild(SpecimenBoxTakeModel model) {
+  Widget _listChild(SpecimenBoxArriveModel model) {
     if (model.busy)
       return Container(
         width: ScreenUtil.screenWidth,
@@ -144,7 +146,7 @@ class _SpecimenBoxTake extends State<SpecimenBoxTake> {
         slivers: <Widget>[
           SliverList(
             delegate: SliverChildBuilderDelegate(
-              (c, i) => TakeItem(model: model, item: model.list[i]),
+              (c, i) => ArriveItem(model: model, item: model.list[i]),
               childCount: model.list.length,
             ),
           ),
@@ -195,7 +197,7 @@ class _SpecimenBoxTake extends State<SpecimenBoxTake> {
   }
 
   //头部搜索栏
-  Widget _searchTitle(SpecimenBoxTakeModel model) {
+  Widget _searchTitle(SpecimenBoxArriveModel model) {
     return Column(
       children: <Widget>[
         Container(

@@ -17,4 +17,4 @@ const String DATETIME_PICKER_DATE_FORMAT = 'yyyy-MM-dd';
 const String DATETIME_PICKER_TIME_FORMAT = 'HH:mm:ss';
 
 /// Default value of datetime format
-const String DATETIME_PICKER_DATETIME_FORMAT = 'yyyyMMdd HH:mm:ss';
+const String DATETIME_PICKER_DATETIME_FORMAT = 'yyMMdd HH:mm';

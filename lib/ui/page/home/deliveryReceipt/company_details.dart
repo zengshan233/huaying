@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:common_utils/common_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:huayin_logistics/config/net/repository.dart';
@@ -8,6 +9,7 @@ import 'package:huayin_logistics/model/delivery_model.dart';
 import 'package:huayin_logistics/ui/color/DiyColors.dart';
 import 'package:huayin_logistics/ui/widget/comon_widget.dart';
 import 'package:huayin_logistics/ui/widget/datePicker/src/date_picker.dart';
+import 'package:huayin_logistics/ui/widget/datePicker/src/date_picker_theme.dart';
 import 'package:huayin_logistics/ui/widget/datePicker/src/i18n/date_picker_i18n.dart';
 import 'package:huayin_logistics/ui/widget/dialog/notice_dialog.dart';
 import 'package:huayin_logistics/ui/widget/dialog/progress_dialog.dart';
@@ -51,13 +53,13 @@ class _CompanyDetails extends State<CompanyDetails> {
 
   initValue() {
     barCodeCon.text = widget.item.barcodeTotal.toString();
-    dateCon.text = widget.item.temperatures?.first?.recordAt?.toString
+    dateCon.text = widget.item.temperatures?.last?.recordAt?.toString
             ?.call()
             ?.substring
-            ?.call(0, 19) ??
+            ?.call(0, 16) ??
         '';
     temperatureCon.text =
-        widget.item.temperatures?.first?.temperature?.toString() ?? '';
+        widget.item.temperatures?.last?.temperature?.toString() ?? '';
     bloodCon.text = widget.item.routineSecretion ?? '';
     iceCon.text = widget.item.routineIce ?? '';
     sliceNormalCon.text = widget.item.routineSmear ?? '';
@@ -105,10 +107,18 @@ class _CompanyDetails extends State<CompanyDetails> {
                         return;
                       }
                       DatePicker.showDatePicker(context,
+                          title: '选择时间',
                           locale: DateTimePickerLocale.zh_cn,
                           pickerMode: DateTimePickerMode.datetime,
+                          dateFormat: 'MMdd HH:mm',
+                          pickerTheme: DateTimePickerTheme(
+                              itemTextStyle: TextStyle(
+                                  color: DiyColors.heavy_blue,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w500)),
                           onConfirm: (DateTime dateTime, List<int> days) async {
-                        dateCon.text = dateTime.toString().split('.').first;
+                        dateCon.text = DateUtil.formatDate(dateTime,
+                            format: 'yyyy-MM-dd HH:mm');
                       });
                     }),
                     simpleRecordInput(
@@ -328,6 +338,7 @@ class _CompanyDetails extends State<CompanyDetails> {
                   "joinItemId": widget.item.joinId,
                   "orgId": widget.item.orgId,
                   "temperature": temperatureCon.text,
+                  "recordAt": dateCon.text + ':00.000'
                 }
               ],
               "createAt": widget.item.createAt,

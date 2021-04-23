@@ -2,13 +2,11 @@ import 'package:flutter/cupertino.dart';
 import 'package:huayin_logistics/model/specimen_box_arrive_data_model.dart';
 import 'package:huayin_logistics/config/net/repository.dart';
 import 'package:huayin_logistics/provider/view_state_refresh_list_model.dart';
-import 'package:huayin_logistics/ui/widget/comon_widget.dart';
 import 'package:huayin_logistics/ui/widget/dialog/alert_dialog.dart';
-import 'package:huayin_logistics/ui/widget/dialog/progress_dialog.dart';
 import 'package:huayin_logistics/ui/widget/pop_window/kumi_popup_window.dart';
 import 'package:huayin_logistics/utils/popUtils.dart';
 
-class SpecimenBoxArriveModel
+class SpecimenBoxTakeModel
     extends ViewStateRefreshListModel<SpecimenboxArriveItem> {
   BuildContext context;
 
@@ -16,10 +14,9 @@ class SpecimenBoxArriveModel
 
   String boxNo;
 
-  bool isDelivered;
+  bool isRecived;
 
-  SpecimenBoxArriveModel(
-      {this.context, this.labId, this.isDelivered, this.boxNo});
+  SpecimenBoxTakeModel({this.context, this.labId, this.isRecived, this.boxNo});
 
   //标本箱操作弹窗提示
   void specimenArriveOperate(
@@ -66,7 +63,7 @@ class SpecimenBoxArriveModel
   @override
   Future<List<SpecimenboxArriveItem>> loadData({int pageNum}) async {
     List<SpecimenboxArriveItem> response = await Repository.fetchTransportData(
-        labId: labId, isDelivered: isDelivered, boxNo: boxNo);
+        labId: labId, receiveStatus: (isRecived ? '1' : '0'), boxNo: boxNo);
     return response == null ? [] : response;
   }
 }

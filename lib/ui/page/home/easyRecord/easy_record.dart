@@ -116,6 +116,7 @@ class _EasyRecord extends State<EasyRecord> {
     String labId = '82858490362716212';
     submitData['imageIds'] = _imageList.map((e) => e.id).toList();
     submitData['items'] = _projectItemArray;
+    print('submitData $submitData');
     List<Map<String, dynamic>> list = [submitData];
     model.recordSavaSubmitData(list, labId).then((val) {
       if (val) {

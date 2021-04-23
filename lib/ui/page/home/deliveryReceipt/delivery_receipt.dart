@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_custom_dialog/flutter_custom_dialog.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:huayin_logistics/config/net/repository.dart';
 import 'package:huayin_logistics/config/resource_mananger.dart';
 import 'package:huayin_logistics/config/router_manger.dart';
 import 'package:huayin_logistics/provider/provider_widget.dart';

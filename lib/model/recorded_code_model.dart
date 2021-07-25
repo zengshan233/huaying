@@ -9,10 +9,19 @@ class CodeItem {
 }
 
 class CodeProject {
+  final String id;
   final String name;
   final String category;
-  final String type;
-  CodeProject({this.name, this.category, this.type});
+  final int type;
+  final String typeName;
+  final String specimenTypeName;
+  CodeProject(
+      {this.id,
+      this.name,
+      this.category,
+      this.type,
+      this.typeName,
+      this.specimenTypeName});
 }
 
 class RecordedListResponse {

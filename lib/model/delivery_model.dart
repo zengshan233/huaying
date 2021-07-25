@@ -12,14 +12,24 @@ class SpecimenBoxItem {
   List<String> joinIds;
   String boxNo;
   int boxType;
+  String boxId;
+  bool isAllJoinItemConfirm;
   bool ice;
 
-  SpecimenBoxItem({this.joinIds, this.boxNo, this.boxType, this.ice = false});
+  SpecimenBoxItem(
+      {this.joinIds,
+      this.boxNo,
+      this.boxType,
+      this.boxId,
+      this.isAllJoinItemConfirm,
+      this.ice = false});
 
   SpecimenBoxItem.fromJson(Map<String, dynamic> json) {
     joinIds = json['joinIds'].cast<String>();
     boxNo = json['boxNo'];
     boxType = json['boxType'];
+    boxId = json['boxId'];
+    isAllJoinItemConfirm = json['isAllJoinItemConfirm'] ?? false;
     ice = json['ice'] ?? false;
   }
 
@@ -28,6 +38,8 @@ class SpecimenBoxItem {
     data['joinIds'] = this.joinIds;
     data['boxNo'] = this.boxNo;
     data['boxType'] = this.boxType;
+    data['boxId'] = this.boxId;
+    data['isAllJoinItemConfirm'] = this.isAllJoinItemConfirm;
     data['ice'] = this.ice;
     return data;
   }
@@ -59,13 +71,16 @@ class SpecimenCombinedItem {
   String joinId;
   String boxNo;
   String boxId;
+  int receiveStatus;
 
-  SpecimenCombinedItem({this.joinId, this.boxNo, this.boxId});
+  SpecimenCombinedItem(
+      {this.joinId, this.boxNo, this.boxId, this.receiveStatus});
 
   SpecimenCombinedItem.fromJson(Map<String, dynamic> json) {
     joinId = json['joinId'];
     boxNo = json['boxNo'];
     boxId = json['boxId'];
+    receiveStatus = json['receiveStatus'];
   }
 
   Map<String, dynamic> toJson() {
@@ -73,6 +88,7 @@ class SpecimenCombinedItem {
     data['joinId'] = this.joinId;
     data['boxNo'] = this.boxNo;
     data['boxId'] = this.boxId;
+    data['receiveStatus'] = this.receiveStatus;
     return data;
   }
 }
@@ -249,7 +265,7 @@ class Items {
   String pathologyQfc;
   String pathologyOther;
   int status;
-  List<Temperatures> temperatures;
+  String temperature;
   String id;
   String createAt;
   String updateAt;
@@ -278,7 +294,7 @@ class Items {
       this.pathologyQfc,
       this.pathologyOther,
       this.status,
-      this.temperatures,
+      this.temperature,
       this.id,
       this.createAt,
       this.updateAt});
@@ -307,12 +323,7 @@ class Items {
     pathologyQfc = json['pathologyQfc'];
     pathologyOther = json['pathologyOther'];
     status = json['status'];
-    if (json['temperatures'] != null) {
-      temperatures = new List<Temperatures>();
-      json['temperatures'].forEach((v) {
-        temperatures.add(new Temperatures.fromJson(v));
-      });
-    }
+    temperature = json['temperature'];
     id = json['id'];
     createAt = json['createAt'];
     updateAt = json['updateAt'];
@@ -344,9 +355,7 @@ class Items {
     data['pathologyQfc'] = this.pathologyQfc;
     data['pathologyOther'] = this.pathologyOther;
     data['status'] = this.status;
-    if (this.temperatures != null) {
-      data['temperatures'] = this.temperatures.map((v) => v.toJson()).toList();
-    }
+    data['temperature'] = this.temperature;
     data['id'] = this.id;
     data['createAt'] = this.createAt;
     data['updateAt'] = this.updateAt;

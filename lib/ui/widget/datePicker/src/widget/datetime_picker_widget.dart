@@ -238,7 +238,6 @@ class _DateTimePickerWidgetState extends State<DateTimePickerWidget> {
     // render time picker column
     formatArr.forEach((format) {
       List<int> valueRange = _findPickerItemRange(format);
-
       Widget pickerColumn = _renderDatePickerColumnComponent(
         scrollCtrl: _findScrollCtrl(format),
         valueRange: valueRange,
@@ -249,7 +248,7 @@ class _DateTimePickerWidgetState extends State<DateTimePickerWidget> {
           if (format.contains('H')) {
             _changeHourSelection(value);
           } else if (format.contains('m')) {
-            _changeMinuteSelection(value);
+            _changeMinuteSelection(value, format);
           } else if (format.contains('s')) {
             _changeSecondSelection(value);
           }
@@ -285,13 +284,11 @@ class _DateTimePickerWidgetState extends State<DateTimePickerWidget> {
         ? itemBuilder
         : (context, index) {
             int value = valueRange.first + index;
-
-            if (format.contains('m')) {
-              value = minuteDivider * index;
-            }
+            // if (format.contains('m')) {
+            //   value = minuteDivider * index;
+            // }
             return _renderDatePickerItemComponent(value, format);
           };
-
     Widget columnWidget = Container(
       padding: EdgeInsets.all(8.0),
       width: double.infinity,
@@ -316,7 +313,6 @@ class _DateTimePickerWidgetState extends State<DateTimePickerWidget> {
 
   _calculateMinuteChildCount(List<int> valueRange, int divider) {
     if (divider == 0) {
-      debugPrint("Cant devide by 0");
       return (valueRange.last - valueRange.first + 1);
     }
 
@@ -371,9 +367,10 @@ class _DateTimePickerWidgetState extends State<DateTimePickerWidget> {
   }
 
   /// change the selection of minute picker
-  void _changeMinuteSelection(int index) {
+  void _changeMinuteSelection(int index, String format) {
     // TODO: copied from time_picker_widget - this looks like it would break date ranges but not taking into account _minuteRange.first
-    int value = index * _minuteDivider;
+    List<int> valueRange = _findPickerItemRange(format);
+    int value = valueRange.first + index;
 //    int value = _minuteRange.first + index;
     if (_currMinute != value) {
       _currMinute = value;
@@ -403,23 +400,23 @@ class _DateTimePickerWidgetState extends State<DateTimePickerWidget> {
         _hourRange.last != hourRange.last;
     if (hourRangeChanged) {
       // selected day changed
-      _currHour = max(min(_currHour, hourRange.last), hourRange.first);
+      // _currHour = max(min(_currHour, hourRange.last), hourRange.first);
+      _currHour = 0;
     }
 
     List<int> minuteRange = _calcMinuteRange();
     bool minuteRangeChanged = _minuteRange.first != minuteRange.first ||
         _minuteRange.last != minuteRange.last;
     if (minuteRangeChanged) {
-      // selected hour changed
-      _currMinute = max(min(_currMinute, minuteRange.last), minuteRange.first);
+      _currMinute = 0;
     }
 
     List<int> secondRange = _calcSecondRange();
     bool secondRangeChanged = _secondRange.first != secondRange.first ||
         _secondRange.last != secondRange.last;
     if (secondRangeChanged) {
-      // second range changed, need limit the value of selected second
-      _currSecond = max(min(_currSecond, secondRange.last), secondRange.first);
+      // _currSecond = max(min(_currSecond, secondRange.last), secondRange.first);
+      _currSecond = 0;
     }
 
     setState(() {
@@ -431,7 +428,6 @@ class _DateTimePickerWidgetState extends State<DateTimePickerWidget> {
       _valueRangeMap['m'] = minuteRange;
       _valueRangeMap['s'] = secondRange;
     });
-
     if (hourRangeChanged) {
       // CupertinoPicker refresh data not working (https://github.com/flutter/flutter/issues/22999)
       int currHour = _currHour;
@@ -444,21 +440,21 @@ class _DateTimePickerWidgetState extends State<DateTimePickerWidget> {
     if (minuteRangeChanged) {
       // CupertinoPicker refresh data not working (https://github.com/flutter/flutter/issues/22999)
       int currMinute = _currMinute;
-      _minuteScrollCtrl
-          .jumpToItem((minuteRange.last - minuteRange.first) ~/ _minuteDivider);
+      int next = (minuteRange.last - minuteRange.first) ~/ _minuteDivider;
+      _minuteScrollCtrl.jumpToItem(next);
       if (currMinute < minuteRange.last) {
         _minuteScrollCtrl.jumpToItem(currMinute - minuteRange.first);
       }
     }
 
-    if (secondRangeChanged) {
-      // CupertinoPicker refresh data not working (https://github.com/flutter/flutter/issues/22999)
-      int currSecond = _currSecond;
-      _secondScrollCtrl.jumpToItem(secondRange.last - secondRange.first);
-      if (currSecond < secondRange.last) {
-        _secondScrollCtrl.jumpToItem(currSecond - secondRange.first);
-      }
-    }
+    // if (secondRangeChanged) {
+    //   // CupertinoPicker refresh data not working (https://github.com/flutter/flutter/issues/22999)
+    //   int currSecond = _currSecond;
+    //   _secondScrollCtrl.jumpToItem(secondRange.last - secondRange.first);
+    //   if (currSecond < secondRange.last) {
+    //     _secondScrollCtrl.jumpToItem(currSecond - secondRange.first);
+    //   }
+    // }
 
     _isChangeTimeRange = false;
   }

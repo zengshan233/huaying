@@ -1,3 +1,6 @@
+import 'dart:math';
+
+import 'package:advance_image_picker/advance_image_picker.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -13,12 +16,12 @@ import 'package:huayin_logistics/ui/widget/comon_widget.dart';
 import 'package:huayin_logistics/ui/widget/dialog/notice_dialog.dart';
 import 'package:huayin_logistics/ui/widget/dialog/progress_dialog.dart';
 import 'package:huayin_logistics/utils/platform_utils.dart';
-import 'package:image_pickers/UIConfig.dart';
-import 'package:image_pickers/image_pickers.dart';
-//import 'package:image_pickers/CorpConfig.dart';
-import 'package:image_pickers/Media.dart';
+import 'package:huayin_logistics/utils/popUtils.dart';
 import 'package:intl/intl.dart';
 import 'package:oss_dart/oss_dart.dart';
+import 'package:wechat_assets_picker/wechat_assets_picker.dart';
+
+import 'image_swiper.dart';
 
 class ImgPicker {
   int maxImages;
@@ -30,64 +33,97 @@ class ImgPicker {
   });
   int imgQulity = 20; //0-100
 
-  Future loadAssets() async {
-    List<Media> resultList = List();
-    GalleryMode _galleryMode = GalleryMode.image;
+  Future loadAssets(BuildContext context) async {
+    List<String> filesPath = [];
+    List<AssetEntity> assets;
     try {
-      _galleryMode = GalleryMode.image;
-      resultList = await ImagePickers.pickerPaths(
-        galleryMode: _galleryMode,
-        selectCount: maxImages,
-        showCamera: true,
-        compressSize: 500,
-        uiConfig: UIConfig(uiThemeColor: Color.fromRGBO(21, 145, 241, 1)),
-        compressQuality: imgQulity,
-        // corpConfig: CorpConfig(enableCrop: true, width: 230, height: 320)
+      assets = await AssetPicker.pickAssets(context,
+          maxAssets: maxImages, requestType: RequestType.image);
+    } catch (e) {
+      print(e.toString());
+      showMsgToast(e.toString());
+      return;
+    }
+    if (assets == null) return;
+    Iterable<Future<File>> futures = assets.map((a) => a.file);
+    List<File> files = await Future.wait<File>(futures);
+    filesPath = files.map((e) => e.path).toList();
+    imageUpload(filesPath, context);
+  }
+
+  Future camera(BuildContext context) async {
+    // Media media;
+    // try {
+    //   media = await ImagePickers.openCamera(
+    //       cameraMimeType: CameraMimeType.photo, compressQuality: imgQulity);
+    // } catch (e) {
+    //   print(e.toString());
+    //   showMsgToast(e.toString());
+    //   return;
+    // }
+
+    // print('media.path  ${media.path}');
+    // PhotoEditorResult result = await PESDK.openEditor(image: media.path);
+    // print('-------------------------------------------------------------');
+    // print(result?.toJson());
+    // String path = result?.toJson()['image'].replaceAll('file://', '');
+    // print('pathpath $path');
+    // imageUpload([path], context);
+    // createCameraFile(path);
+    var configs = ImagePickerConfigs();
+    configs.model = PickerMode.Camera;
+    configs.multiPictures = true;
+    Navigator.of(context)
+        .push(PageRouteBuilder(pageBuilder: (_context, animation, __) {
+      return ImagePicker(
+        maxCount: maxImages,
+        configs: configs,
+        onFinished: (objects) {
+          if ((objects?.length ?? 0) > 0) {
+            List<String> imagesPath =
+                objects.map((e) => e.modifiedPath).toList();
+            imageUpload(imagesPath, context);
+            // createCameraFile(path);
+          }
+        },
       );
-    } on Exception catch (e) {
-      print(e.toString());
-    }
-    imageUpload(resultList);
+    }));
   }
 
-  Future<Media> camera() async {
-    Media media;
-    try {
-      media = await ImagePickers.openCamera(
-          cameraMimeType: CameraMimeType.photo, compressQuality: imgQulity);
-    } on Exception catch (e) {
-      print(e.toString());
+  /// 拍照的图片在手机创建一个“华银物流APP”文件夹，将APP拍照的图片存在该文件夹下
+  void createCameraFile(String filePath) async {
+    /// 只针对安卓设备
+    if (!Platform.isAndroid) {
+      return;
     }
-    FormData formData = FormData();
-    formData.files.add(MapEntry(
-      "fileuploads",
-      await MultipartFile.fromFile(media.path,
-          filename: media.path
-              .substring(media.path.lastIndexOf("/") + 1, media.path.length)),
-    ));
-    imageUpload([media]);
+    Directory directory = Directory("/storage/emulated/0/华银物流APP");
+    await directory.create(recursive: true);
+    DateTime ketF = new DateTime.now();
+    String baru = "${ketF.year}${ketF.month}${ketF.day}";
+    int rand = new Random().nextInt(100000);
+    File imageFile = File(filePath);
+    // img.Image gambard = img.decodeImage(imageFile.readAsBytesSync());
+    // img.Image gambarKecilx = img.copyResize(gambard, width: 700, height: 700); //图片裁剪
+    File("${directory.path}//image_$baru$rand.jpg")
+      ..writeAsBytesSync(imageFile.readAsBytesSync());
   }
 
-  Future imageUpload(List<Media> resultList) async {
-    var yyDialog = yyProgressDialogBody(text: '正在上传...');
+  Future imageUpload(List<String> resultList, BuildContext context) async {
+    var yyDialog = yyProgressDialogBody(text: '正在上传...', context: context);
     List<FileUploadItem> uploadResponse;
     try {
       ossData = await Repository.fetchOssSts();
-      List<String> paths = resultList.map((e) => e.path).toList();
-      Iterable<Future<FileUploadItem>> futures = paths.map((e) => ossUpload(e));
-      List<String> ossPaths =
-          resultList.map((e) => getOssFilePath(e.path)).toList();
+      Iterable<Future<FileUploadItem>> futures =
+          resultList.map((e) => ossUpload(e));
+      List<String> ossPaths = resultList.map((e) => getOssFilePath(e)).toList();
       await Future.wait(futures);
       uploadResponse = await Repository.fetchFileSave('1', ossPaths);
-    } catch (e) {
+    } catch (e, s) {
       print('upload erro $e');
-      Future.microtask(() {
-        dialogDismiss(yyDialog);
-        yyDialog = yyNoticeFailedDialog(text: '上传失败！');
-        Future.delayed(Duration(milliseconds: 1500), () {
-          dialogDismiss(yyDialog);
-        });
-      });
+      dialogDismiss(yyDialog);
+      await Future.delayed(Duration(milliseconds: 100));
+      PopUtils.showError(e, s);
+
       return null;
     }
     dialogDismiss(yyDialog);
@@ -118,151 +154,16 @@ String getOssFilePath(String path) {
   return ossPath;
 }
 
-// void selectBottomSheet(dynamic img){
-// 	var yyDialog;
-// 	yyDialog=yyBottomSheetDialog(
-// 		leftText: '拍照',
-// 		rightText:'从手机相册选择',
-// 		leftPress: (){
-// 			Future.microtask(() {
-// 				dialogDismiss(yyDialog);
-// 			});
-// 			img.camera();
-// 		},
-// 		rightPress: (){
-// 			Future.microtask(() {
-// 				dialogDismiss(yyDialog);
-// 			});
-// 			img.loadAssets();
-// 		}
-// 	);
-// }
-
-Widget imgGridView(List<FileUploadItem> images,
-    {int maxLength = 5,
-    Function selectClick,
-    Function delCallBack,
-    bool initButton = true,
-    Function cSelect,
-    Function pSelect}) {
-  return Container(
-    height: ScreenUtil().setHeight(500),
-    margin: EdgeInsets.only(top: ScreenUtil().setHeight(30)),
-    padding: EdgeInsets.symmetric(horizontal: ScreenUtil().setWidth(10)),
-    child: GridView.count(
-      crossAxisCount: 3,
-      childAspectRatio:
-          ScreenUtil().setWidth(260) / ScreenUtil().setHeight(210),
-      mainAxisSpacing: ScreenUtil().setHeight(10),
-      crossAxisSpacing: ScreenUtil().setWidth(10),
-      children: [
-        ...List.generate(images.length, (index) {
-          return new Stack(
-            children: <Widget>[
-              Container(
-                width: ScreenUtil().setWidth(260),
-                height: ScreenUtil().setHeight(210),
-                padding: EdgeInsets.all(ScreenUtil().setWidth(20)),
-                decoration: BoxDecoration(
-                    border: Border.all(
-                        width: 1 / ScreenUtil.pixelRatio,
-                        color: GlobalConfig.borderColor)),
-                child: GestureDetector(
-                  onTap: () {
-                    ImagePickers.previewImage(
-                        FlavorConfig.instance.imgPre + images[index].innerUrl);
-                  },
-                  child: Image.network(
-                    FlavorConfig.instance.imgPre + images[index].innerUrl,
-                    fit: BoxFit.cover,
-                  ),
-                ),
-              ),
-              new Positioned(
-                top: 0,
-                right: 0,
-                child: new Container(
-                  width: ScreenUtil().setHeight(80),
-                  height: ScreenUtil().setHeight(80),
-                  child: new FlatButton(
-                      //color: Colors.red,
-                      padding: EdgeInsets.all(0),
-                      onPressed: () {
-                        delCallBack(index);
-                      },
-                      child: new Image.asset(
-                        ImageHelper.wrapAssets('record_del.png'),
-                        width: ScreenUtil().setHeight(50),
-                        height: ScreenUtil().setHeight(50),
-                      )),
-                ),
-              )
-            ],
-          );
-        }),
-        initButton
-            ? (images.length < maxLength
-                ? Container(
-                    width: ScreenUtil().setWidth(260),
-                    height: ScreenUtil().setHeight(210),
-                    child: new FlatButton(
-                      padding: EdgeInsets.all(0),
-                      highlightColor: Colors.transparent,
-                      onPressed: () {
-                        selectClick();
-                      },
-                      child: new Image.asset(
-                        ImageHelper.wrapAssets('record_simg.png'),
-                        width: ScreenUtil().setHeight(190),
-                        height: ScreenUtil().setHeight(160),
-                      ),
-                    ),
-                  )
-                : SizedBox())
-            : (images.length < maxLength
-                ? Container(
-                    width: ScreenUtil().setWidth(260),
-                    height: ScreenUtil().setHeight(210),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: <Widget>[
-                        Container(
-                          width: ScreenUtil().setWidth(200),
-                          height: ScreenUtil().setHeight(90),
-                          child: gradualButton(
-                            '拍照',
-                            onTap: () {
-                              cSelect();
-                            },
-                          ),
-                        ),
-                        SizedBox(height: ScreenUtil().setWidth(20)),
-                        Container(
-                          width: ScreenUtil().setWidth(200),
-                          height: ScreenUtil().setHeight(90),
-                          child: gradualButton(
-                            '相册',
-                            onTap: () {
-                              pSelect();
-                            },
-                          ),
-                        )
-                      ],
-                    ))
-                : SizedBox())
-      ],
-    ),
-  );
-}
-
-Widget eventImgGridView(List<EventImage> images,
-    {int maxLength = 5,
-    Function selectClick,
-    Function delCallBack,
-    bool initButton = true,
-    Function cSelect,
-    Function pSelect}) {
+Widget eventImgGridView(
+  List<EventImage> images, {
+  @required BuildContext context,
+  int maxLength = 5,
+  Function selectClick,
+  Function delCallBack,
+  bool initButton = true,
+  Function cSelect,
+  Function pSelect,
+}) {
   return Container(
     height: ScreenUtil().setHeight(230) * ((images.length / 5).floor() + 1),
     margin: EdgeInsets.only(top: ScreenUtil().setHeight(30)),
@@ -281,8 +182,14 @@ Widget eventImgGridView(List<EventImage> images,
                 height: ScreenUtil().setHeight(220),
                 child: GestureDetector(
                   onTap: () {
-                    ImagePickers.previewImage(
-                        FlavorConfig.instance.imgPre + images[index].imageUrl);
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (_) => ImageSwiper(
+                                  index: index,
+                                  imgUrls:
+                                      images.map((r) => r.imageUrl).toList(),
+                                )));
                   },
                   child: Image.network(
                     FlavorConfig.instance.imgPre + images[index].imageUrl,
@@ -290,80 +197,9 @@ Widget eventImgGridView(List<EventImage> images,
                   ),
                 ),
               ),
-              // new Positioned(
-              //   top: 0,
-              //   right: 0,
-              //   child: new Container(
-              //     width: ScreenUtil().setHeight(80),
-              //     height: ScreenUtil().setHeight(80),
-              //     child: new FlatButton(
-              //         //color: Colors.red,
-              //         padding: EdgeInsets.all(0),
-              //         onPressed: () {
-              //           delCallBack(index);
-              //         },
-              //         child: new Image.asset(
-              //           ImageHelper.wrapAssets('record_del.png'),
-              //           width: ScreenUtil().setHeight(50),
-              //           height: ScreenUtil().setHeight(50),
-              //         )),
-              //   ),
-              // )
             ],
           );
         }),
-        // initButton
-        //     ? (images.length < maxLength
-        //         ? Container(
-        //             width: ScreenUtil().setWidth(220),
-        //             height: ScreenUtil().setHeight(220),
-        //             child: new FlatButton(
-        //               padding: EdgeInsets.all(0),
-        //               highlightColor: Colors.transparent,
-        //               onPressed: () {
-        //                 selectClick();
-        //               },
-        //               child: new Image.asset(
-        //                 ImageHelper.wrapAssets('record_simg.png'),
-        //                 width: ScreenUtil().setHeight(190),
-        //                 height: ScreenUtil().setHeight(160),
-        //               ),
-        //             ),
-        //           )
-        //         : SizedBox())
-        //     : (images.length < maxLength
-        //         ? Container(
-        //             width: ScreenUtil().setWidth(260),
-        //             height: ScreenUtil().setHeight(210),
-        //             child: Column(
-        //               mainAxisAlignment: MainAxisAlignment.center,
-        //               crossAxisAlignment: CrossAxisAlignment.center,
-        //               children: <Widget>[
-        //                 Container(
-        //                   width: ScreenUtil().setWidth(200),
-        //                   height: ScreenUtil().setHeight(90),
-        //                   child: gradualButton(
-        //                     '拍照',
-        //                     onTap: () {
-        //                       cSelect();
-        //                     },
-        //                   ),
-        //                 ),
-        //                 SizedBox(height: ScreenUtil().setWidth(20)),
-        //                 Container(
-        //                   width: ScreenUtil().setWidth(200),
-        //                   height: ScreenUtil().setHeight(90),
-        //                   child: gradualButton(
-        //                     '相册',
-        //                     onTap: () {
-        //                       pSelect();
-        //                     },
-        //                   ),
-        //                 )
-        //               ],
-        //             ))
-        //         : SizedBox()
-        // )
       ],
     ),
   );

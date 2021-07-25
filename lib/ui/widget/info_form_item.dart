@@ -1,15 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:huayin_logistics/ui/widget/comon_widget.dart';
 
 class InfoFormItem extends StatelessWidget {
   final String lable;
   final String text;
   final Widget rightWidget;
-  InfoFormItem({this.lable, this.text, this.rightWidget});
+  final double commonWidth;
+  InfoFormItem({this.lable, this.text, this.rightWidget, this.commonWidth});
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.symmetric(vertical: ScreenUtil().setHeight(30)),
+      padding: EdgeInsets.symmetric(
+          vertical: ScreenUtil().setHeight(30),
+          horizontal: ScreenUtil().setWidth(50)),
       decoration: BoxDecoration(
           color: Colors.white,
           border:
@@ -17,27 +21,20 @@ class InfoFormItem extends StatelessWidget {
       child: Row(
         children: <Widget>[
           Container(
-            margin: EdgeInsets.only(
-                left: ScreenUtil().setWidth(50),
-                right: ScreenUtil().setWidth(50)),
-            constraints: BoxConstraints(minWidth: ScreenUtil().setWidth(230)),
-            child: Text(
-              lable,
-              textAlign: TextAlign.left,
-              style: TextStyle(
-                fontSize: ScreenUtil().setSp(38),
-                color: Color(0xFF333333),
-              ),
-            ),
+            margin: EdgeInsets.only(right: ScreenUtil().setWidth(50)),
+            child: inputPreText(
+                preText: lable, isRquire: false, width: commonWidth),
           ),
           Expanded(
-            child: Text(
-              text,
-              style: TextStyle(
-                fontSize: ScreenUtil().setSp(38),
-                color: Color(0xFF717171),
-              ),
-            ),
+            child: text != null
+                ? Text(
+                    text.isEmpty ? '--' : text,
+                    style: TextStyle(
+                      fontSize: ScreenUtil().setSp(38),
+                      color: Color(0xFF717171),
+                    ),
+                  )
+                : Container(),
           ),
           rightWidget ?? Container()
         ],

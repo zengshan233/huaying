@@ -6,13 +6,13 @@ abstract class ViewStateListModel<T> extends ViewStateModel {
   List<T> list = [];
 
   /// 第一次进入页面loading skeleton
-  initData() async {
+  Future initData() async {
     setBusy();
     await refresh(init: true);
   }
 
   // 下拉刷新
-  refresh({bool init = false}) async {
+  Future refresh({bool init = false}) async {
     try {
       List<T> data = await loadData();
       if (data.isEmpty) {

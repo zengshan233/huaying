@@ -7,68 +7,112 @@ import 'package:huayin_logistics/ui/page/home/receiptCheck/receipt_confirm.dart'
 import 'package:huayin_logistics/ui/page/home/receiptCheck/receipt_details.dart';
 import 'package:huayin_logistics/ui/page/home/recordedCode/code_detail.dart';
 import 'package:huayin_logistics/ui/page/home/selectProject/select_specimen_type.dart';
-import 'package:huayin_logistics/ui/page/home/specimen_box_combine.dart';
+import 'package:huayin_logistics/ui/page/home/specimenCombine/specimen_box_combine.dart';
 import 'package:huayin_logistics/ui/page/home/specimentJoin/speciment_box_join.dart';
 import 'package:huayin_logistics/ui/page/home/specimentJoin/user_list.dart';
-import 'package:huayin_logistics/ui/page/home/specimentTake/speciment_box_take.dart';
 import 'package:huayin_logistics/ui/page/mine/change_password.dart';
 import 'package:huayin_logistics/ui/widget/page_route_anim.dart';
-
-import 'package:huayin_logistics/ui/page/splash.dart'; //启动页面
-import 'package:huayin_logistics/ui/page/tab.dart'; //tab页
-import 'package:huayin_logistics/ui/page/mine/login.dart'; //登陆页面
-import 'package:huayin_logistics/ui/page/mine/forget_password.dart'; //忘记密码
-import 'package:huayin_logistics/ui/page/home/easyRecord/easy_record.dart'; //简易录单
-import 'package:huayin_logistics/ui/page/home/takePhone/documentary_take_phone.dart'; //单据拍照
-import 'package:huayin_logistics/ui/page/home/deliveryReceipt/delivery_receipt.dart'; //交接单
-import 'package:huayin_logistics/ui/page/home/recordedCode/recorded_code.dart'; //已录条码
-import 'package:huayin_logistics/ui/page/home/specimenSend/specimen_box_send.dart'; //标本箱发出
-import 'package:huayin_logistics/ui/page/home/tansferPicker/transfer_picker.dart'; //中转取件
-import 'package:huayin_logistics/ui/page/home/specimenArrive/speciment_box_arrive.dart'; //标本箱送达
-import 'package:huayin_logistics/ui/page/home/eventManagement/event_management.dart'; //标本箱送达
-import 'package:huayin_logistics/ui/page/home/select_company.dart'; //选择送检单位
-import 'package:huayin_logistics/ui/page/home/selectProject/select_project.dart'; //选择项目
-import 'package:huayin_logistics/ui/page/home/specimen_status_inquiry.dart'; //标本状态查询
-import 'package:huayin_logistics/ui/page/home/specimen_details.dart'; //标本状态详情
-import 'package:huayin_logistics/ui/page/home/eventManagement/event_detail.dart'; //事件详情
-import 'package:huayin_logistics/ui/page/mine/my_info.dart'; //个人信息
-import 'package:huayin_logistics/ui/page/home/eventManagement/event_back.dart'; //事件反馈
+import 'package:huayin_logistics/ui/page/splash.dart';
+import 'package:huayin_logistics/ui/page/tab.dart';
+import 'package:huayin_logistics/ui/page/mine/login.dart';
+import 'package:huayin_logistics/ui/page/mine/forget_password.dart';
+import 'package:huayin_logistics/ui/page/home/easyRecord/easy_record.dart';
+import 'package:huayin_logistics/ui/page/home/takePhone/documentary_take_phone.dart';
+import 'package:huayin_logistics/ui/page/home/deliveryReceipt/delivery_receipt.dart';
+import 'package:huayin_logistics/ui/page/home/recordedCode/recorded_code.dart';
+import 'package:huayin_logistics/ui/page/home/specimenSend/specimen_box_send.dart';
+import 'package:huayin_logistics/ui/page/home/tansferPicker/transfer_picker.dart';
+import 'package:huayin_logistics/ui/page/home/specimenArrive/speciment_box_arrive.dart';
+import 'package:huayin_logistics/ui/page/home/eventManagement/event_management.dart';
+import 'package:huayin_logistics/ui/page/home/easyRecord/select_company.dart';
+import 'package:huayin_logistics/ui/page/home/selectProject/select_project.dart';
+import 'package:huayin_logistics/ui/page/home/eventManagement/event_detail.dart';
+import 'package:huayin_logistics/ui/page/mine/my_info.dart';
 
 class RouteName {
+  /// 启动页
   static const String splash = 'splash';
+
+  /// 首页
   static const String tab = '/';
+
+  /// 登陆页
   static const String login = 'login';
+
+  /// 简易录单
   static const String easyRecord = 'easyRecord';
+
+  /// 拍照录单
   static const String documentaryTakephone = 'documentaryTakephone';
+
+  /// 交接单
   static const String deliveryReceipt = 'deliveryReceipt';
+
+  /// 已录条码
   static const String recordedCode = 'recordedCode';
+
+  /// 已录条码详情
   static const String recordedCodeDetail = 'recordedCodeDetail';
+
+  /// 标本箱发出
   static const String specimenBoxSend = 'specimenBoxSend';
+
+  /// 中转取件
   static const String transferPicker = 'transferPicker';
+
+  /// 批量录单
   static const String mutilRecord = 'mutilRecord';
+
+  /// 标本箱送达
   static const String specimenBoxArrive = 'specimenBoxArrive';
+
+  /// 忘记密码
   static const String forgetPassword = 'forgetPassword';
+
+  /// 事件管理
   static const String eventManagement = 'eventManagement';
+
+  /// 单据审核
   static const String receiptCheck = 'receiptCheck';
+
+  /// 单据详情
   static const String receiptDetail = 'receiptDetail';
+
+  /// 单据详情审核确认
   static const String receiptConfirm = 'receiptConfirm';
+
+  /// 选择送检单位
   static const String selectCompany = 'selectCompany';
+
+  /// 标本箱合箱
   static const String specimentBoxCombine = 'specimentBoxCombine';
+
+  /// 标本箱交接
   static const String specimentBoxJoin = 'specimentBoxJoin';
-  static const String specimentBoxTake = 'specimentBoxTake';
-  static const String selectItem = 'selectItem';
-  static const String specimenStatusInquiry = 'specimenStatusInquiry';
-  static const String specimenDetails = 'specimenDetails';
+
+  /// 选择申请项目
+  static const String selectProject = 'selectProject';
+
+  /// 事件管理详情
   static const String eventDetail = 'eventDetail';
+
+  /// 个人信息
   static const String userInfo = 'userInfo';
-  static const String eventBack = 'eventBack';
+
+  /// 修改密码
   static const String changePassword = 'changePassword';
+
+  /// 交接单详情
   static const String deliveryDetail = 'deliveryDetail';
+
+  /// 选择标本类型
   static const String specimentSpecimenType = 'specimentSpecimenType';
+
+  /// 选择联系人
   static const String selectUserList = 'selectUserList';
 }
 
-class Router {
+class AppRouter {
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
       case RouteName.splash:
@@ -111,32 +155,20 @@ class Router {
         return CupertinoPageRoute(builder: (_) => SpecimentBoxCombine());
       case RouteName.specimentBoxJoin:
         return CupertinoPageRoute(builder: (_) => SpecimentBoxJoin());
-      case RouteName.specimentBoxTake:
-        return CupertinoPageRoute(builder: (_) => SpecimenBoxTake());
       case RouteName.specimentSpecimenType:
         return CupertinoPageRoute(builder: (_) => SelectSpecimenType());
       case RouteName.selectCompany:
         var param = settings.arguments as Map;
         return CupertinoPageRoute(
             builder: (_) => SelectCompany(item: param['item']));
-      case RouteName.selectItem:
-        var selectItemParm = settings.arguments as Map;
+      case RouteName.selectProject:
+        var selectProjectParm = settings.arguments as Map;
         return CupertinoPageRoute(
             fullscreenDialog: true,
             builder: (_) => SelectProject(
-                hasSelectItem: selectItemParm == null
+                hasSelectItem: selectProjectParm == null
                     ? null
-                    : selectItemParm['hasSelectItem']));
-      case RouteName.specimenStatusInquiry:
-        var specimenStatusParm = settings.arguments as Map;
-        return CupertinoPageRoute(
-            builder: (_) =>
-                SpecimenStatusInquiry(barCode: specimenStatusParm['barCode']));
-      case RouteName.specimenDetails:
-        var param = settings.arguments as Map;
-        return CupertinoPageRoute(
-            builder: (_) =>
-                SpecimenDetails(specimenStatusId: param['specimenStatusId']));
+                    : selectProjectParm['hasSelectItem']));
       case RouteName.deliveryDetail:
         var param = settings.arguments as Map;
         return CupertinoPageRoute(
@@ -155,18 +187,19 @@ class Router {
         var param = settings.arguments as Map;
         return CupertinoPageRoute(
             builder: (_) => ReceiptDetail(
-                  receiptId: param['receiptId'],
-                ));
+                receiptId: param['receiptId'],
+                applyId: param['applyId'],
+                status: param['status'],
+                updateList: param['updateList']));
       case RouteName.receiptConfirm:
         var param = settings.arguments as Map;
         return CupertinoPageRoute(
             builder: (_) => ReceiptConfirm(
-                  receiptId: param['receiptId'],
+                  applyId: param['applyId'],
+                  update: param['update'],
                 ));
       case RouteName.userInfo:
         return CupertinoPageRoute(builder: (_) => MyInfo());
-      case RouteName.eventBack:
-        return CupertinoPageRoute(builder: (_) => EventBack());
       case RouteName.changePassword:
         return CupertinoPageRoute(builder: (_) => ChangePassword());
       default:

@@ -1,21 +1,30 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:huayin_logistics/base/flavor_config.dart';
 import 'package:huayin_logistics/base/global_config.dart';
+import 'package:huayin_logistics/config/resource_mananger.dart';
 import 'package:huayin_logistics/config/router_manger.dart';
+import 'package:huayin_logistics/model/check_data_model.dart';
 import 'package:huayin_logistics/model/event_manager_data_model.dart';
 import 'package:huayin_logistics/provider/provider_widget.dart';
 import 'package:huayin_logistics/ui/color/DiyColors.dart';
+import 'package:huayin_logistics/ui/page/home/receiptCheck/receipt_form.dart';
 import 'package:huayin_logistics/ui/widget/comon_widget.dart'
-    show appBarWithName;
-import 'package:huayin_logistics/ui/widget/img_picker.dart';
+    show appBarWithName, noDataWidget;
 import 'package:huayin_logistics/ui/widget/info_form_item.dart';
-import 'package:huayin_logistics/view_model/home/event_model.dart';
-import 'package:provider/provider.dart';
+import 'package:huayin_logistics/view_model/home/check_model.dart';
 
 class ReceiptDetail extends StatefulWidget {
+  final int status;
   final String receiptId;
+  final String applyId;
+  final Function updateList;
 
-  const ReceiptDetail({Key key, this.receiptId}) : super(key: key);
+  const ReceiptDetail(
+      {Key key, this.status, this.receiptId, this.applyId, this.updateList})
+      : super(key: key);
 
   @override
   _ReceiptDetail createState() => _ReceiptDetail();
@@ -24,10 +33,15 @@ class ReceiptDetail extends StatefulWidget {
 class _ReceiptDetail extends State<ReceiptDetail> {
   EventFeedback feedback;
   TextEditingController _replyMessageController;
+  bool showInfo = false;
+  int status;
+  String statusName;
   @override
   void initState() {
     super.initState();
     _replyMessageController = TextEditingController();
+    status = widget.status;
+    statusName = checkStatus[status];
   }
 
   @override
@@ -38,7 +52,7 @@ class _ReceiptDetail extends State<ReceiptDetail> {
 
   @override
   Widget build(BuildContext context) {
-    return ProviderWidget<EventManagerViewModel>(
+    return ProviderWidget<CheckModel>(
       builder: (context, model, child) {
         return GestureDetector(
             behavior: HitTestBehavior.translucent,
@@ -52,178 +66,125 @@ class _ReceiptDetail extends State<ReceiptDetail> {
                 child: new Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
-                    _infoFrom(),
-                    _backContent(),
+                    ReceiptForm(
+                        model: model, status: status, statusName: statusName),
+                    _projects(model),
                     SizedBox(height: ScreenUtil().setHeight(40)),
-                    confirm(),
+                    _subInfo(model),
+                    SizedBox(height: ScreenUtil().setHeight(40)),
+                    status == 2 ? confirm() : Container(),
                     SizedBox(height: ScreenUtil().setHeight(80)),
                   ],
                 ),
               ),
             ));
       },
-      model: EventManagerViewModel(context: context),
+      model: CheckModel(context: context),
       onModelReady: (model) {
-        model.getEventFeedbackDetail(widget.receiptId);
+        model.getCheckDetail(widget.receiptId);
       },
     );
   }
 
-  //信息表单
-  Widget _infoFrom() {
-    return Consumer<EventManagerViewModel>(
-      builder: (context, model, child) {
-        var eventType = model.eventFeedback != null
-            ? eventFeedbackTypeStr(
-                EventFeedbackType.values[model.eventFeedback.type])
-            : "--";
-
-        return Container(
-            child: new Column(children: <Widget>[
-          InfoFormItem(
-              lable: '反馈类别',
-              text: eventType,
-              rightWidget: Container(
-                  alignment: Alignment.center,
-                  margin: EdgeInsets.only(right: ScreenUtil().setWidth(40)),
-                  padding: EdgeInsets.symmetric(
-                      horizontal: ScreenUtil().setWidth(15),
-                      vertical: ScreenUtil().setWidth(10)),
-                  decoration: BoxDecoration(
-                      color: Color(0xFFd6e6ff),
-                      borderRadius: BorderRadius.all(Radius.circular(6))),
-                  child: Text(
-                    '未审核',
-                    style: TextStyle(color: DiyColors.heavy_blue),
+  Widget _subInfo(CheckModel model) {
+    List<String> extraList = model.checkDetail?.extra?.keys?.toList() ?? [];
+    return Container(
+      child: Column(
+        children: <Widget>[
+          InkWell(
+              onTap: () {
+                setState(() {
+                  showInfo = !showInfo;
+                });
+              },
+              child: InfoFormItem(
+                  lable: '辅助信息',
+                  rightWidget: Container(
+                    padding: EdgeInsets.only(
+                      right: ScreenUtil().setWidth(60),
+                      // bottom: ScreenUtil().setWidth(showInfo ? 15 : 0),
+                      // top: ScreenUtil().setWidth(showInfo ? 0 : 20),
+                    ),
+                    child: Transform.rotate(
+                      angle: (showInfo ? 1 : -1) * pi / 2,
+                      child: Image.asset(
+                        ImageHelper.wrapAssets('right_more.png'),
+                        width: ScreenUtil().setWidth(60),
+                        height: ScreenUtil().setWidth(60),
+                      ),
+                    ),
                   ))),
-          InfoFormItem(
-              lable: '录入时间', text: model.eventFeedback?.backTime ?? ""),
-          _backContent(),
-          InfoFormItem(
-              lable: '标本条码', text: model.eventFeedback?.contactName ?? ""),
-          InfoFormItem(
-              lable: '送检单位', text: model.eventFeedback?.contactPhone ?? ""),
-          InfoFormItem(
-              lable: '外勤', text: model.eventFeedback?.hospitalName ?? ""),
-          _projects(),
-          SizedBox(height: ScreenUtil().setHeight(40)),
-        ]));
-      },
+          showInfo
+              ? extraList.isEmpty
+                  ? Container(
+                      child: noDataWidget(text: '暂无辅助信息'),
+                    )
+                  : Column(
+                      children: extraList.map((e) {
+                      int idx = model.checkDetail?.meta
+                          ?.indexWhere((m) => m.fieldId == e);
+                      if (idx > -1) {
+                        Meta metaItem = model.checkDetail?.meta[idx];
+                        return InfoFormItem(
+                            lable: metaItem.fieldName,
+                            text: model.checkDetail?.extra[e].toString(),
+                            commonWidth: ScreenUtil().setWidth(230));
+                      }
+                      return Container();
+                    }).toList())
+              : Container()
+        ],
+      ),
     );
   }
 
-  Widget _projects() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: <Widget>[
-        InfoFormItem(lable: '申请项目', text: ""),
-        Column(
-          children: List(4)
-              .map(
-                (e) => Container(
-                  padding: EdgeInsets.only(
-                      top: ScreenUtil().setWidth(20),
-                      bottom: ScreenUtil().setWidth(20),
-                      left: ScreenUtil().setWidth(150),
-                      right: ScreenUtil().setWidth(250)),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    border: Border(
-                        bottom: BorderSide(
-                            color: GlobalConfig.borderColor, width: 1)),
+  Widget _projects(CheckModel model) {
+    return Container(
+      margin: EdgeInsets.only(
+        top: ScreenUtil().setWidth(30),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          InfoFormItem(lable: '申请项目'),
+          Column(
+            children: (model.checkDetail?.items ?? [])
+                .map(
+                  (e) => Container(
+                    padding: EdgeInsets.only(
+                      left: ScreenUtil().setWidth(90),
+                      top: ScreenUtil().setWidth(30),
+                      bottom: ScreenUtil().setWidth(30),
+                      right: ScreenUtil().setWidth(120),
+                    ),
+                    decoration: BoxDecoration(
+                        color: Colors.white,
+                        border: Border(
+                            bottom: BorderSide(
+                                width: 0.5, color: Color(0xFFf0f0f0)))),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: <Widget>[
+                        Container(
+                            width: ScreenUtil().setWidth(600),
+                            child: Text(
+                              e.itemName ?? '',
+                              style:
+                                  TextStyle(fontSize: ScreenUtil().setSp(40)),
+                            )),
+                        Container(
+                            width: ScreenUtil().setWidth(310),
+                            alignment: Alignment.bottomRight,
+                            child: Text(e.specimenTypeName ?? '',
+                                style: TextStyle(
+                                    fontSize: ScreenUtil().setSp(40))))
+                      ],
+                    ),
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      Container(
-                          margin:
-                              EdgeInsets.only(bottom: ScreenUtil().setWidth(5)),
-                          child: Text('基因检测',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontSize: ScreenUtil().setSp(38),
-                                color: Color.fromRGBO(90, 90, 90, 1),
-                              ))),
-                      Container(
-                          child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: <Widget>[
-                          Text('仪器法',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontSize: ScreenUtil().setSp(38),
-                                color: Color.fromRGBO(90, 90, 90, 1),
-                              )),
-                          Text('血清',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontSize: ScreenUtil().setSp(38),
-                                color: Color.fromRGBO(90, 90, 90, 1),
-                              ))
-                        ],
-                      ))
-                    ],
-                  ),
-                ),
-              )
-              .toList(),
-        )
-      ],
-    );
-  }
-
-  Widget _backContent() {
-    return Consumer<EventManagerViewModel>(
-      builder: (context, model, child) {
-        return Container(
-            color: Colors.white,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                child,
-                eventImgGridView(model.imageList, selectClick: () {
-                  var img = new ImgPicker(
-                      maxImages: 5 - model.imageList.length,
-                      success: (res) async {
-                        await res.forEach((item) async {
-                          var image = EventImage.fromParams(
-                            imageId: item.id,
-                            imageName: item.fileName,
-                            imageUrl: item.innerUrl,
-                            customerBackId: this.widget.receiptId,
-                          );
-                          await model.addImage(image);
-                        });
-                        model.fetchEventImageList(this.widget.receiptId);
-                      });
-                  selectBottomSheet(context, img);
-                }, delCallBack: (index) async {
-                  var image = model.imageList[index];
-                  model.deleteImage(image.id, image.updateAt).then((value) {
-                    if (value) {
-                      model.fetchEventImageList(this.widget.receiptId);
-                    }
-                  });
-                })
-              ],
-            ));
-      },
-      child: Container(
-        alignment: Alignment.centerLeft,
-        padding: EdgeInsets.only(
-            left: ScreenUtil().setWidth(60),
-            top: ScreenUtil().setWidth(20),
-            bottom: ScreenUtil().setWidth(20)),
-        decoration: BoxDecoration(
-            border: Border(
-                bottom: BorderSide(width: 1, color: GlobalConfig.borderColor))),
-        child: Text(
-          '照片列表',
-          style: TextStyle(
-            fontSize: ScreenUtil().setSp(38),
-            color: Color(0xFF333333),
-          ),
-        ),
+                )
+                .toList(),
+          )
+        ],
       ),
     );
   }
@@ -238,7 +199,16 @@ class _ReceiptDetail extends State<ReceiptDetail> {
           InkWell(
               onTap: () {
                 Navigator.pushNamed(context, RouteName.receiptConfirm,
-                    arguments: {"receiptId": widget.receiptId});
+                    arguments: {
+                      "applyId": widget.applyId,
+                      "update": (bool value) {
+                        widget.updateList();
+                        setState(() {
+                          status = value ? 3 : 4;
+                          statusName = checkStatus[status];
+                        });
+                      }
+                    });
               },
               child: Container(
                 width: ScreenUtil().setWidth(1000),

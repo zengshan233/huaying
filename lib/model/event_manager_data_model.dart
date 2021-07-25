@@ -4,10 +4,13 @@ import 'dart:convert' show json;
 enum EventStatus {
   /// 初始化状态
   Idle,
+
   /// 1 未处理
   Untreated,
+
   /// 2 处理中（已回复）
   Pending,
+
   /// 3 已处理
   Done,
 }
@@ -30,10 +33,13 @@ String eventStatusStr(EventStatus status) {
 enum EventFeedbackType {
   /// 初始化状态
   Idle,
+
   /// 1 客户反馈
   Message,
+
   /// 2 投诉
   Complaint,
+
   /// 3 物流异常
   Anomaly,
 }
@@ -91,7 +97,6 @@ class EventFeedbackListModel {
   }
 }
 
-
 class EventFeedback {
   String id;
   String contactId;
@@ -114,9 +119,8 @@ class EventFeedback {
   String orgId;
 
   EventFeedback.fromParams(
-      {
-        this.id,
-        this.contactId,
+      {this.id,
+      this.contactId,
       this.finalHandleId,
       this.handleStatus,
       this.hospitalId,
@@ -132,8 +136,8 @@ class EventFeedback {
       this.images,
       this.backTime,
       this.finalHandleTime,
-	  this.dcId,
-	  this.orgId});
+      this.dcId,
+      this.orgId});
 
   factory EventFeedback(jsonStr) => jsonStr == null
       ? null
@@ -165,8 +169,8 @@ class EventFeedback {
 
     backTime = jsonRes['backTime'];
     finalHandleTime = jsonRes['finalHandleTime'];
-	dcId = jsonRes['dcId'];
-	orgId = jsonRes['orgId'];
+    dcId = jsonRes['dcId'];
+    orgId = jsonRes['orgId'];
   }
 
   @override
@@ -174,9 +178,9 @@ class EventFeedback {
     return '{"id": $id, "contactId": $contactId,"finalHandleId": $finalHandleId,"handleStatus": $handleStatus,"hospitalId": $hospitalId,"status": $status,"type": $type,"backText": ${backText != null ? '${json.encode(backText)}' : 'null'},"codeNo": ${codeNo != null ? '${json.encode(codeNo)}' : 'null'},"contactName": ${contactName != null ? '${json.encode(contactName)}' : 'null'},"contactPhone": ${contactPhone != null ? '${json.encode(contactPhone)}' : 'null'},"finalHandleName": ${finalHandleName != null ? '${json.encode(finalHandleName)}' : 'null'},"hospitalName": ${hospitalName != null ? '${json.encode(hospitalName)}' : 'null'},"remark": ${remark != null ? '${json.encode(remark)}' : 'null'},"images": $images,"backTime": $backTime,"finalHandleTime": $finalHandleTime, "dcId": $dcId, "orgId": $orgId}';
   }
 
-  Map<String, dynamic> toJson(){
-    List<Map<String,dynamic>> jsonImages = [];
-    images.forEach((item){
+  Map<String, dynamic> toJson() {
+    List<Map<String, dynamic>> jsonImages = [];
+    images.forEach((item) {
       jsonImages.add(item.toJson());
     });
     return {
@@ -186,24 +190,24 @@ class EventFeedback {
       'handleStatus': handleStatus,
       'hospitalId': hospitalId,
       'hospitalName': hospitalName,
-      'status':status,
-      'type':type,
-      'backText':backText,
-      'codeNo':codeNo,
-      'contactName':contactName,
-      'contactPhone':contactPhone,
-      'finalHandleName':finalHandleName,
-      'remark':remark,
+      'status': status,
+      'type': type,
+      'backText': backText,
+      'codeNo': codeNo,
+      'contactName': contactName,
+      'contactPhone': contactPhone,
+      'finalHandleName': finalHandleName,
+      'remark': remark,
       'backTime': backTime,
       'finalHandleTime': finalHandleTime,
-      'images':jsonImages,
+      'images': jsonImages,
     };
   }
 }
 
 class EventImage {
   String id;
-	String dcId;
+  String dcId;
   String orgId;
   String customerBackId;
   String imageId;
@@ -226,7 +230,7 @@ class EventImage {
       this.updateAt});
 
   EventImage.fromJson(jsonRes) {
-	  dcId = jsonRes['dcId'];
+    dcId = jsonRes['dcId'];
     orgId = jsonRes['orgId'];
     customerBackId = jsonRes['customerBackId'];
     imageId = jsonRes['imageId'];
@@ -250,21 +254,19 @@ class EventImage {
     return '{"dcId": $dcId,"orgId": $orgId, "customerBackId": $customerBackId,"imageId": $imageId,"status": $status,"imageName": ${imageName != null ? '${json.encode(imageName)}' : 'null'},"imageUrl": ${imageUrl != null ? '${json.encode(imageUrl)}' : 'null'},"remark": ${remark != null ? '${json.encode(remark)}' : 'null'}}';
   }
 
-  Map<String, dynamic> toJson() => 
-  {
-    'customerBackId':customerBackId,
-    'imageId':imageId,
-    'status':status,
-    'imageName':imageName,
-    'imageUrl':imageUrl,
-    'remark':remark,
-	'dcId':dcId,
-    'orgId':orgId,
-  };
+  Map<String, dynamic> toJson() => {
+        'customerBackId': customerBackId,
+        'imageId': imageId,
+        'status': status,
+        'imageName': imageName,
+        'imageUrl': imageUrl,
+        'remark': remark,
+        'dcId': dcId,
+        'orgId': orgId,
+      };
 }
 
 class EventReply {
-
   String dcId;
   String orgId;
   String backId;
@@ -278,8 +280,20 @@ class EventReply {
   String status;
   String updateAt;
 
-  EventReply.fromParams({this.dcId, this.orgId, this.backId, this.backName, this.backText, this.backTime, this.createAt, this.customerBackId, this.id, this.remark, this.status, this.updateAt});
-  
+  EventReply.fromParams(
+      {this.dcId,
+      this.orgId,
+      this.backId,
+      this.backName,
+      this.backText,
+      this.backTime,
+      this.createAt,
+      this.customerBackId,
+      this.id,
+      this.remark,
+      this.status,
+      this.updateAt});
+
   EventReply.fromJson(jsonRes) {
     dcId = jsonRes['dcId'];
     orgId = jsonRes['orgId'];
@@ -295,7 +309,7 @@ class EventReply {
     updateAt = jsonRes['updateAt'];
   }
 
-    factory EventReply(jsonStr) => jsonStr == null
+  factory EventReply(jsonStr) => jsonStr == null
       ? null
       : jsonStr is String
           ? new EventReply.fromJson(json.decode(jsonStr))
@@ -303,17 +317,16 @@ class EventReply {
 
   @override
   String toString() {
-    return '{"dcId": $dcId,"orgId": $orgId,"backId": ${backId != null?'${json.encode(backId)}':'null'},"backName": ${backName != null?'${json.encode(backName)}':'null'},"backText": ${backText != null?'${json.encode(backText)}':'null'},"backTime": ${backTime != null?'${json.encode(backTime)}':'null'},"createAt": ${createAt != null?'${json.encode(createAt)}':'null'},"customerBackId": ${customerBackId != null?'${json.encode(customerBackId)}':'null'},"id": ${id != null?'${json.encode(id)}':'null'},"remark": ${remark != null?'${json.encode(remark)}':'null'},"status": ${status != null?'${json.encode(status)}':'null'},"updateAt": ${updateAt != null?'${json.encode(updateAt)}':'null'}}';
+    return '{"dcId": $dcId,"orgId": $orgId,"backId": ${backId != null ? '${json.encode(backId)}' : 'null'},"backName": ${backName != null ? '${json.encode(backName)}' : 'null'},"backText": ${backText != null ? '${json.encode(backText)}' : 'null'},"backTime": ${backTime != null ? '${json.encode(backTime)}' : 'null'},"createAt": ${createAt != null ? '${json.encode(createAt)}' : 'null'},"customerBackId": ${customerBackId != null ? '${json.encode(customerBackId)}' : 'null'},"id": ${id != null ? '${json.encode(id)}' : 'null'},"remark": ${remark != null ? '${json.encode(remark)}' : 'null'},"status": ${status != null ? '${json.encode(status)}' : 'null'},"updateAt": ${updateAt != null ? '${json.encode(updateAt)}' : 'null'}}';
   }
 
-  Map<String, dynamic> toJson() => 
-  {
-    'dcId':dcId,
-    'orgId':orgId,
-    'backId':backId,
-    'backName':backName,
-    'backText':backText,
-    'backTime':backTime,
-	'customerBackId':customerBackId,
-  };
+  Map<String, dynamic> toJson() => {
+        'dcId': dcId,
+        'orgId': orgId,
+        'backId': backId,
+        'backName': backName,
+        'backText': backText,
+        'backTime': backTime,
+        'customerBackId': customerBackId,
+      };
 }

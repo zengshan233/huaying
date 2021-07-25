@@ -32,7 +32,7 @@ abstract class BaseHttp extends DioForNative {
 /// 添加常用Header
 class HeaderInterceptor extends InterceptorsWrapper {
   @override
-  onRequest(RequestOptions options) async {
+  onRequest(RequestOptions options, RequestInterceptorHandler handler) async {
     options.connectTimeout = 1000 * 45;
     options.receiveTimeout = 1000 * 45;
 
@@ -52,7 +52,7 @@ class HeaderInterceptor extends InterceptorsWrapper {
       userInfo = LoginDataModel.fromJson(userMap);
     }
     options.headers['token'] = userInfo?.token;
-    return options;
+    handler.next(options);
   }
 }
 

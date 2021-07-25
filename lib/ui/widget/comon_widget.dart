@@ -3,7 +3,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:gradient_app_bar/gradient_app_bar.dart';
+import 'package:new_gradient_app_bar/new_gradient_app_bar.dart';
 import 'package:huayin_logistics/base/global_config.dart';
 import 'package:huayin_logistics/config/resource_mananger.dart';
 import 'package:huayin_logistics/ui/color/DiyColors.dart';
@@ -16,7 +16,9 @@ Widget appBarWithName(BuildContext context, String title, String name,
   MineModel model = Provider.of<MineModel>(context);
   String userName = model.user == null
       ? '未登录'
-      : model.user.user == null ? '--' : model.user?.user?.name;
+      : model.user.user == null
+          ? '--'
+          : model.user?.user?.name;
   return AppBar(
     backgroundColor: Colors.white,
     brightness: Brightness.light,
@@ -60,8 +62,8 @@ Widget appBarWithName(BuildContext context, String title, String name,
 
 Widget radiusButton({String text, String img}) {
   return Container(
-    padding: EdgeInsets.all(ScreenUtil().setWidth(8)),
-    width: ScreenUtil().setWidth(190),
+    padding: EdgeInsets.symmetric(vertical: ScreenUtil().setWidth(8)),
+    width: ScreenUtil().setWidth(170),
     decoration: BoxDecoration(
         border: Border.all(color: DiyColors.heavy_blue, width: 1),
         borderRadius:
@@ -70,8 +72,8 @@ Widget radiusButton({String text, String img}) {
       mainAxisAlignment: MainAxisAlignment.center,
       children: <Widget>[
         new Image(
-            width: ScreenUtil().setWidth(50),
-            height: ScreenUtil().setWidth(50),
+            width: ScreenUtil().setWidth(40),
+            height: ScreenUtil().setWidth(40),
             image: new AssetImage(ImageHelper.wrapAssets(img)),
             fit: BoxFit.fill),
         Container(
@@ -79,7 +81,7 @@ Widget radiusButton({String text, String img}) {
           child: new Text(text,
               style: TextStyle(
                   color: DiyColors.heavy_blue,
-                  fontSize: ScreenUtil().setSp(36))),
+                  fontSize: ScreenUtil().setSp(34))),
         )
       ],
     ),
@@ -89,7 +91,7 @@ Widget radiusButton({String text, String img}) {
 //appbar头部
 Widget appBarComon(BuildContext context,
     {String text = '', Widget leading, Widget rightWidget}) {
-  return GradientAppBar(
+  return NewGradientAppBar(
     title: Text(
       text,
       style: TextStyle(fontSize: ScreenUtil().setSp(48)),
@@ -113,7 +115,7 @@ Widget appBarComon(BuildContext context,
 }
 
 //渐变按钮
-Widget gradualButton(String text, {Function onTap}) {
+Widget gradualButton(String text, {Function onTap, bool gradual = true}) {
   return new PhysicalModel(
     color: Colors.white,
     //设置背景底色透明
@@ -125,14 +127,16 @@ Widget gradualButton(String text, {Function onTap}) {
     child: Container(
       width: ScreenUtil().setWidth(800),
       height: ScreenUtil().setHeight(150),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(//背景径向渐变
-            colors: [
-          Color.fromRGBO(42, 192, 255, 1),
-          Color.fromRGBO(35, 177, 250, 1),
-          Color.fromRGBO(21, 145, 241, 1)
-        ], begin: Alignment.topLeft, end: Alignment.bottomRight),
-      ),
+      decoration: gradual
+          ? BoxDecoration(
+              gradient: LinearGradient(//背景径向渐变
+                  colors: [
+                Color.fromRGBO(42, 192, 255, 1),
+                Color.fromRGBO(35, 177, 250, 1),
+                Color.fromRGBO(21, 145, 241, 1)
+              ], begin: Alignment.topLeft, end: Alignment.bottomRight),
+            )
+          : BoxDecoration(color: DiyColors.heavy_blue),
       child: FlatButton(
         onPressed: () {
           onTap();
@@ -227,12 +231,14 @@ Widget simpleRecordInput(BuildContext context,
     Function onTap,
     TextEditingController onController,
     bool enbleInput = true,
+    bool isRquire = false,
     TextInputType keyType = TextInputType.text,
     TextInputAction textInputAction = TextInputAction.none,
     Function onSubmitted,
+    FocusNode focusNode,
+    double width,
     int maxLength = 200}) {
   return new Container(
-    height: ScreenUtil().setHeight(140),
     decoration: BoxDecoration(
         border: Border(
             bottom: needBorder
@@ -244,26 +250,25 @@ Widget simpleRecordInput(BuildContext context,
     child: new Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: <Widget>[
-        new Text(preText, style: TextStyle(fontSize: ScreenUtil().setSp(40))),
+        inputPreText(preText: preText, isRquire: isRquire, width: width),
         new Stack(
           alignment: AlignmentDirectional.center,
           children: <Widget>[
             new Container(
-              color: Colors.transparent,
               width: ScreenUtil().setWidth(776),
               margin: EdgeInsets.only(right: ScreenUtil().setWidth(30)),
-//              padding: EdgeInsets.only(right: ScreenUtil().setWidth(140)),
               child: new TextField(
-                key: UniqueKey(),
+                // key: UniqueKey(),
                 textInputAction: textInputAction,
                 keyboardType: keyType,
                 inputFormatters: keyType == TextInputType.number
                     ? [
-                        WhitelistingTextInputFormatter(RegExp("[0-9.]")),
+                        WhitelistingTextInputFormatter(RegExp("[0-9.-]")),
                       ]
                     : [],
                 //只允许输入数字
                 onSubmitted: onSubmitted,
+                focusNode: focusNode,
                 style: TextStyle(
                     fontSize: ScreenUtil().setSp(40), color: Color(0xFF333333)),
                 decoration: InputDecoration(
@@ -306,6 +311,38 @@ Widget simpleRecordInput(BuildContext context,
   );
 }
 
+Widget inputPreText({String preText, bool isRquire, double width}) {
+  List<String> preTextList = preText.split('');
+  if (isRquire) {
+    preTextList.add('*');
+  }
+  return Container(
+      width: width ?? ScreenUtil().setWidth(200),
+      child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: List.generate(preTextList.length, (index) {
+            bool isFirst = index == 0;
+            bool isLast = index == preTextList.length - 1;
+            bool isRequireText = isRquire && isLast;
+            bool toRight = isRquire && index == preTextList.length - 2;
+            return Expanded(
+                child: Container(
+              alignment: isFirst
+                  ? Alignment.centerLeft
+                  : (isLast || toRight)
+                      ? Alignment.centerRight
+                      : Alignment.center,
+              child: Text(preTextList[index],
+                  style: TextStyle(
+                      fontSize: ScreenUtil().setSp(40),
+                      color: isRequireText
+                          ? Color.fromRGBO(234, 44, 67, 1)
+                          : Color.fromRGBO(90, 90, 91, 1))),
+            ));
+          })));
+}
+
 //录单输入框
 Widget recordInput(BuildContext context,
     {Widget rightWidget,
@@ -333,20 +370,9 @@ Widget recordInput(BuildContext context,
                     width: 1 / ScreenUtil.pixelRatio)
                 : BorderSide.none)),
     child: new Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      mainAxisAlignment: MainAxisAlignment.start,
       children: <Widget>[
-        new Text.rich(TextSpan(children: [
-          TextSpan(
-              text: isRquire ? "*" : '',
-              style: TextStyle(
-                  fontSize: ScreenUtil().setSp(46),
-                  color: Color.fromRGBO(234, 44, 67, 1))),
-          TextSpan(
-              text: preText,
-              style: TextStyle(
-                  fontSize: ScreenUtil().setSp(40),
-                  color: Color.fromRGBO(90, 90, 91, 1)))
-        ])),
+        inputPreText(preText: preText, isRquire: isRquire),
         new Stack(
           alignment: AlignmentDirectional.center,
           children: <Widget>[
@@ -367,9 +393,9 @@ Widget recordInput(BuildContext context,
                 decoration: InputDecoration(
                     hintText: hintText,
                     hintStyle: TextStyle(
-                        fontSize: ScreenUtil().setSp(40),
-                        color: Color.fromRGBO(211, 211, 211, 1),
-                        height: 1.4),
+                      fontSize: ScreenUtil().setSp(40),
+                      color: Color.fromRGBO(211, 211, 211, 1),
+                    ),
                     border: InputBorder.none,
                     focusedBorder: InputBorder.none,
                     enabledBorder: InputBorder.none,
@@ -524,9 +550,11 @@ Widget listTitleDecoration(
 }
 
 //提示toast
-ToastFuture showMsgToast(message, {BuildContext context}) {
+ToastFuture showMsgToast(message,
+    {BuildContext context, Function() onDismiss}) {
   return showToast(message,
       context: context,
+      onDismiss: onDismiss,
       position: ToastPosition.bottom,
       backgroundColor: Color.fromRGBO(0, 0, 0, 0.8),
       radius: 2);

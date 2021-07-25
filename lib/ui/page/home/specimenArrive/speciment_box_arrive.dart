@@ -1,19 +1,18 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_custom_dialog/flutter_custom_dialog.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:huayin_logistics/config/net/repository.dart';
 import 'package:huayin_logistics/config/resource_mananger.dart';
 import 'package:huayin_logistics/model/transfer_picker_model_data.dart';
 import 'package:huayin_logistics/provider/provider_widget.dart';
 import 'package:huayin_logistics/ui/color/DiyColors.dart';
-import 'package:huayin_logistics/ui/widget/barcode_scanner.dart';
 import 'package:huayin_logistics/ui/widget/comon_widget.dart'
-    show appBarWithName, listTitleDecoration, noDataWidget, showMsgToast;
+    show appBarWithName, listTitleDecoration, noDataWidget;
+import 'package:huayin_logistics/ui/widget/scanner.dart';
+import 'package:huayin_logistics/utils/device_utils.dart';
 import 'package:huayin_logistics/view_model/home/specimen_box_arrive_model.dart';
-import 'package:huayin_logistics/view_model/home/transfer_picker_model.dart';
-import 'package:huayin_logistics/view_model/mine/mine_model.dart';
-import 'package:provider/provider.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'arrive_item.dart';
 
@@ -25,6 +24,7 @@ class SpecimenBoxArrive extends StatefulWidget {
 class _SpecimenBoxArrive extends State<SpecimenBoxArrive> {
   List<TransferPickerData> data = [];
   int _currentTabIndex = 0;
+  TextEditingController searchCon = TextEditingController();
 
   @override
   void initState() {
@@ -45,7 +45,7 @@ class _SpecimenBoxArrive extends State<SpecimenBoxArrive> {
             appBar: appBarWithName(context, '标本箱送达', '外勤:', withName: true),
             body: ProviderWidget<SpecimenBoxArriveModel>(
                 model: SpecimenBoxArriveModel(
-                    context: context, labId: '82858490362716212'),
+                    context: context, isDelivered: false),
                 onModelReady: (model) {
                   model.initData();
                 },
@@ -93,10 +93,18 @@ class _SpecimenBoxArrive extends State<SpecimenBoxArrive> {
                 model.busy
                     ? Expanded(
                         child: Center(
+                            child: UnconstrainedBox(
+                                child: Container(
+                          width: ScreenUtil().setWidth(80),
+                          height: ScreenUtil().setWidth(80),
+                          margin:
+                              EdgeInsets.only(top: ScreenUtil().setHeight(200)),
                           child: CircularProgressIndicator(
-                            strokeWidth: 2.0,
+                            backgroundColor: Colors.grey[200],
+                            valueColor:
+                                AlwaysStoppedAnimation(DiyColors.heavy_blue),
                           ),
-                        ),
+                        ))),
                       )
                     : Expanded(
                         child: new Container(
@@ -106,7 +114,7 @@ class _SpecimenBoxArrive extends State<SpecimenBoxArrive> {
                               onRefresh: model.refresh,
                               onLoading: model.loadMore,
                               enablePullUp: true,
-                              enablePullDown: false,
+                              enablePullDown: true,
                               child: _listChild(model)),
                         ),
                       )
@@ -123,10 +131,16 @@ class _SpecimenBoxArrive extends State<SpecimenBoxArrive> {
         width: ScreenUtil.screenWidth,
         padding: EdgeInsets.symmetric(horizontal: ScreenUtil().setWidth(85)),
         child: Center(
+            child: UnconstrainedBox(
+                child: Container(
+          width: ScreenUtil().setWidth(80),
+          height: ScreenUtil().setWidth(80),
+          margin: EdgeInsets.only(top: ScreenUtil().setHeight(200)),
           child: CircularProgressIndicator(
-            strokeWidth: 2.0,
+            backgroundColor: Colors.grey[200],
+            valueColor: AlwaysStoppedAnimation(DiyColors.heavy_blue),
           ),
-        ),
+        ))),
       );
     if (model.list.isEmpty)
       return Container(
@@ -198,6 +212,7 @@ class _SpecimenBoxArrive extends State<SpecimenBoxArrive> {
 
   //头部搜索栏
   Widget _searchTitle(SpecimenBoxArriveModel model) {
+    Timer dRequst;
     return Column(
       children: <Widget>[
         Container(
@@ -219,7 +234,9 @@ class _SpecimenBoxArrive extends State<SpecimenBoxArrive> {
                           children: <Widget>[
                             Positioned.fill(
                                 child: TextField(
+                              textAlignVertical: TextAlignVertical.bottom,
                               style: TextStyle(
+                                  textBaseline: TextBaseline.alphabetic,
                                   fontSize: ScreenUtil().setSp(42),
                                   color: DiyColors.heavy_blue),
                               textInputAction: TextInputAction.search,
@@ -229,9 +246,18 @@ class _SpecimenBoxArrive extends State<SpecimenBoxArrive> {
                                     fontSize: ScreenUtil().setSp(42),
                                     color: Color.fromRGBO(190, 190, 190, 1),
                                   ),
-                                  border: InputBorder.none,
-                                  focusedBorder: InputBorder.none,
-                                  enabledBorder: InputBorder.none,
+                                  border: OutlineInputBorder(
+                                      borderSide: BorderSide.none),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderSide: BorderSide(
+                                      color: Colors.transparent,
+                                    ),
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderSide: BorderSide(
+                                      color: Colors.transparent,
+                                    ),
+                                  ),
                                   prefixIcon: Icon(
                                     Icons.search,
                                     size: ScreenUtil().setWidth(60),
@@ -239,6 +265,17 @@ class _SpecimenBoxArrive extends State<SpecimenBoxArrive> {
                                   ),
                                   counterText: ''),
                               maxLength: 20,
+                              controller: searchCon,
+                              onChanged: (v) {
+                                if (dRequst != null) {
+                                  dRequst.cancel();
+                                }
+                                dRequst =
+                                    Timer(Duration(milliseconds: 400), () {
+                                  model.boxNo = v.toString();
+                                  model.initData();
+                                });
+                              },
                               onSubmitted: (v) {
                                 model.boxNo = v;
                                 model.initData();
@@ -259,13 +296,16 @@ class _SpecimenBoxArrive extends State<SpecimenBoxArrive> {
                                     child: new FlatButton(
                                       padding: EdgeInsets.all(0),
                                       highlightColor: Colors.transparent,
-                                      onPressed: () {
-                                        var p = new BarcodeScanner(
-                                            success: (String code) {
-                                          //print('条形号'+code);
-                                          if (code == '-1') return;
-                                        });
-                                        p.scanBarcodeNormal();
+                                      onPressed: () async {
+                                        DeviceUtils.scanBarcode(
+                                          confirm: (code) {
+                                            if (code != null) {
+                                              searchCon.text = code;
+                                              model.boxNo = code;
+                                              model.initData();
+                                            }
+                                          },
+                                        );
                                       },
                                       child: new Image.asset(
                                         ImageHelper.wrapAssets(

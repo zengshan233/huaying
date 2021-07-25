@@ -5,18 +5,20 @@ import 'package:huayin_logistics/config/net/repository.dart';
 import 'package:huayin_logistics/model/delivery_model.dart';
 import 'package:huayin_logistics/ui/color/DiyColors.dart';
 import 'package:huayin_logistics/ui/widget/comon_widget.dart'
-    show appBarWithName;
+    show appBarWithName, inputPreText;
 import 'package:huayin_logistics/ui/widget/info_form_item.dart';
 import 'package:huayin_logistics/ui/widget/pop_window/kumi_popup_window.dart';
 import 'package:huayin_logistics/utils/popUtils.dart';
+import 'package:huayin_logistics/view_model/mine/mine_model.dart';
 import 'package:oktoast/oktoast.dart';
+import 'package:provider/provider.dart';
 
 import 'company_details.dart';
 
 class DeliveryDetail extends StatefulWidget {
   final DeliveryDetailModel detail;
   final String id;
-  Function(DeliveryDetailModel) updateStatus;
+  final Function(DeliveryDetailModel) updateStatus;
   DeliveryDetail({this.detail, this.id, this.updateStatus});
   @override
   _DeliveryDetail createState() => _DeliveryDetail();
@@ -36,8 +38,8 @@ class _DeliveryDetail extends State<DeliveryDetail> {
   }
 
   getDetail({bool showLoading = true}) async {
-    /// 先写死
-    String labId = '82858490362716212';
+    MineModel userModel = Provider.of<MineModel>(context, listen: false);
+    String labId = userModel.labId;
     DeliveryDetailModel detailResponse;
     KumiPopupWindow pop;
     if (showLoading) {
@@ -46,14 +48,18 @@ class _DeliveryDetail extends State<DeliveryDetail> {
     try {
       detailResponse =
           await Repository.fetchDeliveryDetail(labId: labId, id: widget.id);
-    } catch (e) {
+    } catch (e, s) {
       print('getBoxlist error $e');
-      showToast(e.toString());
-      pop?.dismiss?.call(context);
+      if (showLoading) {
+        PopUtils.dismiss();
+      }
+      PopUtils.showError(e, s);
       return;
     }
 
-    pop?.dismiss?.call(context);
+    if (showLoading) {
+      PopUtils.dismiss();
+    }
     setState(() {
       detail = detailResponse;
     });
@@ -109,13 +115,7 @@ class _DeliveryDetail extends State<DeliveryDetail> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: <Widget>[
-          Container(
-            child: Text('交接单状态',
-                style: TextStyle(
-                  fontSize: ScreenUtil().setSp(38),
-                  color: Color(0xFF333333),
-                )),
-          ),
+          inputPreText(preText: '交接单状态', isRquire: false),
           Container(
               child: Row(
             children: <Widget>[

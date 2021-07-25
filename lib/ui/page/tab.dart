@@ -4,9 +4,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-import './home/home.dart';
-import './news/news.dart';
-import './mine/mine.dart';
+import 'home/index/home.dart';
+import 'news/news.dart';
+import 'mine/mine.dart';
 
 List<Widget> pages = <Widget>[Home(), News(), Mine()];
 
@@ -49,39 +49,42 @@ class _TabNavigatorState extends State<TabNavigator> {
             },
           ),
         ),
-           bottomNavigationBar: BottomNavigationBar(
-             type: BottomNavigationBarType.fixed,
-             items: <BottomNavigationBarItem>[
-               BottomNavigationBarItem(
-                 icon: Image.asset(_selectedIndex == 0
-					 ? 'assets/images/main_home_selected.png'
-					 : 'assets/images/main_home_normal.png',
-					 width: ScreenUtil().setWidth(100),
-					 height: ScreenUtil().setWidth(100)),
-                 title: Text('首页'),
-               ),
-               BottomNavigationBarItem(
-                 icon: Image.asset(_selectedIndex == 1
-					 ? 'assets/images/main_message_selected.png'
-					 : 'assets/images/main_message_normal.png',
-					 width: ScreenUtil().setWidth(100),
-					 height: ScreenUtil().setWidth(100)),
-                 title: Text('消息'),
-               ),
-               BottomNavigationBarItem(
-                 icon: Image.asset(_selectedIndex == 2
-					 ? 'assets/images/main_mine_selected.png'
-					 : 'assets/images/main_mine_normal.png',
-					 width: ScreenUtil().setWidth(100),
-					 height: ScreenUtil().setWidth(100)),
-                 title: Text('我的'),
-               ),
-             ],
-             currentIndex: _selectedIndex,
-             onTap: (index) {
-               _pageController.jumpToPage(index);
-             },
-           ));
+        bottomNavigationBar: BottomNavigationBar(
+          type: BottomNavigationBarType.fixed,
+          items: <BottomNavigationBarItem>[
+            BottomNavigationBarItem(
+              icon: Image.asset(
+                  _selectedIndex == 0
+                      ? 'assets/images/main_home_selected.png'
+                      : 'assets/images/main_home_normal.png',
+                  width: ScreenUtil().setWidth(100),
+                  height: ScreenUtil().setWidth(100)),
+              title: Text('首页'),
+            ),
+            BottomNavigationBarItem(
+              icon: Image.asset(
+                  _selectedIndex == 1
+                      ? 'assets/images/main_message_selected.png'
+                      : 'assets/images/main_message_normal.png',
+                  width: ScreenUtil().setWidth(100),
+                  height: ScreenUtil().setWidth(100)),
+              title: Text('消息'),
+            ),
+            BottomNavigationBarItem(
+              icon: Image.asset(
+                  _selectedIndex == 2
+                      ? 'assets/images/main_mine_selected.png'
+                      : 'assets/images/main_mine_normal.png',
+                  width: ScreenUtil().setWidth(100),
+                  height: ScreenUtil().setWidth(100)),
+              title: Text('我的'),
+            ),
+          ],
+          currentIndex: _selectedIndex,
+          onTap: (index) {
+            _pageController.jumpToPage(index);
+          },
+        ));
   }
 
   @override

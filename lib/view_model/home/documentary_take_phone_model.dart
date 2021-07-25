@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:huayin_logistics/config/net/repository.dart';
-import 'package:huayin_logistics/model/documentary_take_phone_data_model.dart';
 import 'package:huayin_logistics/model/recorded_code_model.dart';
 import 'package:huayin_logistics/provider/view_state_model.dart';
 import 'package:huayin_logistics/ui/widget/dialog/progress_dialog.dart';
@@ -23,13 +22,13 @@ class DocumentaryTakePhoneModel extends ViewStateModel {
       Map response = await Repository.fetchDocumentaryTakePhoneInfo(barCode);
       RecordedItem item = await Repository.fetchRecordedBarcode(
           labId: labId, barCode: barCode, recordId: recordId);
-      response['boxNo'] = item.boxNo;
+      response['boxNo'] = item?.boxNo;
       setIdle();
       pop.dismiss(context);
       return response;
     } catch (e, s) {
+      PopUtils.dismiss();
       setError(e, s);
-      pop.dismiss(context);
       showErrorMessage(context);
       return null;
     }

@@ -9,6 +9,7 @@ class ProviderWidget<T extends ChangeNotifier> extends StatefulWidget {
   final T model;
   final Widget child;
   final Function(T model) onModelReady;
+  final Function(T model) onBuildReady;
   final bool autoDispose;
 
   ProviderWidget({
@@ -17,6 +18,7 @@ class ProviderWidget<T extends ChangeNotifier> extends StatefulWidget {
     @required this.model,
     this.child,
     this.onModelReady,
+    this.onBuildReady,
     this.autoDispose: true,
   }) : super(key: key);
 
@@ -31,6 +33,8 @@ class _ProviderWidgetState<T extends ChangeNotifier>
   void initState() {
     model = widget.model;
     widget.onModelReady?.call(model);
+    WidgetsBinding.instance
+        .addPostFrameCallback((_) => widget.onBuildReady?.call(model));
     super.initState();
   }
 
@@ -60,6 +64,7 @@ class ProviderWidget2<A extends ChangeNotifier, B extends ChangeNotifier>
   final B model2;
   final Widget child;
   final Function(A model1, B model2) onModelReady;
+  final Function(A model1, B model2) onBuildReady;
   final bool autoDispose;
 
   ProviderWidget2({
@@ -69,6 +74,7 @@ class ProviderWidget2<A extends ChangeNotifier, B extends ChangeNotifier>
     @required this.model2,
     this.child,
     this.onModelReady,
+    this.onBuildReady,
     this.autoDispose,
   }) : super(key: key);
 
@@ -85,6 +91,8 @@ class _ProviderWidgetState2<A extends ChangeNotifier, B extends ChangeNotifier>
     model1 = widget.model1;
     model2 = widget.model2;
     widget.onModelReady?.call(model1, model2);
+    WidgetsBinding.instance
+        .addPostFrameCallback((_) => widget.onBuildReady?.call(model1, model2));
     super.initState();
   }
 

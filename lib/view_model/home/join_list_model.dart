@@ -1,6 +1,9 @@
+import 'package:flutter/material.dart';
 import 'package:huayin_logistics/config/net/repository.dart';
 import 'package:huayin_logistics/model/delivery_model.dart';
 import 'package:huayin_logistics/provider/view_state_refresh_list_model.dart';
+import 'package:huayin_logistics/view_model/mine/mine_model.dart';
+import 'package:provider/provider.dart';
 
 class JoinListResponse {
   int rowsCount;
@@ -43,11 +46,25 @@ class JoinListResponse {
 }
 
 class JoinListModel extends ViewStateRefreshListModel {
+  String labId;
+  BuildContext context;
+  JoinListModel(BuildContext _context) {
+    MineModel userModel = Provider.of<MineModel>(_context, listen: false);
+    labId = userModel.labId;
+    context = _context;
+  }
+
   @override
   Future<List<JoinListItem>> loadData({int pageNum}) async {
     List<JoinListItem> response;
-    response = await Repository.fetchDeliveryList(
-        labId: '82858490362716212', recordId: '118736914412920997');
+    try {
+      response = await Repository.fetchDeliveryList(
+          pageNumber: pageNum, labId: labId, recordId: '118736914412920997');
+    } catch (e, s) {
+      setError(e, s, errState: false);
+      showErrorMessage(context);
+      return [];
+    }
     return response == null ? [] : response;
   }
 }

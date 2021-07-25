@@ -3,13 +3,16 @@ import 'package:flutter_custom_dialog/flutter_custom_dialog.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:huayin_logistics/config/resource_mananger.dart';
 import 'package:huayin_logistics/ui/color/DiyColors.dart';
+import 'package:provider/provider.dart';
+import 'package:huayin_logistics/view_model/home/check_model.dart';
+import 'package:huayin_logistics/provider/provider_widget.dart';
 import 'package:huayin_logistics/ui/widget/comon_widget.dart'
     show appBarWithName;
 
 class ReceiptConfirm extends StatefulWidget {
-  final String receiptId;
-
-  const ReceiptConfirm({Key key, this.receiptId}) : super(key: key);
+  final String applyId;
+  final Function(bool) update;
+  const ReceiptConfirm({Key key, this.applyId, this.update}) : super(key: key);
   @override
   _ReceiptConfirm createState() => _ReceiptConfirm();
 }
@@ -17,6 +20,7 @@ class ReceiptConfirm extends StatefulWidget {
 class _ReceiptConfirm extends State<ReceiptConfirm> {
   bool passed = false;
   TextEditingController textCon = TextEditingController();
+  FocusNode focusNode = new FocusNode();
 
   @override
   void initState() {
@@ -26,17 +30,21 @@ class _ReceiptConfirm extends State<ReceiptConfirm> {
   @override
   Widget build(BuildContext context) {
     YYDialog.init(context);
-    return Scaffold(
-        backgroundColor: DiyColors.background_grey,
-        appBar: appBarWithName(context, '审核', '外勤:', withName: true),
-        body: Column(
-          children: <Widget>[
-            buildItem(true, '审核通过'),
-            buildItem(false, '审核不通过'),
-            buildContent(),
-            confirm()
-          ],
-        ));
+    return ProviderWidget<CheckModel>(
+        model: CheckModel(context: context),
+        builder: (context, model, child) {
+          return Scaffold(
+              backgroundColor: DiyColors.background_grey,
+              appBar: appBarWithName(context, '审核', '外勤:', withName: true),
+              body: Column(
+                children: <Widget>[
+                  buildItem(true, '审核通过'),
+                  buildItem(false, '审核不通过'),
+                  buildContent(),
+                  confirm()
+                ],
+              ));
+        });
   }
 
   Widget buildItem(bool _pass, String text) {
@@ -99,6 +107,7 @@ class _ReceiptConfirm extends State<ReceiptConfirm> {
               autofocus: false,
               controller: textCon,
               maxLines: 10,
+              focusNode: focusNode,
               style: TextStyle(
                 fontSize: ScreenUtil().setSp(40),
                 color: Color.fromRGBO(90, 90, 91, 1),
@@ -118,30 +127,45 @@ class _ReceiptConfirm extends State<ReceiptConfirm> {
   }
 
   Widget confirm() {
-    return Container(
-      width: ScreenUtil.screenWidth,
-      margin: EdgeInsets.only(top: ScreenUtil().setWidth(80)),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: <Widget>[
-          InkWell(
-              onTap: () {},
-              child: Container(
-                width: ScreenUtil().setWidth(1000),
-                padding:
-                    EdgeInsets.symmetric(vertical: ScreenUtil().setWidth(30)),
-                decoration: BoxDecoration(
-                    color: DiyColors.heavy_blue,
-                    borderRadius: BorderRadius.all(Radius.circular(6))),
-                alignment: Alignment.center,
-                child: Text(
-                  '确  定',
-                  style: TextStyle(color: Colors.white),
-                ),
-              ))
-        ],
-      ),
-    );
+    return Consumer<CheckModel>(builder: (context, model, child) {
+      return Container(
+        width: ScreenUtil.screenWidth,
+        margin: EdgeInsets.only(top: ScreenUtil().setWidth(80)),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: <Widget>[
+            InkWell(
+                onTap: () {
+                  focusNode.unfocus();
+                  if (passed) {
+                    model.adopt(widget.applyId, textCon.text, success: () {
+                      widget.update(passed);
+                      Navigator.pop(context);
+                    });
+                  } else {
+                    model.refuse(widget.applyId, textCon.text, success: () {
+                      widget.update(passed);
+                      Navigator.pop(context);
+                    });
+                  }
+                },
+                child: Container(
+                  width: ScreenUtil().setWidth(1000),
+                  padding:
+                      EdgeInsets.symmetric(vertical: ScreenUtil().setWidth(30)),
+                  decoration: BoxDecoration(
+                      color: DiyColors.heavy_blue,
+                      borderRadius: BorderRadius.all(Radius.circular(6))),
+                  alignment: Alignment.center,
+                  child: Text(
+                    '确  定',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                ))
+          ],
+        ),
+      );
+    });
   }
 }

@@ -1,8 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:huayin_logistics/base/global_config.dart';
 import 'package:huayin_logistics/config/resource_mananger.dart';
-import 'package:huayin_logistics/model/select_item_company_data_model.dart';
 import 'package:huayin_logistics/model/specimen_type_model.dart';
 import 'package:huayin_logistics/provider/provider_widget.dart';
 import 'package:huayin_logistics/ui/widget/comon_widget.dart'
@@ -32,7 +33,8 @@ class _SelectSpecimenType extends State<SelectSpecimenType> {
 
   @override
   Widget build(BuildContext context) {
-    var userInfo = Provider.of<MineModel>(context, listen: false).user?.user;
+    MineModel userModel = Provider.of<MineModel>(context, listen: false);
+    String labId = userModel.labId;
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
       onTap: () {
@@ -43,8 +45,7 @@ class _SelectSpecimenType extends State<SelectSpecimenType> {
           backgroundColor: Color(0xFFf5f5f5),
           appBar: appBarWithName(context, '选择标本类型', ''),
           body: ProviderWidget<SelectSpecimenTypeModel>(
-              model: SelectSpecimenTypeModel(
-                  keyword: "", labId: '82858490362716212'),
+              model: SelectSpecimenTypeModel(keyword: "", labId: labId),
               onModelReady: (model) {
                 model.initData();
               },
@@ -63,14 +64,6 @@ class _SelectSpecimenType extends State<SelectSpecimenType> {
                             enablePullDown: false,
                             child: _listChild(model)),
                       ),
-                      // new Container(
-                      //   padding: EdgeInsets.only(
-                      //       bottom: ScreenUtil().setHeight(76),
-                      //       top: ScreenUtil().setHeight(30)),
-                      //   child: gradualButton('确定', onTap: () {
-                      //     Navigator.of(context).pop(_currentSelectedItem);
-                      //   }),
-                      // )
                     )
                   ],
                 );
@@ -180,6 +173,7 @@ class _SelectSpecimenType extends State<SelectSpecimenType> {
 
   //头部搜索栏
   Widget _searchTitle(SelectSpecimenTypeModel model) {
+    Timer dRequst;
     return Column(
       children: <Widget>[
         Container(
@@ -200,19 +194,30 @@ class _SelectSpecimenType extends State<SelectSpecimenType> {
                       width: ScreenUtil().setWidth(810),
                       height: ScreenUtil().setHeight(110),
                       child: new TextField(
+                        textAlignVertical: TextAlignVertical.bottom,
                         style: TextStyle(
+                            textBaseline: TextBaseline.alphabetic,
                             fontSize: ScreenUtil().setSp(42),
                             color: Color.fromRGBO(0, 117, 255, 1)),
                         textInputAction: TextInputAction.search,
                         decoration: InputDecoration(
-                          hintText: '请搜索医院名称、助记符',
+                          hintText: '请输入标本类型名称',
                           hintStyle: TextStyle(
                             fontSize: ScreenUtil().setSp(42),
                             color: Color.fromRGBO(190, 190, 190, 1),
                           ),
-                          border: InputBorder.none,
-                          focusedBorder: InputBorder.none,
-                          enabledBorder: InputBorder.none,
+                          border:
+                              OutlineInputBorder(borderSide: BorderSide.none),
+                          focusedBorder: OutlineInputBorder(
+                            borderSide: BorderSide(
+                              color: Colors.transparent,
+                            ),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderSide: BorderSide(
+                              color: Colors.transparent,
+                            ),
+                          ),
                           prefixIcon: Icon(
                             Icons.search,
                             size: ScreenUtil().setWidth(60),
@@ -222,6 +227,16 @@ class _SelectSpecimenType extends State<SelectSpecimenType> {
                         onSubmitted: (v) {
                           model.keyword = v.toString();
                           model.initData();
+                        },
+                        onChanged: (search) {
+                          if (dRequst != null) {
+                            dRequst.cancel();
+                          }
+                          dRequst = Timer(Duration(milliseconds: 400), () {
+                            model.list.clear();
+                            model.keyword = search.toString();
+                            model.initData();
+                          });
                         },
                       ),
                     )),

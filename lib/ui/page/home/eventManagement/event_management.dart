@@ -9,7 +9,7 @@ import 'package:huayin_logistics/model/event_manager_data_model.dart';
 import 'package:huayin_logistics/provider/provider_widget.dart';
 import 'package:huayin_logistics/ui/color/DiyColors.dart';
 import 'package:huayin_logistics/ui/widget/comon_widget.dart'
-    show appBarWithName, gradualButton, showMsgToast;
+    show appBarWithName, gradualButton, noDataWidget, showMsgToast;
 import 'package:huayin_logistics/ui/widget/dialog/custom_dialog.dart';
 import 'package:huayin_logistics/ui/widget/dialog/progress_dialog.dart';
 import 'package:huayin_logistics/ui/widget/form_check.dart';
@@ -83,7 +83,7 @@ class _EventManagement extends State<EventManagement> {
                 })));
   }
 
-  Widget _listContent(model) {
+  Widget _listContent(EventManagerViewModel model) {
     return Container(
         margin: EdgeInsets.only(bottom: ScreenUtil().setHeight(20)),
         child: PhysicalModel(
@@ -99,19 +99,26 @@ class _EventManagement extends State<EventManagement> {
                   child: new Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: <Widget>[
-                      tabItem(text: '全部', index: 0, onTap: () {}),
-                      tabItem(text: '待处理', index: 1, onTap: () {}),
-                      tabItem(text: '已处理', index: 2, onTap: () {})
+                      tabItem(text: '全部', index: 0, model: model),
+                      tabItem(text: '待处理', index: 1, model: model),
+                      tabItem(text: '处理中', index: 2, model: model),
+                      tabItem(text: '已处理', index: 3, model: model)
                     ],
                   ),
                 ),
                 model.busy
                     ? Expanded(
                         child: Center(
+                            child: UnconstrainedBox(
+                                child: Container(
+                          width: ScreenUtil().setWidth(80),
+                          height: ScreenUtil().setWidth(80),
                           child: CircularProgressIndicator(
-                            strokeWidth: 2.0,
+                            backgroundColor: Colors.grey[200],
+                            valueColor:
+                                AlwaysStoppedAnimation(DiyColors.heavy_blue),
                           ),
-                        ),
+                        ))),
                       )
                     : new Expanded(
                         child: SmartRefresher(
@@ -129,32 +136,44 @@ class _EventManagement extends State<EventManagement> {
         ));
   }
 
-  //单项列表
-  Widget _listChild(model) {
-    int count = model.getTotal(_currentTabIndex);
-    return new CustomScrollView(
-      slivers: <Widget>[
-        SliverList(
-          delegate: SliverChildBuilderDelegate(
-              (c, i) => Selector<EventManagerViewModel, EventFeedback>(
-                    selector: (context, smodel) {
-                      if (count == 0) return null;
-                      if (_currentTabIndex == 0) {
-                        return smodel.list[i];
-                      } else if (_currentTabIndex == 1) {
-                        return smodel.pendingList[i];
-                      } else {
-                        return smodel.doneList[i];
-                      }
-                    },
-                    builder: (context, feedback, child) {
-                      return _listItem(context, feedback, i, count, model);
-                    },
-                  ),
-              childCount: count),
-        )
-      ],
-    );
+//单项列表
+  Widget _listChild(EventManagerViewModel model) {
+    int count = model.list.length;
+    if (model.list.isEmpty)
+      return Container(
+        width: ScreenUtil.screenWidth,
+        padding: EdgeInsets.symmetric(horizontal: ScreenUtil().setWidth(85)),
+        child: Container(
+          decoration: BoxDecoration(
+              borderRadius: BorderRadius.only(
+                  bottomLeft: Radius.circular(10),
+                  bottomRight: Radius.circular(10))),
+          padding: EdgeInsets.symmetric(vertical: ScreenUtil().setHeight(100)),
+          child: noDataWidget(text: '暂无列表数据'),
+        ),
+      );
+    else {
+      return CustomScrollView(
+        slivers: <Widget>[
+          SliverList(
+            delegate: SliverChildBuilderDelegate(
+                (c, i) => Selector<EventManagerViewModel, EventFeedback>(
+                      selector: (context, smodel) {
+                        if (count == 0)
+                          return null;
+                        else {
+                          return smodel.list[i];
+                        }
+                      },
+                      builder: (context, feedback, child) {
+                        return _listItem(context, feedback, i, count, model);
+                      },
+                    ),
+                childCount: count),
+          )
+        ],
+      );
+    }
   }
 
   //列表单项
@@ -211,15 +230,16 @@ class _EventManagement extends State<EventManagement> {
                               margin: EdgeInsets.only(
                                   right: ScreenUtil().setWidth(30)),
                               child: Text(
-                                feedback.handleStatus != 3
+                                feedback.handleStatus == 1
                                     ? '待处理'
-                                    : '已处理', //处理中Color.fromRGBO(255, 155,15 , 1)
+                                    : feedback.handleStatus == 2
+                                        ? '处理中'
+                                        : '已处理', //处理中Color.fromRGBO(255, 155,15 , 1)
                                 style: TextStyle(
-                                  fontSize: ScreenUtil().setSp(38),
-                                  color: feedback.handleStatus != 3
-                                      ? Color(0xFF6196ff)
-                                      : Color.fromRGBO(23, 208, 213, 1),
-                                ),
+                                    fontSize: ScreenUtil().setSp(38),
+                                    color: feedback.handleStatus == 3
+                                        ? Color(0xFF9e9e9e)
+                                        : Color(0xFF6196ff)),
                               ),
                             ),
                           ],
@@ -256,177 +276,205 @@ class _EventManagement extends State<EventManagement> {
                                   fontSize: ScreenUtil().setSp(38),
                                   color: Color(0xFF666666),
                                   fontWeight: FontWeight.w400))),
-                      Container(
-                        width: ScreenUtil.screenWidth,
-                        margin: EdgeInsets.only(
-                            top: ScreenUtil().setWidth(20),
-                            right: ScreenUtil().setWidth(30)),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: <Widget>[
-                            InkWell(
-                                onTap: () {
-                                  _replyMessageController.clear();
-                                  tempYYDialog = yyCustomDialog(
-                                      width: ScreenUtil().setWidth(940),
-                                      widget: Container(
-                                        child: Column(
-                                          children: <Widget>[
-                                            Container(
-                                                width:
-                                                    ScreenUtil().setWidth(920),
-                                                padding: EdgeInsets.only(
-                                                    top: ScreenUtil()
-                                                        .setHeight(30),
-                                                    bottom: ScreenUtil()
-                                                        .setHeight(30),
-                                                    left: ScreenUtil()
-                                                        .setHeight(30)),
-                                                decoration: BoxDecoration(
-                                                  border: Border(
-                                                      bottom: BorderSide(
-                                                          color: GlobalConfig
-                                                              .borderColor,
-                                                          width: 1.5 /
-                                                              ScreenUtil
-                                                                  .pixelRatio)),
-                                                ),
-                                                child: Row(
-                                                  children: <Widget>[
-                                                    Text(
-                                                      '回复内容',
-                                                      style: TextStyle(
-                                                        fontSize: ScreenUtil()
-                                                            .setSp(44),
-                                                        color: Color.fromRGBO(
-                                                            90, 90, 90, 1),
+                      feedback.handleStatus != 3
+                          ? Container(
+                              width: ScreenUtil.screenWidth,
+                              margin: EdgeInsets.only(
+                                  top: ScreenUtil().setWidth(20),
+                                  right: ScreenUtil().setWidth(30)),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: <Widget>[
+                                  InkWell(
+                                      onTap: () {
+                                        _replyMessageController.clear();
+                                        tempYYDialog = yyCustomDialog(
+                                            width: ScreenUtil().setWidth(940),
+                                            widget: Container(
+                                              child: Column(
+                                                children: <Widget>[
+                                                  Container(
+                                                      width: ScreenUtil()
+                                                          .setWidth(920),
+                                                      padding: EdgeInsets.only(
+                                                          top: ScreenUtil()
+                                                              .setHeight(30),
+                                                          bottom: ScreenUtil()
+                                                              .setHeight(30),
+                                                          left: ScreenUtil()
+                                                              .setHeight(30)),
+                                                      decoration: BoxDecoration(
+                                                        border: Border(
+                                                            bottom: BorderSide(
+                                                                color: GlobalConfig
+                                                                    .borderColor,
+                                                                width: 1.5 /
+                                                                    ScreenUtil
+                                                                        .pixelRatio)),
                                                       ),
+                                                      child: Row(
+                                                        children: <Widget>[
+                                                          Text(
+                                                            '回复内容',
+                                                            style: TextStyle(
+                                                              fontSize:
+                                                                  ScreenUtil()
+                                                                      .setSp(
+                                                                          44),
+                                                              color: Color
+                                                                  .fromRGBO(
+                                                                      90,
+                                                                      90,
+                                                                      90,
+                                                                      1),
+                                                            ),
+                                                          ),
+                                                          Spacer(),
+                                                          IconButton(
+                                                              icon: Icon(
+                                                                Icons.close,
+                                                                color:
+                                                                    Colors.grey,
+                                                              ),
+                                                              onPressed: () {
+                                                                focusNode
+                                                                    .unfocus();
+                                                                dialogDismiss(
+                                                                    tempYYDialog);
+                                                              })
+                                                        ],
+                                                      )),
+                                                  Container(
+                                                    height: ScreenUtil()
+                                                        .setHeight(300),
+                                                    margin: EdgeInsets.only(
+                                                        top: ScreenUtil()
+                                                            .setHeight(30)),
+                                                    padding:
+                                                        EdgeInsets.symmetric(
+                                                            vertical:
+                                                                ScreenUtil()
+                                                                    .setHeight(
+                                                                        20),
+                                                            horizontal:
+                                                                ScreenUtil()
+                                                                    .setHeight(
+                                                                        20)),
+                                                    decoration: BoxDecoration(
+                                                      borderRadius:
+                                                          BorderRadius.all(
+                                                              Radius.circular(
+                                                                  10)),
                                                     ),
-                                                    Spacer(),
-                                                    IconButton(
-                                                        icon: Icon(
-                                                          Icons.close,
-                                                          color: Colors.grey,
-                                                        ),
-                                                        onPressed: () {
-                                                          focusNode.unfocus();
+                                                    child: TextField(
+                                                      scrollPadding:
+                                                          EdgeInsets.all(0),
+                                                      autofocus: false,
+                                                      maxLines: 10,
+                                                      controller:
+                                                          _replyMessageController,
+                                                      style: TextStyle(
+                                                          fontSize: ScreenUtil()
+                                                              .setSp(36),
+                                                          color: Color.fromRGBO(
+                                                              90, 90, 91, 1),
+                                                          height: 1.4),
+                                                      decoration:
+                                                          InputDecoration(
+                                                              enabledBorder:
+                                                                  InputBorder
+                                                                      .none,
+                                                              focusedBorder:
+                                                                  InputBorder
+                                                                      .none,
+                                                              contentPadding:
+                                                                  EdgeInsets
+                                                                      .all(0)),
+                                                    ),
+                                                  ),
+                                                  new Container(
+                                                    padding:
+                                                        EdgeInsets.symmetric(
+                                                            vertical:
+                                                                ScreenUtil()
+                                                                    .setHeight(
+                                                                        40)),
+                                                    child: gradualButton('确定',
+                                                        onTap: () async {
+                                                      focusNode.unfocus();
+                                                      String backtext =
+                                                          _replyMessageController
+                                                              .text;
+                                                      if (!isRequire(
+                                                          backtext)) {
+                                                        showMsgToast(
+                                                            '回复内容不能为空');
+                                                        return;
+                                                      }
+
+                                                      var userInfo = Provider
+                                                              .of<MineModel>(
+                                                                  context,
+                                                                  listen: false)
+                                                          .user
+                                                          ?.user;
+                                                      EventReply reply =
+                                                          EventReply.fromParams(
+                                                              customerBackId:
+                                                                  feedback.id,
+                                                              backId:
+                                                                  userInfo.id,
+                                                              backName:
+                                                                  userInfo.name,
+                                                              backText:
+                                                                  backtext,
+                                                              dcId:
+                                                                  feedback.dcId,
+                                                              orgId: feedback
+                                                                  .orgId,
+                                                              backTime: DateUtil
+                                                                  .formatDate(
+                                                                      DateTime
+                                                                          .now(),
+                                                                      format: ZyDateFormats
+                                                                          .full));
+                                                      await model
+                                                          .submitFeedbackReply(
+                                                              reply)
+                                                          .then((result) {
+                                                        if (result) {
                                                           dialogDismiss(
                                                               tempYYDialog);
-                                                        })
-                                                  ],
-                                                )),
-                                            Container(
-                                              height:
-                                                  ScreenUtil().setHeight(300),
-                                              margin: EdgeInsets.only(
-                                                  top: ScreenUtil()
-                                                      .setHeight(30)),
-                                              padding: EdgeInsets.symmetric(
-                                                  vertical: ScreenUtil()
-                                                      .setHeight(20),
-                                                  horizontal: ScreenUtil()
-                                                      .setHeight(20)),
-                                              decoration: BoxDecoration(
-                                                border: Border.all(
-                                                    width: 1 /
-                                                        ScreenUtil.pixelRatio,
-                                                    color: GlobalConfig
-                                                        .borderColor),
-                                                borderRadius: BorderRadius.all(
-                                                    Radius.circular(10)),
+                                                        }
+                                                      });
+                                                    }),
+                                                  )
+                                                ],
                                               ),
-                                              child: TextField(
-                                                scrollPadding:
-                                                    EdgeInsets.all(0),
-                                                autofocus: false,
-                                                maxLines: 10,
-                                                maxLength: 100,
-                                                controller:
-                                                    _replyMessageController,
-                                                style: TextStyle(
-                                                    fontSize:
-                                                        ScreenUtil().setSp(36),
-                                                    color: Color.fromRGBO(
-                                                        90, 90, 91, 1),
-                                                    height: 1.4),
-                                                decoration: InputDecoration(
-                                                    enabledBorder:
-                                                        InputBorder.none,
-                                                    focusedBorder:
-                                                        InputBorder.none,
-                                                    contentPadding:
-                                                        EdgeInsets.all(0)),
-                                              ),
-                                            ),
-                                            new Container(
-                                              padding: EdgeInsets.symmetric(
-                                                  vertical: ScreenUtil()
-                                                      .setHeight(40)),
-                                              child: gradualButton('确定',
-                                                  onTap: () async {
-                                                focusNode.unfocus();
-                                                String backtext =
-                                                    _replyMessageController
-                                                        .text;
-                                                if (!isRequire(backtext)) {
-                                                  showMsgToast('回复内容不能为空');
-                                                  return;
-                                                }
-
-                                                var userInfo =
-                                                    Provider.of<MineModel>(
-                                                            context,
-                                                            listen: false)
-                                                        .user
-                                                        ?.user;
-                                                EventReply reply =
-                                                    EventReply.fromParams(
-                                                        customerBackId:
-                                                            feedback.id,
-                                                        backId: userInfo.id,
-                                                        backName: userInfo.name,
-                                                        backText: backtext,
-                                                        dcId: feedback.dcId,
-                                                        orgId: feedback.orgId,
-                                                        backTime:
-                                                            DateUtil.formatDate(
-                                                                DateTime.now(),
-                                                                format:
-                                                                    ZyDateFormats
-                                                                        .full));
-                                                await model
-                                                    .submitFeedbackReply(reply)
-                                                    .then((result) {
-                                                  if (result) {
-                                                    dialogDismiss(tempYYDialog);
-                                                  }
-                                                });
-                                              }),
-                                            )
-                                          ],
-                                        ),
-                                      ));
-                                },
-                                child: Container(
-                                  width: ScreenUtil().setWidth(190),
-                                  height: ScreenUtil().setHeight(72),
-                                  decoration: BoxDecoration(
-                                      border: Border.all(
-                                          width: 1,
-                                          color: DiyColors.heavy_blue),
-                                      borderRadius: BorderRadius.all(
-                                          Radius.circular(
-                                              ScreenUtil().setWidth(100)))),
-                                  alignment: Alignment.center,
-                                  child: Text('回复',
-                                      style: TextStyle(
-                                          fontSize: ScreenUtil().setSp(38),
-                                          color: DiyColors.heavy_blue,
-                                          letterSpacing: 1)),
-                                )),
-                          ],
-                        ),
-                      )
+                                            ));
+                                      },
+                                      child: Container(
+                                        width: ScreenUtil().setWidth(190),
+                                        height: ScreenUtil().setHeight(72),
+                                        decoration: BoxDecoration(
+                                            border: Border.all(
+                                                width: 1,
+                                                color: DiyColors.heavy_blue),
+                                            borderRadius: BorderRadius.all(
+                                                Radius.circular(ScreenUtil()
+                                                    .setWidth(100)))),
+                                        alignment: Alignment.center,
+                                        child: Text('回复',
+                                            style: TextStyle(
+                                                fontSize:
+                                                    ScreenUtil().setSp(38),
+                                                color: DiyColors.heavy_blue,
+                                                letterSpacing: 1)),
+                                      )),
+                                ],
+                              ),
+                            )
+                          : Container()
                     ],
                   ),
                 ),
@@ -435,7 +483,7 @@ class _EventManagement extends State<EventManagement> {
   }
 
   //头部搜索栏
-  Widget _searchTitle(context, model) {
+  Widget _searchTitle(BuildContext context, EventManagerViewModel model) {
     Timer dRequst;
     return Container(
         color: Colors.white,
@@ -462,7 +510,9 @@ class _EventManagement extends State<EventManagement> {
                           width: ScreenUtil().setWidth(810),
                           height: ScreenUtil().setHeight(110),
                           child: new TextField(
+                            textAlignVertical: TextAlignVertical.bottom,
                             style: TextStyle(
+                                textBaseline: TextBaseline.alphabetic,
                                 fontSize: ScreenUtil().setSp(42),
                                 color: Color.fromRGBO(0, 117, 255, 1)),
                             textInputAction: TextInputAction.search,
@@ -474,13 +524,29 @@ class _EventManagement extends State<EventManagement> {
                                 fontSize: ScreenUtil().setSp(42),
                                 color: Color.fromRGBO(190, 190, 190, 1),
                               ),
-                              border: InputBorder.none,
-                              focusedBorder: InputBorder.none,
-                              enabledBorder: InputBorder.none,
-                              prefixIcon: Icon(
-                                Icons.search,
-                                size: ScreenUtil().setWidth(60),
-                                color: Color.fromRGBO(203, 203, 203, 1),
+                              border: OutlineInputBorder(
+                                  borderSide: BorderSide.none),
+                              focusedBorder: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                  color: Colors.transparent,
+                                ),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                  color: Colors.transparent,
+                                ),
+                              ),
+                              prefixIcon: InkWell(
+                                onTap: () {
+                                  model.list.clear();
+                                  model.keyword = _searchController.text;
+                                  model.initData();
+                                },
+                                child: Icon(
+                                  Icons.search,
+                                  size: ScreenUtil().setWidth(60),
+                                  color: Color.fromRGBO(203, 203, 203, 1),
+                                ),
                               ),
                             ),
                             onSubmitted: (search) {
@@ -488,17 +554,6 @@ class _EventManagement extends State<EventManagement> {
                               model.keyword = search.toString();
                               model.initData();
                             },
-                            onChanged: (search) {
-                              if (dRequst != null) {
-                                dRequst.cancel();
-                              }
-                              dRequst = Timer(Duration(milliseconds: 400), () {
-                                model.list.clear();
-                                model.keyword = search.toString();
-                                model.initData();
-                              });
-                            },
-                            // onTap: () => showSearch(context: context, delegate: SearchBarDelegate(model: model)),
                           ),
                         )),
                   ),
@@ -510,7 +565,7 @@ class _EventManagement extends State<EventManagement> {
   }
 
   //选择按钮
-  Widget tabItem({String text, int index, Function onTap}) {
+  Widget tabItem({String text, int index, EventManagerViewModel model}) {
     return new Expanded(
         child: new Stack(
       alignment: Alignment.center,
@@ -531,7 +586,8 @@ class _EventManagement extends State<EventManagement> {
               setState(() {
                 _currentTabIndex = index;
               });
-              onTap();
+              model.handleStatus = index;
+              model.initData();
             }
           },
         ),

@@ -3,15 +3,15 @@ import 'package:flutter_custom_dialog/flutter_custom_dialog.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:huayin_logistics/base/global_config.dart';
 import 'package:huayin_logistics/config/resource_mananger.dart';
+import 'package:huayin_logistics/ui/color/DiyColors.dart';
 import 'package:huayin_logistics/ui/widget/comon_widget.dart'
-    show gradualButton;
+    show gradualButton, noDataWidget;
 
 class SelectItems extends StatefulWidget {
-  final String title;
   final List<String> nameList;
-  final Function(int) confirm;
   String pickedName;
-  SelectItems({this.nameList, this.title, this.confirm, this.pickedName});
+  final Function confirm;
+  SelectItems({this.nameList, this.confirm, this.pickedName});
   @override
   _SelectItems createState() => _SelectItems();
 }
@@ -31,58 +31,45 @@ class _SelectItems extends State<SelectItems> {
   Widget build(BuildContext context) {
     YYDialog.init(context);
     return Container(
-      width: ScreenUtil().setWidth(940),
+      width: MediaQuery.of(context).size.width,
       decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.all(Radius.circular(6))),
+          borderRadius: BorderRadius.only(
+              bottomLeft: Radius.circular(6), bottomRight: Radius.circular(6))),
       child: Column(
         children: <Widget>[
+          // widget.nameList.length <= 5
+          //     ? Column(
+          //         children: List.generate(
+          //             widget.nameList.length, (i) => _listItem(i)),
+          //       )
+          //     :
           Container(
-            width: ScreenUtil().setWidth(920),
-            padding: EdgeInsets.only(
-                top: ScreenUtil().setHeight(30),
-                bottom: ScreenUtil().setHeight(30),
-                left: ScreenUtil().setHeight(30)),
-            decoration: BoxDecoration(
-              border: Border(
-                  bottom: BorderSide(
-                      color: GlobalConfig.borderColor,
-                      width: 1.5 / ScreenUtil.pixelRatio)),
-            ),
-            child: Text(
-              widget.title ?? '',
-              style: TextStyle(
-                fontSize: ScreenUtil().setSp(44),
-                color: Color.fromRGBO(90, 90, 90, 1),
-              ),
-            ),
-          ),
-          widget.nameList.length <= 5
-              ? Column(
-                  children: List.generate(
-                      widget.nameList.length, (i) => _listItem(i)),
-                )
-              : Container(
-                  height: ScreenUtil().setHeight(660),
-                  child: CustomScrollView(
-                    slivers: <Widget>[
-                      SliverList(
-                        delegate: SliverChildBuilderDelegate(
-                          (c, i) => _listItem(i),
-                          childCount: widget.nameList.length,
-                        ),
+            height: ScreenUtil().setHeight(660),
+            child: widget.nameList == null
+                ? Center(
+                    child: UnconstrainedBox(
+                        child: Container(
+                    width: ScreenUtil().setWidth(80),
+                    height: ScreenUtil().setWidth(80),
+                    child: CircularProgressIndicator(
+                      backgroundColor: Colors.grey[200],
+                      valueColor: AlwaysStoppedAnimation(DiyColors.heavy_blue),
+                    ),
+                  )))
+                : widget.nameList.isEmpty
+                    ? noDataWidget(text: '暂无数据')
+                    : CustomScrollView(
+                        slivers: <Widget>[
+                          SliverList(
+                            delegate: SliverChildBuilderDelegate(
+                              (c, i) => _listItem(i),
+                              childCount: widget.nameList.length,
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                ),
-          new Container(
-            padding: EdgeInsets.symmetric(vertical: ScreenUtil().setHeight(40)),
-            child: gradualButton('确定', onTap: () {
-              Navigator.pop(context);
-              widget
-                  .confirm(widget.nameList.indexWhere((n) => n == _pickedName));
-            }),
-          )
+          ),
         ],
       ),
     );
@@ -103,9 +90,9 @@ class _SelectItems extends State<SelectItems> {
           color: Colors.white,
         ),
         child: Container(
-            constraints: BoxConstraints(
-              minHeight: ScreenUtil().setHeight(120),
-            ),
+            // constraints: BoxConstraints(
+            //   minHeight: ScreenUtil().setHeight(80),
+            // ),
             decoration: BoxDecoration(
               border: Border(
                   bottom: BorderSide(
@@ -118,9 +105,22 @@ class _SelectItems extends State<SelectItems> {
                 setState(() {
                   _pickedName = item;
                 });
+                widget.confirm(
+                    widget.nameList.indexWhere((n) => n == _pickedName));
               },
               child: new Row(
                 children: <Widget>[
+                  new Container(
+                    width: ScreenUtil().setWidth(50),
+                    height: ScreenUtil().setWidth(50),
+                    margin: EdgeInsets.only(left: ScreenUtil().setWidth(20)),
+                    child: Image.asset(
+                      ImageHelper.wrapAssets(_pickedName == item
+                          ? 'select_on.png'
+                          : 'select_off.png'),
+                      fit: BoxFit.fitWidth,
+                    ),
+                  ),
                   new Expanded(
                     child: new Text(item,
                         textAlign: TextAlign.center,
@@ -129,17 +129,6 @@ class _SelectItems extends State<SelectItems> {
                           color: Color.fromRGBO(90, 90, 90, 1),
                         )),
                   ),
-                  new Container(
-                    width: ScreenUtil().setWidth(80),
-                    height: ScreenUtil().setWidth(80),
-                    margin: EdgeInsets.only(left: ScreenUtil().setWidth(20)),
-                    child: Image.asset(
-                      ImageHelper.wrapAssets(_pickedName == item
-                          ? 'select_on.png'
-                          : 'select_off.png'),
-                      fit: BoxFit.fitWidth,
-                    ),
-                  )
                 ],
               ),
             )),

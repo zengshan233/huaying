@@ -19,9 +19,7 @@ class ViewStateModel with ChangeNotifier {
   /// 子类可以在构造函数指定需要的页面状态
   /// FooModel():super(viewState:ViewState.busy);
   ViewStateModel({ViewState viewState})
-      : _viewState = viewState ?? ViewState.idle {
-    debugPrint('ViewStateModel---constructor--->$runtimeType');
-  }
+      : _viewState = viewState ?? ViewState.idle {}
 
   ViewState get viewState => _viewState;
 
@@ -60,21 +58,24 @@ class ViewStateModel with ChangeNotifier {
   }
 
   /// [e]分类Error和Exception两种
-  void setError(e, stackTrace, {String message}) {
+  void setError(e, stackTrace, {String message, bool errState = true}) {
     ViewStateErrorType errorType = ViewStateErrorType.defaultError;
 
     /// 见https://github.com/flutterchina/dio/blob/master/README-ZH.md#dioerrortype
     if (e is DioError) {
-      if (e.type == DioErrorType.CONNECT_TIMEOUT ||
-          e.type == DioErrorType.SEND_TIMEOUT ||
-          e.type == DioErrorType.RECEIVE_TIMEOUT) {
+      if (e?.response?.statusCode == 401) {
+        return null;
+      }
+      if (e.type == DioErrorType.connectTimeout ||
+          e.type == DioErrorType.sendTimeout ||
+          e.type == DioErrorType.receiveTimeout) {
         // timeout
         errorType = ViewStateErrorType.networkTimeOutError;
         message = e.error;
-      } else if (e.type == DioErrorType.RESPONSE) {
+      } else if (e.type == DioErrorType.response) {
         // incorrect status, such as 404, 503...
         message = e.error;
-      } else if (e.type == DioErrorType.CANCEL) {
+      } else if (e.type == DioErrorType.cancel) {
         // to be continue...
         message = e.error;
       } else {
@@ -90,11 +91,13 @@ class ViewStateModel with ChangeNotifier {
           errorType = ViewStateErrorType.networkTimeOutError;
           message = e.message;
         } else {
-          message = e.message;
+          message = e?.message ?? e.toString();
         }
       }
     }
-    viewState = ViewState.error;
+    if (errState) {
+      viewState = ViewState.error;
+    }
     _viewStateError = ViewStateError(
       errorType,
       message: message,
@@ -110,7 +113,7 @@ class ViewStateModel with ChangeNotifier {
   showErrorMessage(context, {String message}) {
     if (viewStateError != null || message != null) {
       if (viewStateError.isNetworkTimeOut) {
-        message ??= "服务器未响应！";
+        message ??= "当前网络不可用，请检查你的网络设置！";
       } else {
         message ??= viewStateError.message;
       }

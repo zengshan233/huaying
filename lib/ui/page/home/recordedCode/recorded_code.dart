@@ -5,16 +5,16 @@ import 'package:huayin_logistics/config/resource_mananger.dart';
 import 'package:huayin_logistics/config/router_manger.dart';
 import 'package:huayin_logistics/provider/provider_widget.dart';
 import 'package:huayin_logistics/ui/color/DiyColors.dart';
-import 'package:huayin_logistics/ui/widget/barcode_scanner.dart';
 import 'package:huayin_logistics/ui/widget/comon_widget.dart'
     show appBarWithName, noDataWidget, radiusButton, simpleRecordInput;
 import 'package:huayin_logistics/model/recorded_code_model.dart';
+import 'package:huayin_logistics/ui/widget/scanner.dart';
+import 'package:huayin_logistics/utils/device_utils.dart';
 import 'package:huayin_logistics/view_model/home/recorded_list_model.dart';
-import 'package:huayin_logistics/ui/widget/datePicker/flutter_cupertino_date_picker.dart';
 import 'package:huayin_logistics/view_model/mine/mine_model.dart';
 import 'package:provider/provider.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
-import 'code_detail.dart';
+import 'package:f_datetimerangepicker/f_datetimerangepicker.dart';
 
 class RecordedCode extends StatefulWidget {
   @override
@@ -31,7 +31,7 @@ class _RecordedCode extends State<RecordedCode> {
   List taps = [
     {'name': '未发出', 'status': '0'},
     {'name': '已发出', 'status': '1'},
-    {'name': '已签收', 'status': '2'}
+    {'name': '已签收', 'status': '4'}
   ];
 
   @override
@@ -43,7 +43,7 @@ class _RecordedCode extends State<RecordedCode> {
   Widget build(BuildContext context) {
     YYDialog.init(context);
     MineModel model = Provider.of<MineModel>(context);
-    String labId = '82858490362716212';
+    String labId = model.labId;
     return GestureDetector(
         behavior: HitTestBehavior.translucent,
         onTap: () {
@@ -55,10 +55,15 @@ class _RecordedCode extends State<RecordedCode> {
             appBar: appBarWithName(context, '已录条码', '外勤:', withName: true),
             body: ProviderWidget<RecordedListModel>(
                 model: RecordedListModel(
-                  labId: labId,
-                  recordId: model.user.user.id,
-                ),
+                    labId: labId,
+                    recordId: model.user.user.id,
+                    context: context),
                 onModelReady: (model) {
+                  String now = DateTime.now().toString().split(' ').first;
+                  _dateControll.text = now;
+                  model.startAt = now;
+                  model.endAt = now;
+                  model.initData();
                   model.initData();
                 },
                 builder: (cContext, model, child) {
@@ -90,10 +95,16 @@ class _RecordedCode extends State<RecordedCode> {
         width: ScreenUtil.screenWidth,
         padding: EdgeInsets.symmetric(horizontal: ScreenUtil().setWidth(85)),
         child: Center(
+            child: UnconstrainedBox(
+                child: Container(
+          width: ScreenUtil().setWidth(80),
+          height: ScreenUtil().setWidth(80),
+          margin: EdgeInsets.only(top: ScreenUtil().setHeight(200)),
           child: CircularProgressIndicator(
-            strokeWidth: 2.0,
+            backgroundColor: Colors.grey[200],
+            valueColor: AlwaysStoppedAnimation(DiyColors.heavy_blue),
           ),
-        ),
+        ))),
       );
     if (model.list.isEmpty)
       return Container(
@@ -141,13 +152,27 @@ class _RecordedCode extends State<RecordedCode> {
                   width: ScreenUtil().setHeight(40),
                   height: ScreenUtil().setHeight(40),
                 ), onTap: () {
-              DatePicker.showDatePicker(context,
-                  locale: DateTimePickerLocale.zh_cn,
-                  onConfirm: (DateTime dateTime, List<int> days) async {
-                _dateControll.text = dateTime.toString().split(' ').first;
-                model.date = dateTime.toString();
-                model.initData();
-              });
+              DateTimeRangePicker(
+                  startText: "起始日期",
+                  endText: "截止日期",
+                  doneText: "确定",
+                  cancelText: "取消",
+                  interval: 5,
+                  initialStartTime: DateTime.now(),
+                  initialEndTime: DateTime.now(),
+                  mode: DateTimeRangePickerMode.date,
+                  onConfirm: (start, end) {
+                    String _start = start.toString().split(' ').first;
+                    String _end = end.toString().split(' ').first;
+                    if (_start == _end) {
+                      _dateControll.text = _start;
+                    } else {
+                      _dateControll.text = '$_start ~ $_end';
+                    }
+                    model.startAt = _start.toString();
+                    model.endAt = _end.toString();
+                    model.initData();
+                  }).showPicker(context);
             }),
             simpleRecordInput(
               context,
@@ -161,13 +186,16 @@ class _RecordedCode extends State<RecordedCode> {
                 model.initData();
               },
               rightWidget: InkWell(
-                  onTap: () {
-                    var p = new BarcodeScanner(success: (String code) {
-                      //print('条形码'+code);
-                      if (code == '-1') return;
-                      _barCodeControll.text = code;
-                    });
-                    p.scanBarcodeNormal();
+                  onTap: () async {
+                    DeviceUtils.scanBarcode(
+                      confirm: (code) {
+                        if (code != null) {
+                          _barCodeControll.text = code;
+                          model.barcode = _barCodeControll.text;
+                          model.initData();
+                        }
+                      },
+                    );
                   },
                   child: radiusButton(text: '扫码', img: "scan.png")),
             ),
@@ -233,10 +261,16 @@ class _RecordedCode extends State<RecordedCode> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: <Widget>[
-                    Text(item.recordAt.split(' ').first),
+                    Text(
+                      item.recordAt.split(' ').first,
+                      style: TextStyle(fontSize: ScreenUtil().setSp(40)),
+                    ),
                     Container(
                       margin: EdgeInsets.only(left: ScreenUtil().setWidth(40)),
-                      child: Text(item.boxNo),
+                      child: Text(
+                        item.boxNo,
+                        style: TextStyle(fontSize: ScreenUtil().setSp(40)),
+                      ),
                     )
                   ],
                 ),
@@ -248,7 +282,8 @@ class _RecordedCode extends State<RecordedCode> {
                     Container(
                       alignment: Alignment.center,
                       child: Text(
-                        item.barcode,
+                        item.barcode.trim(),
+                        style: TextStyle(fontSize: ScreenUtil().setSp(40)),
                       ),
                     ),
                     Container(
@@ -259,7 +294,10 @@ class _RecordedCode extends State<RecordedCode> {
                           horizontal: ScreenUtil().setWidth(20),
                           vertical: ScreenUtil().setWidth(15)),
                       alignment: Alignment.center,
-                      child: Text(item.statusName),
+                      child: Text(
+                        item.statusName,
+                        style: TextStyle(fontSize: ScreenUtil().setSp(40)),
+                      ),
                     ),
                     Container(
                       margin: EdgeInsets.only(right: ScreenUtil().setWidth(20)),

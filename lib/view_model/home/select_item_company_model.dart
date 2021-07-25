@@ -2,8 +2,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:huayin_logistics/model/select_item_company_data_model.dart';
 import 'package:huayin_logistics/config/net/repository.dart';
 import 'package:huayin_logistics/provider/view_state_refresh_list_model.dart';
+import 'package:huayin_logistics/utils/popUtils.dart';
 
-class SelectItemModel extends ViewStateRefreshListModel {
+class SelectItemModel extends ViewStateRefreshListModel<SelectProjectItem> {
   BuildContext context;
 
   String keyword;
@@ -15,37 +16,53 @@ class SelectItemModel extends ViewStateRefreshListModel {
   SelectItemModel({this.context, this.itemType, this.keyword, this.labDeptId});
 
   var yyDialog;
-  //获取选择项目左侧菜单
-  Future<SelectItemLeftMenu> selectItemLeftMenuData(String boxNo) async {
-    setBusy();
+
+  Future<List<ProjectDetailItem>> loadDetail(String dictId) async {
+    PopUtils.showLoading();
+    List<ProjectDetailItem> response;
     try {
-      var response = await Repository.fetchSelectItemLeftMenu(boxNo);
-      setIdle();
-      return response;
+      response = await Repository.fetchSelectItemDetail(dictId);
     } catch (e, s) {
-      print("selectItemLeftMenuData error $e ");
-      setError(e, s);
+      PopUtils.dismiss();
+      setError(e, s, errState: false);
       showErrorMessage(context);
       return null;
     }
+    PopUtils.dismiss();
+    return response == null ? [] : response;
   }
 
   @override
-  Future<List<SelectItemRightListItem>> loadData({int pageNum}) async {
-    var response = await Repository.fetchSelectItemRightList(
-        keyword, itemType, labDeptId, pageNum);
+  Future<List<SelectProjectItem>> loadData({int pageNum}) async {
+    var response;
+    try {
+      response = await Repository.fetchSelectItemRightList(
+          keyword, itemType, labDeptId, pageNum);
+    } catch (e, s) {
+      setError(e, s, errState: false);
+      showErrorMessage(context);
+      return null;
+    }
     return response == null ? [] : response;
   }
 }
 
 class SelectCompanyModel extends ViewStateRefreshListModel {
   String custName;
+  BuildContext context;
 
-  SelectCompanyModel({this.custName});
+  SelectCompanyModel({this.custName, this.context});
 
   @override
   Future<List<SelectCompanyListItem>> loadData({int pageNum}) async {
-    var response = await Repository.fetchSelectCompanyList(custName, pageNum);
+    var response;
+    try {
+      response = await Repository.fetchSelectCompanyList(custName, pageNum);
+    } catch (e, s) {
+      setError(e, s, errState: false);
+      showErrorMessage(context);
+      return null;
+    }
     return response == null ? [] : response;
   }
 }

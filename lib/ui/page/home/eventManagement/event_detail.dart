@@ -2,12 +2,10 @@ import 'package:common_utils/common_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:huayin_logistics/base/global_config.dart';
-import 'package:huayin_logistics/config/resource_mananger.dart';
 import 'package:huayin_logistics/model/event_manager_data_model.dart';
 import 'package:huayin_logistics/provider/provider_widget.dart';
 import 'package:huayin_logistics/ui/widget/comon_widget.dart'
-    show appBarWithName, gradualButton, recordCard, showMsgToast;
-import 'package:huayin_logistics/ui/widget/dialog/custom_dialog.dart';
+    show appBarWithName, gradualButton, showMsgToast;
 import 'package:huayin_logistics/ui/widget/dialog/progress_dialog.dart';
 import 'package:huayin_logistics/ui/widget/form_check.dart';
 import 'package:huayin_logistics/ui/widget/img_picker.dart';
@@ -79,10 +77,6 @@ class _EventDetail extends State<EventDetail> {
             ? eventFeedbackTypeStr(
                 EventFeedbackType.values[model.eventFeedback.type])
             : "--";
-        var eventStatus = model.eventFeedback != null
-            ? eventStatusStr(
-                EventStatus.values[model.eventFeedback.handleStatus])
-            : "";
         return Container(
             child: new Column(children: <Widget>[
           _infoFromItem(lable: '反馈类别：', text: eventType),
@@ -152,11 +146,12 @@ class _EventDetail extends State<EventDetail> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
                 child,
-                eventImgGridView(model.imageList, selectClick: () {
+                eventImgGridView(model.imageList, context: context,
+                    selectClick: () {
                   var img = new ImgPicker(
                       maxImages: 5 - model.imageList.length,
                       success: (res) async {
-                        await res.forEach((item) async {
+                        res.forEach((item) async {
                           var image = EventImage.fromParams(
                             imageId: item.id,
                             imageName: item.fileName,
@@ -210,11 +205,21 @@ class _EventDetail extends State<EventDetail> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: <Widget>[
+                Container(
+                  margin: EdgeInsets.only(
+                      top: ScreenUtil().setWidth(40),
+                      left: ScreenUtil().setWidth(10)),
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    '回复记录',
+                    style: TextStyle(fontSize: ScreenUtil().setSp(38)),
+                  ),
+                ),
                 Offstage(
                     offstage: (model.replyList?.length ?? 0) == 0,
                     child: Container(
                       margin: EdgeInsetsDirectional.only(
-                          top: ScreenUtil().setHeight(20)),
+                          top: ScreenUtil().setHeight(40)),
                       height: ScreenUtil().setHeight(640),
                       child: new CustomScrollView(
                         slivers: <Widget>[
@@ -236,165 +241,71 @@ class _EventDetail extends State<EventDetail> {
                         EventStatus.Done, //已处理隐藏
                     child: Column(
                       children: <Widget>[
-                        //   Container(
-                        //     height: ScreenUtil().setHeight(300),
-                        //     margin: EdgeInsets.only(top: ScreenUtil().setHeight(30)),
-                        //     padding: EdgeInsets.symmetric(
-                        //         vertical: ScreenUtil().setHeight(20),
-                        //         horizontal: ScreenUtil().setHeight(20)),
-                        //     decoration: BoxDecoration(
-                        //       border: Border.all(
-                        //           width: 1 / ScreenUtil.pixelRatio,
-                        //           color: GlobalConfig.borderColor),
-                        //       borderRadius: BorderRadius.all(Radius.circular(10)),
-                        //     ),
-                        //     child: TextField(
-                        //       scrollPadding: EdgeInsets.all(0),
-                        //       autofocus: false,
-                        //       maxLines: 10,
-                        //       maxLength: 200,
-                        //       style: TextStyle(
-                        //           fontSize: ScreenUtil().setSp(36),
-                        //           color: Color.fromRGBO(90, 90, 91, 1),
-                        //           height: 1.4),
-                        //       decoration: InputDecoration(
-                        //           enabledBorder: InputBorder.none,
-                        //           focusedBorder: InputBorder.none,
-                        //           contentPadding: EdgeInsets.all(0)),
-                        //     ),
-                        //   ),
+                        Container(
+                          height: ScreenUtil().setHeight(300),
+                          margin:
+                              EdgeInsets.only(top: ScreenUtil().setHeight(30)),
+                          padding: EdgeInsets.symmetric(
+                              vertical: ScreenUtil().setHeight(20),
+                              horizontal: ScreenUtil().setHeight(20)),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            border: Border.all(
+                                width: 1 / ScreenUtil.pixelRatio,
+                                color: GlobalConfig.borderColor),
+                            borderRadius: BorderRadius.all(Radius.circular(10)),
+                          ),
+                          child: TextField(
+                            scrollPadding: EdgeInsets.all(0),
+                            autofocus: false,
+                            maxLines: 10,
+                            controller: _replyMessageController,
+                            style: TextStyle(
+                                fontSize: ScreenUtil().setSp(36),
+                                color: Color.fromRGBO(90, 90, 91, 1),
+                                height: 1.4),
+                            decoration: InputDecoration(
+                                enabledBorder: InputBorder.none,
+                                focusedBorder: InputBorder.none,
+                                hintText: '请输入回复信息...',
+                                contentPadding: EdgeInsets.all(0)),
+                          ),
+                        ),
                         Container(
                           padding: EdgeInsets.only(
                               bottom: ScreenUtil().setHeight(76),
                               top: ScreenUtil().setHeight(30)),
-                          child: gradualButton('回复', onTap: () async {
-                            _replyMessageController.clear();
-                            tempYYDialog = yyCustomDialog(
-                                width: ScreenUtil().setWidth(940),
-                                widget: Container(
-                                  child: Column(
-                                    children: <Widget>[
-                                      Container(
-                                          width: ScreenUtil().setWidth(920),
-                                          padding: EdgeInsets.only(
-                                              top: ScreenUtil().setHeight(30),
-                                              bottom:
-                                                  ScreenUtil().setHeight(30),
-                                              left: ScreenUtil().setHeight(30)),
-                                          decoration: BoxDecoration(
-                                            border: Border(
-                                                bottom: BorderSide(
-                                                    color: GlobalConfig
-                                                        .borderColor,
-                                                    width: 1.5 /
-                                                        ScreenUtil.pixelRatio)),
-                                          ),
-                                          child: Row(
-                                            children: <Widget>[
-                                              Text(
-                                                '回复内容',
-                                                style: TextStyle(
-                                                  fontSize:
-                                                      ScreenUtil().setSp(44),
-                                                  color: Color.fromRGBO(
-                                                      90, 90, 90, 1),
-                                                ),
-                                              ),
-                                              Spacer(),
-                                              IconButton(
-                                                  icon: Icon(
-                                                    Icons.close,
-                                                    color: Colors.grey,
-                                                  ),
-                                                  onPressed: () {
-                                                    dialogDismiss(tempYYDialog);
-                                                  })
-                                            ],
-                                          )),
-                                      Container(
-                                        height: ScreenUtil().setHeight(300),
-                                        margin: EdgeInsets.only(
-                                            top: ScreenUtil().setHeight(30)),
-                                        padding: EdgeInsets.symmetric(
-                                            vertical:
-                                                ScreenUtil().setHeight(20),
-                                            horizontal:
-                                                ScreenUtil().setHeight(20)),
-                                        decoration: BoxDecoration(
-                                          border: Border.all(
-                                              width: 1 / ScreenUtil.pixelRatio,
-                                              color: GlobalConfig.borderColor),
-                                          borderRadius: BorderRadius.all(
-                                              Radius.circular(10)),
-                                        ),
-                                        child: TextField(
-                                          scrollPadding: EdgeInsets.all(0),
-                                          autofocus: false,
-                                          maxLines: 10,
-                                          maxLength: 100,
-                                          controller: _replyMessageController,
-                                          style: TextStyle(
-                                              fontSize: ScreenUtil().setSp(36),
-                                              color:
-                                                  Color.fromRGBO(90, 90, 91, 1),
-                                              height: 1.4),
-                                          decoration: InputDecoration(
-                                              enabledBorder: InputBorder.none,
-                                              focusedBorder: InputBorder.none,
-                                              contentPadding:
-                                                  EdgeInsets.all(0)),
-                                        ),
-                                      ),
-                                      new Container(
-                                        padding: EdgeInsets.symmetric(
-                                            vertical:
-                                                ScreenUtil().setHeight(40)),
-                                        child: gradualButton('确定',
-                                            onTap: () async {
-                                          String backtext =
-                                              _replyMessageController.text;
-                                          if (!isRequire(backtext)) {
-                                            showMsgToast('回复内容不能为空');
-                                            return;
-                                          }
+                          child: gradualButton('回复', gradual: false,
+                              onTap: () async {
+                            String backtext = _replyMessageController.text;
+                            if (!isRequire(backtext)) {
+                              showMsgToast('回复内容不能为空');
+                              return;
+                            }
 
-                                          var userInfo = Provider.of<MineModel>(
-                                                  context,
-                                                  listen: false)
-                                              .user
-                                              ?.user;
-                                          EventReply reply = EventReply
-                                              .fromParams(
-                                                  customerBackId:
-                                                      model.eventFeedback?.id ??
-                                                          "",
-                                                  backId: userInfo.id,
-                                                  backName: userInfo.name,
-                                                  backText: backtext,
-                                                  dcId: model.eventFeedback
-                                                          ?.dcId ??
-                                                      "",
-                                                  orgId: model.eventFeedback
-                                                          ?.orgId ??
-                                                      "",
-                                                  backTime: DateUtil.formatDate(
-                                                      DateTime.now(),
-                                                      format:
-                                                          ZyDateFormats.full));
-                                          await model
-                                              .submitFeedbackReply(reply)
-                                              .then((result) {
-                                            if (result) {
-                                              dialogDismiss(tempYYDialog);
-                                              model.getEventFeedbackDetail(
-                                                  this.widget.eventBackId);
-                                            }
-                                          });
-                                        }),
-                                      )
-                                    ],
-                                  ),
-                                ));
+                            var userInfo =
+                                Provider.of<MineModel>(context, listen: false)
+                                    .user
+                                    ?.user;
+                            EventReply reply = EventReply.fromParams(
+                                customerBackId: model.eventFeedback?.id ?? "",
+                                backId: userInfo.id,
+                                backName: userInfo.name,
+                                backText: backtext,
+                                dcId: model.eventFeedback?.dcId ?? "",
+                                orgId: model.eventFeedback?.orgId ?? "",
+                                backTime: DateUtil.formatDate(DateTime.now(),
+                                    format: ZyDateFormats.full));
+                            await model
+                                .submitFeedbackReply(reply)
+                                .then((result) {
+                              if (result) {
+                                dialogDismiss(tempYYDialog);
+                                _replyMessageController.clear();
+                                model.getEventFeedbackDetail(
+                                    this.widget.eventBackId);
+                              }
+                            });
                           }),
                         ),
                       ],

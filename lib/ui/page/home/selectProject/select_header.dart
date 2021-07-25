@@ -7,7 +7,7 @@ import 'package:huayin_logistics/model/select_item_company_data_model.dart';
 import 'package:huayin_logistics/utils/events_utils.dart';
 
 class SelectHeader extends StatefulWidget {
-  final List<SelectItemRightListItem> hasSelectItem;
+  final List<SelectProjectItem> hasSelectItem;
   SelectHeader({this.hasSelectItem});
   @override
   _SelectHeader createState() => _SelectHeader();
@@ -19,14 +19,22 @@ class _SelectHeader extends State<SelectHeader> {
   @override
   void initState() {
     // TODO: implement initState
-    GlobalEvents().showHeader.stream.listen((event) {
+
+    EventBus.instance.addListener(EventKeys.showHeader, (map) {
       if (!mounted) {
         return;
       }
       setState(() {
-        showItems = event;
+        showItems = map["showHeader"];
       });
     });
+  }
+
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    super.dispose();
+    EventBus.instance.removeListener(EventKeys.showHeader);
   }
 
   @override

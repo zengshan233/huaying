@@ -81,7 +81,7 @@ class OssClient {
     this.method = 'PUT';
     this.fileKey = fileKey;
     _signRequest();
-    return await http.put(url, headers: headers, body: fileData);
+    return await http.put(Uri.parse(url), headers: headers, body: fileData);
   }
 
   //初始化分片上传
@@ -91,7 +91,7 @@ class OssClient {
     this.method = 'POST';
     this.fileKey = fileKey;
     _signRequest();
-    return await http.post(url, headers: headers);
+    return await http.post(Uri.parse(url), headers: headers);
   }
 
   //上传分片
@@ -116,7 +116,7 @@ class OssClient {
     this.method = 'POST';
     this.fileKey = '$fileKey?uploadId=$uploadId';
     _signRequest();
-    return await http.post(url, headers: headers, body: bytes);
+    return await http.post(Uri.parse(url), headers: headers, body: bytes);
   }
 
   //列举指定Upload ID所属的所有已经上传成功Part
@@ -127,7 +127,7 @@ class OssClient {
     this.method = 'GET';
     this.fileKey = '$fileKey?uploadId=$uploadId';
     _signRequest();
-    return await http.get(url, headers: headers);
+    return await http.get(Uri.parse(url), headers: headers);
   }
 
   //下载文件
@@ -137,7 +137,7 @@ class OssClient {
     this.method = 'GET';
     this.fileKey = fileKey;
     _signRequest();
-    return await http.get(url, headers: headers);
+    return await http.get(Uri.parse(url), headers: headers);
   }
 
   static const _subresource_key_set = [

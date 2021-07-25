@@ -6,25 +6,19 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:huayin_logistics/config/net/repository.dart';
 import 'package:huayin_logistics/config/resource_mananger.dart';
 import 'package:huayin_logistics/config/router_manger.dart';
-import 'package:huayin_logistics/model/file_upload_data_model.dart';
 import 'package:huayin_logistics/model/select_item_company_data_model.dart';
-import 'package:huayin_logistics/model/speciment_box_model.dart';
 import 'package:huayin_logistics/provider/provider_widget.dart';
 import 'package:huayin_logistics/ui/color/DiyColors.dart';
 import 'package:huayin_logistics/ui/page/home/easyRecord/record_info.dart';
-import 'package:huayin_logistics/ui/widget/barcode_scanner.dart';
 import 'package:huayin_logistics/ui/widget/comon_widget.dart';
 import 'package:huayin_logistics/ui/widget/dialog/notice_dialog.dart';
 import 'package:huayin_logistics/ui/widget/dialog/progress_dialog.dart';
 import 'package:huayin_logistics/ui/widget/form_check.dart';
 import 'package:huayin_logistics/ui/widget/pop_window/kumi_popup_window.dart';
-import 'package:huayin_logistics/ui/widget/select_items.dart';
 import 'package:huayin_logistics/ui/widget/upload_image.dart';
 import 'package:huayin_logistics/utils/events_utils.dart';
 import 'package:huayin_logistics/utils/popUtils.dart';
 import 'package:huayin_logistics/view_model/home/recrod_model.dart';
-import 'package:huayin_logistics/view_model/mine/mine_model.dart';
-import 'package:provider/provider.dart';
 import './mutil_upload.dart';
 import './mutil_projects.dart';
 
@@ -48,13 +42,18 @@ class _MutilRecordPageState extends State<MutilRecordPage> {
 
   List<Map<String, dynamic>> _submitData = [];
 
-  List<String> _hasExistNum = []; //已存在的条码号
+  FocusNode _barNode = FocusNode();
+  FocusNode _boxNode = FocusNode();
 
   bool hasSubmit = false;
 
   int mulPicCount = 0;
 
   List<String> picId = [];
+
+  Map<String, List<SelectProjectItem>> projectsMap = {};
+  List<SelectProjectItem> multiProjects = [];
+  bool _useDeviceScan = true;
 
   @override
   void initState() {
@@ -69,6 +68,10 @@ class _MutilRecordPageState extends State<MutilRecordPage> {
       behavior: HitTestBehavior.translucent,
       onTap: () {
         // 触摸收起键盘
+        if (_boxNode.hasFocus) {
+          EventBus.instance
+              .commit(EventKeys.updateBoxDetail, {"updateBoxDetail": true});
+        }
         FocusScope.of(context).requestFocus(FocusNode());
       },
       child: Scaffold(
@@ -76,40 +79,62 @@ class _MutilRecordPageState extends State<MutilRecordPage> {
           body: ProviderWidget<RecrodModel>(
               model: RecrodModel(context),
               builder: (cContext, model, child) {
-                return Column(
-                  children: <Widget>[
-                    RecordInfo(
-                      barCodeControll: _barCodeControll,
-                      onBarcodeSubmit: (info) {
-                        _addSubmitItem(context, info, model);
-                      },
-                    ),
-                    buildProjectHead(),
-                    MutilProjects(
-                      submitData: _submitData,
-                      addProject: (code) => addProject(barCode: code),
-                      delete: (code) => _removeSubmitItem(code),
-                    ),
-                    UploadImgage(
-                        enable: mulPicCount == 0,
-                        updateImages: (data) {
-                          if (data != null && data.isNotEmpty) {
-                            picId = data.map((e) => e.id).toList();
-                            _submitData.forEach((d) {
-                              d['imageIds'] = picId;
-                            });
+                return SingleChildScrollView(
+                  padding: EdgeInsets.only(bottom: ScreenUtil().setWidth(100)),
+                  child: Column(
+                    children: <Widget>[
+                      RecordInfo(
+                        boxNode: _boxNode,
+                        barNode: _barNode,
+                        barCodeControll: _barCodeControll,
+                        clearData: clearData,
+                        onScan: (value) {
+                          _useDeviceScan = value;
+                        },
+                        onBarcodeSubmit: (info, add) async {
+                          if (add) {
+                            await _addSubmitItem(context, info, model);
                           } else {
-                            picId = [];
-                            _submitData.forEach((d) {
-                              d['imageIds'] = [];
+                            _submitData.forEach((e) {
+                              e['main']['inspectionUnitName'] =
+                                  info['inspectionUnitName'];
+                              e['main']['inspectionUnitId'] =
+                                  info['inspectionUnitId'];
+                              e['main']['boxNo'] = info['boxNo'];
+                              e['main']['boxId'] = info['boxId'];
+                              e['main']['joinId'] = info['joinId'];
                             });
                           }
-                          setState(() {});
                         },
-                        submit: (data) {
-                          submit(model);
-                        })
-                  ],
+                      ),
+                      buildProjectHead(),
+                      MutilProjects(
+                        submitData: _submitData,
+                        addProject: (code) => addProject(barCode: code),
+                        delete: (code) => _removeSubmitItem(code),
+                      ),
+                      UploadImgage(
+                          enable: mulPicCount == 0,
+                          updateImages: (data) {
+                            if (data != null && data.isNotEmpty) {
+                              picId = data.map((e) => e.id).toList();
+                              _submitData.forEach((d) {
+                                d['imageIds'] = picId;
+                              });
+                            } else {
+                              picId = [];
+                              _submitData.forEach((d) {
+                                d['imageIds'] = [];
+                              });
+                            }
+                            FocusScope.of(context).requestFocus(FocusNode());
+                            setState(() {});
+                          },
+                          submit: (data) {
+                            submit(model);
+                          })
+                    ],
+                  ),
                 );
               })),
     );
@@ -130,11 +155,20 @@ class _MutilRecordPageState extends State<MutilRecordPage> {
             child: Row(
               children: <Widget>[
                 Container(
-                  margin: EdgeInsets.only(right: ScreenUtil().setWidth(40)),
-                  child: Text('已录数据',
-                      style: TextStyle(
+                  margin: EdgeInsets.only(right: ScreenUtil().setWidth(50)),
+                  child: Text.rich(TextSpan(children: [
+                    TextSpan(
+                        text: '已录数据',
+                        style: TextStyle(
+                          fontSize: ScreenUtil().setSp(40),
                           color: DiyColors.normal_black,
-                          fontSize: ScreenUtil().setSp(40))),
+                        )),
+                    TextSpan(
+                        text: " *",
+                        style: TextStyle(
+                            fontSize: ScreenUtil().setSp(46),
+                            color: Color.fromRGBO(234, 44, 67, 1))),
+                  ])),
                 ),
                 Text('已录入${_submitData.length}条数据',
                     style: TextStyle(
@@ -151,21 +185,27 @@ class _MutilRecordPageState extends State<MutilRecordPage> {
                       if (picId.length > 0 || _submitData.isEmpty) {
                         return;
                       }
-                      Navigator.push(context,
-                              MaterialPageRoute(builder: (_) => MutilUpload()))
-                          .then((value) {
-                        if (value != null) {
-                          int idx = _submitData.indexWhere(
-                              (d) => d['main']['barCode'] == value.first);
-                          if (idx > -1) {
-                            List<String> ids =
-                                List<String>.from(value.last.map((e) => e.id));
-                            _submitData[idx]['imageIds'] = ids;
-                            mulPicCount = ids.length;
-                            setState(() {});
-                          }
-                        }
-                      });
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (_) => MutilUpload(
+                                    barCodes: List<String>.from(_submitData
+                                        .map((e) => e['main']['barCode'])),
+                                    addImgs: (value) {
+                                      if (value != null) {
+                                        int idx = _submitData.indexWhere((d) =>
+                                            d['main']['barCode'] ==
+                                            value.first);
+                                        if (idx > -1) {
+                                          List<String> ids = List<String>.from(
+                                              value.last.map((e) => e.id));
+                                          _submitData[idx]['imageIds'] = ids;
+                                          mulPicCount = ids.length;
+                                          setState(() {});
+                                        }
+                                      }
+                                    },
+                                  ))).then((value) {});
                     },
                     child: AnimatedOpacity(
                         opacity: (picId.length == 0 && _submitData.isNotEmpty)
@@ -205,47 +245,51 @@ class _MutilRecordPageState extends State<MutilRecordPage> {
   }
 
   void addProject({String barCode}) {
-    Navigator.pushNamed(
-      context,
-      RouteName.selectItem,
-    ).then((value) {
-      //print('接收到的项目返回值：'+value.toString());
-      List<Map<String, String>> _projectItemArray = [];
-      for (var x in jsonDecode(value.toString())) {
-        if (_projectItemArray.any((e) => e['itemId'] == x['id'])) continue;
-        Map<String, String> tempObj = {};
-        tempObj['barCode'] = x['barCode'];
-        tempObj['enShortName'] = x['enShortName'];
-        tempObj['itemId'] = x['id'];
-        tempObj['itemName'] = x['itemName'];
-        tempObj['itemType'] = x['type'].toString();
-        tempObj['itemTypeName'] = x['typeName'];
-        tempObj['labId'] = x['labDeptId'];
-        tempObj['labName'] = x['labDeptName'];
-        tempObj['professionalGroupId'] = x['disciplineId'];
-        tempObj['professionalGroupName'] = x['disciplineName'];
-        tempObj['specimenType'] = x['specimenTypeId'];
-        tempObj['specimenTypeName'] = x['specimenTypeName'];
-        tempObj['sortOrder'] = x['sortOrder'].toString();
-        _projectItemArray.add(tempObj);
+    Navigator.pushNamed(context, RouteName.selectProject, arguments: {
+      'hasSelectItem': barCode == null ? multiProjects : projectsMap[barCode]
+    }).then((value) {
+      if (value == null) {
+        return;
       }
+      List<Map<String, dynamic>> _projectItemArray = [];
+      List<SelectProjectItem> _selectedItems = value;
+      List<SelectProjectItem> _selectedItemsSingle =
+          _selectedItems.where((s) => s.type != 3).toList();
+      List<SelectProjectItem> _selectedItemsMulti =
+          _selectedItems.where((s) => s.type == 3).toList();
+      List<Map<String, dynamic>> _itemsMutil = [];
+      _projectItemArray =
+          _selectedItemsSingle.map((e) => e.toItemJson()).toList();
+      _selectedItemsMulti.forEach((m) {
+        m.detailList.forEach((d) {
+          Map<String, dynamic> _json = d.toItemJson();
+          _json['barCode'] = m.barCode;
+          _json["packageId"] = m.id;
+          _json["packageIndex"] = m.detailList.indexOf(d);
+          _itemsMutil.add(_json);
+        });
+      });
+      _projectItemArray.addAll(_itemsMutil);
       if (barCode == null) {
         _submitData.forEach((d) {
           d['items'] = _projectItemArray;
+          projectsMap[d['main']['barCode']] = value;
         });
+        multiProjects = value;
       } else {
+        projectsMap[barCode] = value ?? [];
         int idx =
             _submitData.indexWhere((d) => d['main']['barCode'] == barCode);
         if (idx > -1) {
           _submitData[idx]['items'] = _projectItemArray;
         }
       }
-      print('_submitData $_submitData');
       setState(() {});
     });
   }
 
   void _removeSubmitItem(String barCode) {
+    projectsMap[barCode] = [];
     var curIndex =
         _submitData.indexWhere((e) => (e['main']['barCode'] == barCode));
     _submitData.removeAt(curIndex);
@@ -258,15 +302,22 @@ class _MutilRecordPageState extends State<MutilRecordPage> {
           .toList()
           .length;
       _submitData = _submitData;
+      multiProjects = _submitData.isEmpty ? [] : multiProjects;
     });
   }
 
   Future _addSubmitItem(
       BuildContext context, Map info, RecrodModel model) async {
-    KumiPopupWindow pop = PopUtils.showLoading();
-    List<dynamic> response =
-        await Repository.fetchJudgeSpecimenCodeExist(info['barCode']);
-    pop.dismiss(context);
+    PopUtils.showLoading();
+    List<dynamic> response;
+    try {
+      response = await Repository.fetchJudgeSpecimenCodeExist(info['barCode']);
+    } catch (e, s) {
+      PopUtils.dismiss();
+      PopUtils.showError(e, s);
+      return;
+    }
+    PopUtils.dismiss();
     if (response != null && response.contains(info['barCode'])) {
       showMsgToast('该条码已被使用过，请重新输入！', context: context);
       return;
@@ -293,13 +344,17 @@ class _MutilRecordPageState extends State<MutilRecordPage> {
       return;
     }
 
+    PopUtils.toast('添加成功');
+    _barCodeControll.clear();
+    if (_useDeviceScan) {
+      FocusScope.of(context).requestFocus(_barNode);
+    }
     Map<String, dynamic> tempObj = {
       "main": info,
       "imageIds": picId,
       "items": []
     };
     _submitData.insert(0, tempObj);
-
     setState(() {
       _submitData = _submitData;
     });
@@ -308,30 +363,38 @@ class _MutilRecordPageState extends State<MutilRecordPage> {
   //校验输入
   bool _checkLoginInput() {
     bool check = true;
-
-    if (_submitData.length <= 0) {
-      showMsgToast('请添加录单信息！');
+    if (!isRequire(_submitData.first['main']['boxNo'])) {
+      showMsgToast('请输入标本箱号！');
       check = false;
       return null;
     }
-
     if (!isRequire(_submitData.first['main']['inspectionUnitName'])) {
       showMsgToast('请选择送检单位！');
       check = false;
       return null;
     }
+    if (_submitData.length <= 0) {
+      showMsgToast('请添加录单信息！');
+      check = false;
+      return null;
+    }
+    List<int> unSelectProjects = [];
+    List<int> unAddImgs = [];
     for (var i = 0, len = _submitData.length; i < len; i++) {
       var item = _submitData[i];
-      // if(item['items'].length<=0){
-      // 	showMsgToast('第 ${i+1} 条录单数据未选择项目！');
-      // 	check=false;
-      // 	break;
-      // }
-      if (item['imageIds'].length <= 0) {
-        showMsgToast('第 ${i + 1} 条录单数据未上传图片！');
+      if (item['items'].length <= 0) {
+        unSelectProjects.add(_submitData.length - i);
         check = false;
-        break;
       }
+      if (item['imageIds'].length <= 0) {
+        unAddImgs.add(_submitData.length - i);
+        check = false;
+      }
+    }
+    if (unSelectProjects.isNotEmpty) {
+      showMsgToast('第 ${unSelectProjects.join(',')} 条录单数据未选择项目！');
+    } else if (unAddImgs.isNotEmpty) {
+      showMsgToast('第 ${unAddImgs.join(',')} 条录单数据未上传图片！');
     }
     return check;
   }
@@ -341,66 +404,34 @@ class _MutilRecordPageState extends State<MutilRecordPage> {
       hasSubmit = true;
     });
     if (!_checkLoginInput()) return;
-    String barCodeStrs = '';
-    for (var x in _submitData) {
-      barCodeStrs += (',' + x['main']['barCode']);
-    }
-
-    String labId = '82858490362716212';
-    model.recordSavaSubmitData(_submitData, labId).then((val) {
+    model.recordSavaSubmitData(_submitData).then((val) {
       if (val) {
-        Future.microtask(() {
+        EventBus.instance
+            .commit(EventKeys.updateBoxDetail, {"updateBoxDetail": false});
+        Future.microtask(() async {
           var yyDialog;
-          yyDialog = yyNoticeDialog(text: '提交成功');
-          Future.delayed(Duration(milliseconds: 1500), () {
-            dialogDismiss(yyDialog);
-            _submitData.clear();
-            _barCodeControll.text = '';
-            GlobalEvents().clearImages.add(null);
-            setState(() {
-              picId.length = 0;
-              mulPicCount = 0;
-              _submitData = _submitData;
-              hasSubmit = false;
-            });
-          });
+          yyDialog = yyNoticeDialog(text: '提交成功', context: context);
+          await Future.delayed(Duration(milliseconds: 1500));
+          dialogDismiss(yyDialog);
+          clearData();
+          await Future.delayed(Duration(milliseconds: 300));
+          FocusScope.of(context).requestFocus(_barNode);
         });
       }
     });
+  }
 
-    // model.judgeSpecimenCodeExistData(barCodeStrs.substring(1)).then((list) {
-    //   if (list == null) return;
-    //   _hasExistNum.clear();
-    //   if (list.length > 0) {
-    //     list.forEach((val) {
-    //       _hasExistNum.add(val.toString());
-    //     });
-    //     setState(() {
-    //       _hasExistNum = _hasExistNum;
-    //     });
-    //     showMsgToast('存在已经被使用的条码号，请先删除！');
-    //   } else {
-    //     String labId = '82858490362716212';
-    //     model.recordSavaSubmitData(_submitData, labId).then((val) {
-    //       if (val) {
-    //         Future.microtask(() {
-    //           var yyDialog;
-    //           yyDialog = yyNoticeDialog(text: '提交成功');
-    //           Future.delayed(Duration(milliseconds: 1500), () {
-    //             dialogDismiss(yyDialog);
-    //             _submitData.clear();
-    //             _barCodeControll.text = '';
-    //             mulPicCount = 0;
-    //             picId.length = 0;
-    //             setState(() {
-    //               _submitData = _submitData;
-    //               hasSubmit = false;
-    //             });
-    //           });
-    //         });
-    //       }
-    //     });
-    //   }
-    // });
+  clearData() {
+    _submitData.clear();
+    _barCodeControll.text = '';
+    EventBus.instance.commit(EventKeys.clearImages, {});
+    setState(() {
+      picId.length = 0;
+      mulPicCount = 0;
+      _submitData = _submitData;
+      multiProjects = [];
+      projectsMap = {};
+      hasSubmit = false;
+    });
   }
 }

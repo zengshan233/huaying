@@ -30,7 +30,7 @@ class _DeliveryReceipt extends State<DeliveryReceipt> {
         backgroundColor: DiyColors.background_grey,
         appBar: appBarWithName(context, '交接单', '外勤:', withName: true),
         body: ProviderWidget<JoinListModel>(
-            model: JoinListModel(),
+            model: JoinListModel(context),
             onModelReady: (model) {
               model.initData();
             },
@@ -62,10 +62,16 @@ class _DeliveryReceipt extends State<DeliveryReceipt> {
         width: ScreenUtil.screenWidth,
         padding: EdgeInsets.symmetric(horizontal: ScreenUtil().setWidth(85)),
         child: Center(
+            child: UnconstrainedBox(
+                child: Container(
+          width: ScreenUtil().setWidth(80),
+          height: ScreenUtil().setWidth(80),
+          margin: EdgeInsets.only(top: ScreenUtil().setHeight(200)),
           child: CircularProgressIndicator(
-            strokeWidth: 2.0,
+            backgroundColor: Colors.grey[200],
+            valueColor: AlwaysStoppedAnimation(DiyColors.heavy_blue),
           ),
-        ),
+        ))),
       );
     if (model.list.isEmpty)
       return Container(
@@ -117,6 +123,7 @@ class _DeliveryReceipt extends State<DeliveryReceipt> {
   }
 
   Widget buildItem(JoinListItem item) {
+    bool hasRemark = (item.signForRemark ?? '').isNotEmpty;
     return InkWell(
         onTap: () {
           Navigator.pushNamed(context, RouteName.deliveryDetail, arguments: {
@@ -126,7 +133,8 @@ class _DeliveryReceipt extends State<DeliveryReceipt> {
         child: Container(
           padding: EdgeInsets.symmetric(vertical: ScreenUtil().setWidth(30)),
           decoration: BoxDecoration(
-              color: Colors.white,
+              color:
+                  hasRemark ? Color(0xFFf53740).withOpacity(0.5) : Colors.white,
               border: Border(
                   bottom: BorderSide(width: 1, color: Color(0xFFf0f0f0)))),
           child: Row(
@@ -137,29 +145,30 @@ class _DeliveryReceipt extends State<DeliveryReceipt> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: <Widget>[
-                    Text(item.recordDate.substring(0, 10)),
+                    Text(
+                      item.recordDate.substring(0, 10),
+                      style: TextStyle(fontSize: ScreenUtil().setSp(40)),
+                    ),
                     Container(
                         margin:
                             EdgeInsets.only(left: ScreenUtil().setWidth(40)),
                         child: Row(children: [
-                          Text(item.boxNo),
-                          GestureDetector(
-                            onTap: () {
-                              if (item.signForRemark == null) {
-                                showMsgToast('暂无备注');
-                                return;
-                              }
-                              PopUtils.showTip(
-                                  title: '签收备注',
-                                  message: item.signForRemark,
-                                  confirmText: '知道了');
-                            },
-                            child: Image(
-                                width: ScreenUtil().setWidth(60),
-                                image: new AssetImage(
-                                    ImageHelper.wrapAssets("record_warn.png")),
-                                fit: BoxFit.fill),
-                          )
+                          Text(
+                            item.boxNo,
+                            style: TextStyle(fontSize: ScreenUtil().setSp(40)),
+                          ),
+                          hasRemark
+                              ? Container(
+                                  margin: EdgeInsets.only(
+                                      left: ScreenUtil().setWidth(20)),
+                                  child: Image(
+                                      width: ScreenUtil().setWidth(50),
+                                      image: new AssetImage(
+                                          ImageHelper.wrapAssets(
+                                              "record_warn.png")),
+                                      fit: BoxFit.fill),
+                                )
+                              : Container()
                         ]))
                   ],
                 ),
@@ -184,6 +193,7 @@ class _DeliveryReceipt extends State<DeliveryReceipt> {
                       child: Text(
                         item.confirmStatus == 1 ? '已确认' : '未确认',
                         style: TextStyle(
+                            fontSize: ScreenUtil().setSp(40),
                             color: item.confirmStatus == 1
                                 ? Color(0xFFcccccc)
                                 : DiyColors.heavy_blue),
@@ -208,6 +218,7 @@ class _DeliveryReceipt extends State<DeliveryReceipt> {
                       child: Text(
                         item.signForStatus == 1 ? '已签收' : '未签收',
                         style: TextStyle(
+                            fontSize: ScreenUtil().setSp(40),
                             color: item.signForStatus == 1
                                 ? Color(0xFFcccccc)
                                 : DiyColors.heavy_blue),

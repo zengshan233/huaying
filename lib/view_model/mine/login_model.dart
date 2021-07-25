@@ -50,9 +50,9 @@ class LoginModel extends ViewStateModel {
     setBusy();
     try {
       var user = await Repository.fetchAccountLogin(accountName, password);
-      mineModel.saveUser(user);
       setIdle();
       dialogDismiss(yyDialog);
+      mineModel.saveUser(user, accountName: accountName, password: password);
       return true;
     } catch (e, s) {
       dialogDismiss(yyDialog);
@@ -127,7 +127,7 @@ class LoginModel extends ViewStateModel {
       return true;
     } catch (e, s) {
       if (e is DioError) {
-        if (e.type == DioErrorType.DEFAULT) {
+        if (e.type == DioErrorType.other) {
           // incorrect status, such as 404, 503...
           debugPrint(e.toString());
           _errorTime++;

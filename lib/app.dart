@@ -35,8 +35,8 @@ class App extends StatelessWidget {
                     Locale('zh', 'CH'),
                     Locale('en', 'US'),
                   ],
-				  navigatorKey: GlobalConfig.navigatorKey,
-                  onGenerateRoute: Router.generateRoute,
+                  navigatorKey: GlobalConfig.navigatorKey,
+                  onGenerateRoute: AppRouter.generateRoute,
                   initialRoute: RouteName.splash,
                 ),
               );

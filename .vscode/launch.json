@@ -5,13 +5,25 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "lrp-devices-mobile",
+            "name": "lrp-devices-mobile-x",
             "request": "launch",
             "type": "dart"
         },
         {
             "name": "image_pickers",
             "cwd": "plugins\\image_pickers",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "oss_dart",
+            "cwd": "plugins\\oss_dart",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "wechat_assets_picker",
+            "cwd": "plugins\\wechat_assets_picker",
             "request": "launch",
             "type": "dart"
         }

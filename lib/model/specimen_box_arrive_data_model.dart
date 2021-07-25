@@ -90,6 +90,9 @@ class SpecimenboxArriveItem {
   int timeoutStatus;
   String transportNo;
   String updateAt;
+  String exceptionRemark;
+  List<ImageItem> receiveImages;
+  List<ImageItem> sendImages;
 
   SpecimenboxArriveItem(
       {this.boxNo,
@@ -140,7 +143,8 @@ class SpecimenboxArriveItem {
       this.timeoutConfirmRemark,
       this.timeoutStatus,
       this.transportNo,
-      this.updateAt});
+      this.updateAt,
+      this.exceptionRemark});
 
   SpecimenboxArriveItem.fromJson(Map<String, dynamic> json) {
     boxNo = json['boxNo'];
@@ -192,6 +196,19 @@ class SpecimenboxArriveItem {
     timeoutStatus = json['timeoutStatus'];
     transportNo = json['transportNo'];
     updateAt = json['updateAt'];
+    exceptionRemark = json['exceptionRemark'];
+    if (json['receiveImages'] != null) {
+      receiveImages = new List<ImageItem>();
+      json['receiveImages'].forEach((v) {
+        receiveImages.add(new ImageItem.fromJson(v));
+      });
+    }
+    if (json['sendImages'] != null) {
+      sendImages = new List<ImageItem>();
+      json['sendImages'].forEach((v) {
+        sendImages.add(new ImageItem.fromJson(v));
+      });
+    }
   }
 
   Map<String, dynamic> toJson() {
@@ -244,6 +261,76 @@ class SpecimenboxArriveItem {
     data['timeoutConfirmRemark'] = this.timeoutConfirmRemark;
     data['timeoutStatus'] = this.timeoutStatus;
     data['transportNo'] = this.transportNo;
+    data['updateAt'] = this.updateAt;
+    data['exceptionRemark'] = this.exceptionRemark;
+    if (this.receiveImages != null) {
+      data['receiveImages'] =
+          this.receiveImages.map((v) => v.toJson()).toList();
+    }
+    if (this.sendImages != null) {
+      data['sendImages'] = this.sendImages.map((v) => v.toJson()).toList();
+    }
+    return data;
+  }
+}
+
+class ImageItem {
+  String relId;
+  String fileId;
+  String name;
+  String describe;
+  String url;
+  String thumbnailUrl;
+  String thumbnailName;
+  String id;
+  String dcId;
+  String orgId;
+  String createAt;
+  String updateAt;
+
+  ImageItem(
+      {this.relId,
+      this.fileId,
+      this.name,
+      this.describe,
+      this.url,
+      this.thumbnailUrl,
+      this.thumbnailName,
+      this.id,
+      this.dcId,
+      this.orgId,
+      this.createAt,
+      this.updateAt});
+
+  ImageItem.fromJson(Map<String, dynamic> json) {
+    json = json ?? {};
+    relId = json['relId'];
+    fileId = json['fileId'];
+    name = json['name'];
+    describe = json['describe'];
+    url = json['url'];
+    thumbnailUrl = json['thumbnailUrl'];
+    thumbnailName = json['thumbnailName'];
+    id = json['id'];
+    dcId = json['dcId'];
+    orgId = json['orgId'];
+    createAt = json['createAt'];
+    updateAt = json['updateAt'];
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = new Map<String, dynamic>();
+    data['relId'] = this.relId;
+    data['fileId'] = this.fileId;
+    data['name'] = this.name;
+    data['describe'] = this.describe;
+    data['url'] = this.url;
+    data['thumbnailUrl'] = this.thumbnailUrl;
+    data['thumbnailName'] = this.thumbnailName;
+    data['id'] = this.id;
+    data['dcId'] = this.dcId;
+    data['orgId'] = this.orgId;
+    data['createAt'] = this.createAt;
     data['updateAt'] = this.updateAt;
     return data;
   }

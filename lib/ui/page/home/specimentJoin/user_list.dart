@@ -1,12 +1,17 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:huayin_logistics/base/global_config.dart';
 import 'package:huayin_logistics/config/resource_mananger.dart';
 import 'package:huayin_logistics/model/user_model.dart';
 import 'package:huayin_logistics/provider/provider_widget.dart';
+import 'package:huayin_logistics/ui/color/DiyColors.dart';
 import 'package:huayin_logistics/ui/widget/comon_widget.dart'
     show appBarWithName, noDataWidget;
 import 'package:huayin_logistics/view_model/home/select_item_user_model.dart';
+import 'package:huayin_logistics/view_model/mine/mine_model.dart';
+import 'package:provider/provider.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 
 class SelectUserList extends StatefulWidget {
@@ -28,6 +33,8 @@ class _SelectUserList extends State<SelectUserList> {
 
   @override
   Widget build(BuildContext context) {
+    MineModel userModel = Provider.of<MineModel>(context, listen: false);
+    String labId = userModel.labId;
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
       onTap: () {
@@ -38,7 +45,7 @@ class _SelectUserList extends State<SelectUserList> {
           backgroundColor: Color(0xFFf5f5f5),
           appBar: appBarWithName(context, '选择交接人', '外勤:', withName: true),
           body: ProviderWidget<SelectUserModel>(
-              model: SelectUserModel(labId: "82858490362716212"),
+              model: SelectUserModel(labId: labId, context: context),
               onModelReady: (model) {
                 model.initData();
               },
@@ -78,10 +85,15 @@ class _SelectUserList extends State<SelectUserList> {
         width: ScreenUtil.screenWidth,
         padding: EdgeInsets.symmetric(horizontal: ScreenUtil().setWidth(85)),
         child: Center(
+            child: UnconstrainedBox(
+                child: Container(
+          width: ScreenUtil().setWidth(80),
+          height: ScreenUtil().setWidth(80),
           child: CircularProgressIndicator(
-            strokeWidth: 2.0,
+            backgroundColor: Colors.grey[200],
+            valueColor: AlwaysStoppedAnimation(DiyColors.heavy_blue),
           ),
-        ),
+        ))),
       );
     if (model.list.isEmpty)
       return Container(
@@ -174,6 +186,7 @@ class _SelectUserList extends State<SelectUserList> {
 
   //头部搜索栏
   Widget _searchTitle(model) {
+    Timer dRequst;
     return Column(
       children: <Widget>[
         Container(
@@ -194,7 +207,9 @@ class _SelectUserList extends State<SelectUserList> {
                       width: ScreenUtil().setWidth(810),
                       height: ScreenUtil().setHeight(110),
                       child: new TextField(
+                        textAlignVertical: TextAlignVertical.bottom,
                         style: TextStyle(
+                            textBaseline: TextBaseline.alphabetic,
                             fontSize: ScreenUtil().setSp(42),
                             color: Color.fromRGBO(0, 117, 255, 1)),
                         textInputAction: TextInputAction.search,
@@ -204,15 +219,33 @@ class _SelectUserList extends State<SelectUserList> {
                             fontSize: ScreenUtil().setSp(42),
                             color: Color.fromRGBO(190, 190, 190, 1),
                           ),
-                          border: InputBorder.none,
-                          focusedBorder: InputBorder.none,
-                          enabledBorder: InputBorder.none,
+                          border:
+                              OutlineInputBorder(borderSide: BorderSide.none),
+                          focusedBorder: OutlineInputBorder(
+                            borderSide: BorderSide(
+                              color: Colors.transparent,
+                            ),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderSide: BorderSide(
+                              color: Colors.transparent,
+                            ),
+                          ),
                           prefixIcon: Icon(
                             Icons.search,
                             size: ScreenUtil().setWidth(60),
                             color: Color.fromRGBO(203, 203, 203, 1),
                           ),
                         ),
+                        onChanged: (v) {
+                          if (dRequst != null) {
+                            dRequst.cancel();
+                          }
+                          dRequst = Timer(Duration(milliseconds: 400), () {
+                            model.name = v.toString();
+                            model.initData();
+                          });
+                        },
                         onSubmitted: (v) {
                           model.name = v;
                           model.initData();

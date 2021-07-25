@@ -244,7 +244,6 @@ class _TimePickerWidgetState extends State<TimePickerWidget> {
             if (format.contains('m')) {
               value = minuteDivider * index + valueRange.first;
             }
-
             return _renderDatePickerItemComponent(value, format);
           },
         ),

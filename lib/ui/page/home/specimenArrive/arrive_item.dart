@@ -42,7 +42,7 @@ class ArriveItem extends StatelessWidget {
                   )),
                   Container(
                       child: Text(
-                    item.status == 3 ? '已送达' : '未送达',
+                    item.statusName,
                     style: TextStyle(
                         color: item.status == 3
                             ? Color(0xFF999999)
@@ -143,21 +143,24 @@ class ArriveItem extends StatelessWidget {
                         margin:
                             EdgeInsets.only(bottom: ScreenUtil().setWidth(40)),
                         decoration: BoxDecoration(
-                            color: item.status == 3
+                            color: [3, 4].contains(item.status)
                                 ? Color(0xFFf2f2f2)
                                 : Colors.transparent,
                             border: Border.all(
                                 width: 1,
-                                color: item.status == 3
+                                color: [3, 4].contains(item.status)
                                     ? Color(0xFFe0e0e0)
                                     : DiyColors.heavy_blue),
                             borderRadius: BorderRadius.all(
                                 Radius.circular(ScreenUtil().setWidth(100)))),
                         alignment: Alignment.center,
-                        child: Text(item.status == 3 ? '已送达' : '确认送达',
+                        child: Text(
+                            [3, 4].contains(item.status)
+                                ? item.statusName
+                                : '确认送达',
                             style: TextStyle(
                                 fontSize: ScreenUtil().setSp(38),
-                                color: item.status == 3
+                                color: [3, 4].contains(item.status)
                                     ? Color(0xFF999999)
                                     : DiyColors.heavy_blue,
                                 letterSpacing: 1)),
@@ -170,13 +173,13 @@ class ArriveItem extends StatelessWidget {
   }
 
   confirm(BuildContext context) async {
-    if (item.status == 3) {
+    if ([3, 4].contains(item.status)) {
       return;
     }
     model.specimenArriveOperate(
         id: item.id,
-        deliveredId: item.deliveredId,
-        deliveredName: item.deliveredName,
+        deliveredId: item.senderId,
+        deliveredName: item.senderName,
         callBack: () {
           int idx = model.list.indexWhere((element) => element == item);
           model.list.removeAt(idx);

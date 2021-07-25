@@ -1,18 +1,23 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_custom_dialog/flutter_custom_dialog.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:huayin_logistics/config/net/repository.dart';
 import 'package:huayin_logistics/model/file_upload_data_model.dart';
 import 'package:huayin_logistics/provider/provider_widget.dart';
 import 'package:huayin_logistics/ui/color/DiyColors.dart';
 import 'package:huayin_logistics/ui/widget/barcode_scanner.dart';
 import 'package:huayin_logistics/ui/widget/comon_widget.dart'
-    show appBarWithName, radiusButton, recordInput, showMsgToast;
+    show
+        appBarWithName,
+        inputPreText,
+        radiusButton,
+        recordInput,
+        showMsgToast,
+        simpleRecordInput;
 import 'package:huayin_logistics/ui/widget/dialog/notice_dialog.dart';
 import 'package:huayin_logistics/ui/widget/dialog/progress_dialog.dart';
 import 'package:huayin_logistics/ui/widget/form_check.dart';
+import 'package:huayin_logistics/ui/widget/scanner.dart';
+import 'package:huayin_logistics/utils/device_utils.dart';
 import 'package:huayin_logistics/view_model/home/documentary_take_phone_model.dart';
 import 'package:huayin_logistics/ui/widget/upload_image.dart';
 import 'package:huayin_logistics/view_model/mine/mine_model.dart';
@@ -56,20 +61,25 @@ class _DocumentaryTakePhone extends State<DocumentaryTakePhone> {
             child: ProviderWidget<DocumentaryTakePhoneModel>(
                 model: DocumentaryTakePhoneModel(context),
                 builder: (cContext, model, child) {
-                  return Column(
-                    children: <Widget>[
-                      _infoFrom(model),
-                      searching
-                          ? _image()
-                          : UploadImgage(
-                              imageList: _imageList,
-                              submit: (data) {
-                                print('data $data');
-                                _imageList = data;
-                                submit(model);
-                              },
-                            ),
-                    ],
+                  return Container(
+                    padding: EdgeInsets.symmetric(
+                        horizontal: ScreenUtil().setWidth(10)),
+                    child: Column(
+                      children: <Widget>[
+                        _infoFrom(model),
+                        searching
+                            ? _image()
+                            : UploadImgage(
+                                imageList: _imageList,
+                                isRequire: false,
+                                submit: (data) {
+                                  print('data $data');
+                                  _imageList = data;
+                                  submit(model);
+                                },
+                              ),
+                      ],
+                    ),
                   );
                 })),
       ),
@@ -87,7 +97,7 @@ class _DocumentaryTakePhone extends State<DocumentaryTakePhone> {
       _dateControll.text = "";
       _boxControll.text = "";
       MineModel userModel = Provider.of<MineModel>(context, listen: false);
-      String labId = '82858490362716212';
+      String labId = userModel.labId;
       String userId = userModel.user.user.id;
       model
           .documentaryTakePhoneData(
@@ -121,53 +131,67 @@ class _DocumentaryTakePhone extends State<DocumentaryTakePhone> {
 
   //信息表单
   Widget _infoFrom(DocumentaryTakePhoneModel model) {
-    return new Column(
+    return Column(
       children: <Widget>[
         Container(
+            color: Colors.white,
+            padding:
+                EdgeInsets.symmetric(horizontal: ScreenUtil().setWidth(30)),
             margin: EdgeInsets.only(bottom: ScreenUtil().setWidth(40)),
-            child: recordInput(context,
-                preText: '条码号',
-                hintText: '请扫描或输入条码号',
-                onController: _barCodeControll,
-                maxLength: 12,
-                keyType: TextInputType.visiblePassword,
-                textInputAction: TextInputAction.search,
-                rightWidget: InkWell(
-                    onTap: () {
-                      var p = new BarcodeScanner(success: (String code) {
-                        //print('条形码'+code);
-                        if (code == '-1') return;
-                        _barCodeControll.text = code;
-                        _serchInfoByBarCode(model);
-                      });
-                      p.scanBarcodeNormal();
-                    },
-                    child: radiusButton(text: '扫码', img: "scan.png")),
-                onSubmitted: (v) {
-              _serchInfoByBarCode(model);
-            })),
-        recordInput(context,
-            preText: '送检单位',
-            hintText: '送检单位',
-            onController: _companyNameControll,
-            isRquire: false,
-            enbleInput: false,
-            onTap: () {}),
-        recordInput(context,
-            preText: '标本箱号',
-            hintText: '标本箱号',
-            onController: _boxControll,
-            isRquire: false,
-            enbleInput: false,
-            onTap: () {}),
-        recordInput(context,
-            preText: '录入时间',
-            hintText: '录入时间',
-            onController: _dateControll,
-            isRquire: false,
-            needBorder: false,
-            enbleInput: false,
-            onTap: () {})
+            child: simpleRecordInput(
+              context,
+              preText: '条码编号',
+              hintText: '请扫描或输入条码编号',
+              keyType: TextInputType.visiblePassword,
+              onController: _barCodeControll,
+              maxLength: 12,
+              isRquire: true,
+              onSubmitted: (v) {
+                _serchInfoByBarCode(model);
+              },
+              rightWidget: InkWell(
+                  onTap: () async {
+                    DeviceUtils.scanBarcode(
+                      confirm: (code) {
+                        if (code != null) {
+                          _barCodeControll.text = code;
+                          _serchInfoByBarCode(model);
+                        }
+                      },
+                    );
+                  },
+                  child: radiusButton(text: '扫码', img: "scan.png")),
+            )),
+        Container(
+            color: Colors.white,
+            padding:
+                EdgeInsets.symmetric(horizontal: ScreenUtil().setWidth(30)),
+            child: new Column(
+              children: [
+                simpleRecordInput(context,
+                    preText: '送检单位',
+                    hintText: '送检单位',
+                    onController: _companyNameControll,
+                    isRquire: false,
+                    enbleInput: false,
+                    onTap: () {}),
+                simpleRecordInput(context,
+                    preText: '标本箱号',
+                    hintText: '标本箱号',
+                    onController: _boxControll,
+                    isRquire: false,
+                    enbleInput: false,
+                    onTap: () {}),
+                simpleRecordInput(context,
+                    preText: '录入时间',
+                    hintText: '录入时间',
+                    onController: _dateControll,
+                    isRquire: false,
+                    needBorder: false,
+                    enbleInput: false,
+                    onTap: () {})
+              ],
+            ))
       ],
     );
   }
@@ -186,17 +210,14 @@ class _DocumentaryTakePhone extends State<DocumentaryTakePhone> {
           Container(
             child: Row(
               children: <Widget>[
+                inputPreText(preText: '图片', isRquire: false),
                 Container(
-                  margin: EdgeInsets.only(right: ScreenUtil().setWidth(40)),
-                  child: Text('图   片',
+                  margin: EdgeInsets.only(left: ScreenUtil().setWidth(50)),
+                  child: Text('最多可上传5张图片',
                       style: TextStyle(
-                          color: DiyColors.normal_black,
-                          fontSize: ScreenUtil().setSp(40))),
-                ),
-                Text('最多可上传5张图片',
-                    style: TextStyle(
-                        color: Color.fromRGBO(93, 164, 255, 1),
-                        fontSize: ScreenUtil().setSp(30)))
+                          color: Color.fromRGBO(93, 164, 255, 1),
+                          fontSize: ScreenUtil().setSp(30))),
+                )
               ],
             ),
           ),

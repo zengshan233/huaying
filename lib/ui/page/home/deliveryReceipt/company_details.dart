@@ -16,13 +16,13 @@ import 'package:huayin_logistics/ui/widget/dialog/progress_dialog.dart';
 import 'package:huayin_logistics/ui/widget/pop_window/kumi_popup_window.dart';
 import 'package:huayin_logistics/ui/widget/switch.dart';
 import 'package:huayin_logistics/utils/popUtils.dart';
-import 'package:intl/intl.dart';
-import 'package:oktoast/oktoast.dart';
+import 'package:huayin_logistics/view_model/mine/mine_model.dart';
+import 'package:provider/provider.dart';
 
 class CompanyDetails extends StatefulWidget {
-  Items item;
-  DeliveryDetailModel detail;
-  Function() updateStatus;
+  final Items item;
+  final DeliveryDetailModel detail;
+  final Function() updateStatus;
   CompanyDetails({this.item, this.detail, this.updateStatus});
 
   @override
@@ -42,6 +42,13 @@ class _CompanyDetails extends State<CompanyDetails> {
   TextEditingController applyCon = TextEditingController();
   TextEditingController tctCon = TextEditingController();
   TextEditingController sliceCon = TextEditingController();
+  TextEditingController fluidSampleCon = TextEditingController();
+  TextEditingController slideConsultationCon = TextEditingController();
+  TextEditingController slideJointlyCon = TextEditingController();
+  TextEditingController waxConsultationCon = TextEditingController();
+  TextEditingController waxJointlyCon = TextEditingController();
+  TextEditingController qfcCon = TextEditingController();
+  TextEditingController pathologyOtherCon = TextEditingController();
 
   bool showDetail = false;
 
@@ -53,13 +60,11 @@ class _CompanyDetails extends State<CompanyDetails> {
 
   initValue() {
     barCodeCon.text = widget.item.barcodeTotal.toString();
-    dateCon.text = widget.item.temperatures?.last?.recordAt?.toString
-            ?.call()
-            ?.substring
-            ?.call(0, 16) ??
-        '';
-    temperatureCon.text =
-        widget.item.temperatures?.last?.temperature?.toString() ?? '';
+    dateCon.text = widget.item.createAt?.substring?.call(0, 16) ?? '';
+    if (widget.item.temperature != null) {
+      temperatureCon.text =
+          double.parse(widget.item.temperature).toStringAsFixed(1);
+    }
     bloodCon.text = widget.item.routineSecretion ?? '';
     iceCon.text = widget.item.routineIce ?? '';
     sliceNormalCon.text = widget.item.routineSmear ?? '';
@@ -69,6 +74,14 @@ class _CompanyDetails extends State<CompanyDetails> {
     applyCon.text = widget.item.pathologyTissueOrder ?? '';
     tctCon.text = widget.item.pathologyTissueTct ?? '';
     sliceCon.text = widget.item.pathologySmear ?? '';
+    fluidSampleCon.text = widget.item.pathologyLiquidSpecimen ?? '';
+    slideConsultationCon.text =
+        widget.item.pathologySlideGlassConsultation ?? '';
+    slideJointlyCon.text = widget.item.pathologySlideGlassCooperate ?? '';
+    waxConsultationCon.text = widget.item.pathologyWaxBlockConsultation ?? '';
+    waxJointlyCon.text = widget.item.pathologyWaxBlockCooperate ?? '';
+    qfcCon.text = widget.item.pathologyQfc ?? '';
+    pathologyOtherCon.text = widget.item.pathologyOther ?? '';
   }
 
   @override
@@ -125,6 +138,8 @@ class _CompanyDetails extends State<CompanyDetails> {
                       context,
                       preText: '温度(℃)',
                       hintText: '(必填)请输入温度',
+                      maxLength: 4,
+                      isRquire: true,
                       onController: temperatureCon,
                       keyType: TextInputType.number,
                       enbleInput: !confirmed && !signed,
@@ -186,6 +201,7 @@ class _CompanyDetails extends State<CompanyDetails> {
                       preText: 'TCT',
                       hintText: '请输入TCT',
                       onController: tctCon,
+                      width: ScreenUtil().setWidth(120),
                       enbleInput: !confirmed && !signed,
                     ),
                     simpleRecordInput(
@@ -193,6 +209,56 @@ class _CompanyDetails extends State<CompanyDetails> {
                       preText: '涂片',
                       hintText: '请输入涂片',
                       onController: sliceCon,
+                      enbleInput: !confirmed && !signed,
+                    ),
+                    simpleRecordInput(
+                      context,
+                      preText: '液体标本',
+                      hintText: '请输入液体标本',
+                      onController: fluidSampleCon,
+                      enbleInput: !confirmed && !signed,
+                    ),
+                    simpleRecordInput(
+                      context,
+                      preText: '玻片会诊',
+                      hintText: '请输入玻片会诊',
+                      onController: slideConsultationCon,
+                      enbleInput: !confirmed && !signed,
+                    ),
+                    simpleRecordInput(
+                      context,
+                      preText: '玻片共建',
+                      hintText: '请输入玻片共建',
+                      onController: slideJointlyCon,
+                      enbleInput: !confirmed && !signed,
+                    ),
+                    simpleRecordInput(
+                      context,
+                      preText: '蜡块会诊',
+                      hintText: '请输入蜡块会诊',
+                      onController: waxConsultationCon,
+                      enbleInput: !confirmed && !signed,
+                    ),
+                    simpleRecordInput(
+                      context,
+                      preText: '蜡块共建',
+                      hintText: '请输入蜡块共建',
+                      onController: waxJointlyCon,
+                      enbleInput: !confirmed && !signed,
+                    ),
+                    simpleRecordInput(
+                      context,
+                      preText: 'QFC',
+                      hintText: '请输入QFC',
+                      onController: qfcCon,
+                      width: ScreenUtil().setWidth(120),
+                      enbleInput: !confirmed && !signed,
+                    ),
+                    simpleRecordInput(
+                      context,
+                      preText: '其他',
+                      hintText: '请输入其他',
+                      onController: pathologyOtherCon,
                       enbleInput: !confirmed && !signed,
                     ),
                   ],
@@ -296,10 +362,41 @@ class _CompanyDetails extends State<CompanyDetails> {
     );
   }
 
+  bool checkData() {
+    String temperature = temperatureCon.text;
+    int dotIdx = temperature.indexOf('.');
+    int dotCount = 0;
+    temperature.split('').forEach((t) {
+      if (t == '.') {
+        dotCount += 1;
+      }
+    });
+    bool flag = dotIdx == 0 || dotIdx == temperature.length - 1 || dotCount > 1;
+    double temValue;
+    try {
+      temValue = double.parse(temperature);
+    } catch (e) {
+      flag = true;
+    }
+    if (temperature.isEmpty) {
+      showMsgToast('请输入温度！');
+      return false;
+    }
+    if (flag) {
+      showMsgToast('温度格式不对！');
+      return false;
+    }
+    if (temValue < -100 || temValue > 100) {
+      showMsgToast('温度范围应在-100至100以内');
+      return false;
+    }
+    return true;
+  }
+
   submit({bool confirm = true}) async {
-    // if (!_checkLoginInput(_imageList)) return;
-    String labId = '82858490362716212';
-    DateTime now = DateTime.now();
+    if (!checkData()) return;
+    MineModel userModel = Provider.of<MineModel>(context, listen: false);
+    String labId = userModel.labId;
     KumiPopupWindow pop = PopUtils.showLoading();
     try {
       if (confirm) {
@@ -309,48 +406,36 @@ class _CompanyDetails extends State<CompanyDetails> {
             data: {
               "dcId": widget.item.dcId,
               "id": widget.item.id,
-              "barcodeTotal": widget.item.barcodeTotal.toString(),
+              "barcodeTotal": barCodeCon.text.isEmpty ? 0 : barCodeCon.text,
               "inspectionUnitId": widget.item.inspectionUnitId,
               "inspectionUnitName": widget.item.inspectionUnitName,
               "joinId": widget.item.joinId,
-              "pathologyLiquidSpecimen": "",
-              "pathologyOther": "",
-              "pathologyQfc": "",
-              "pathologySlideGlassConsultation": "",
-              "pathologySlideGlassCooperate": "",
+              "pathologyLiquidSpecimen": fluidSampleCon.text,
+              "pathologyOther": pathologyOtherCon.text,
+              "pathologyQfc": qfcCon.text,
+              "pathologySlideGlassConsultation": slideConsultationCon.text,
+              "pathologySlideGlassCooperate": slideJointlyCon.text,
               "pathologySmear": sliceCon.text,
               "pathologyTissueOrder": applyCon.text,
               "pathologyTissueSample": sampleCountCon.text,
               "pathologyTissueTct": tctCon.text,
-              "pathologyWaxBlockConsultation": "",
-              "pathologyWaxBlockCooperate": "",
+              "pathologyWaxBlockConsultation": waxConsultationCon.text,
+              "pathologyWaxBlockCooperate": waxJointlyCon.text,
               "routineIce": iceCon.text,
               "routineMic": microCon.text,
               "routineOther": othersCon.text,
               "routineSecretion": bloodCon.text,
               "routineSmear": sliceNormalCon.text,
-              "temperatureList": [
-                {
-                  "createAt": widget.item.createAt,
-                  "updateAt": now.toString(),
-                  "dcId": widget.item.dcId,
-                  "id": widget.item.id,
-                  "joinItemId": widget.item.joinId,
-                  "orgId": widget.item.orgId,
-                  "temperature": temperatureCon.text,
-                  "recordAt": dateCon.text + ':00.000'
-                }
-              ],
-              "createAt": widget.item.createAt,
-              "updateAt": now.toString(),
-              "stas": widget.item.status,
+              "temperature": temperatureCon.text,
+              "createAt": dateCon.text + ':00.000',
+              "updateAt": dateCon.text + ':00.000',
+              "status": widget.item.status,
             });
       }
       await Repository.fetchConfirmDeliveryItem(
           widget.item.id, confirm ? '1' : '0');
-    } catch (e) {
-      print('submit error $e');
-      showToast(e.toString());
+    } catch (e, s) {
+      PopUtils.showError(e, s);
       pop.dismiss(context);
       return;
     }

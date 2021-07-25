@@ -2,9 +2,17 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:huayin_logistics/base/global_config.dart';
+import 'package:huayin_logistics/config/net/api.dart';
+import 'package:huayin_logistics/config/resource_mananger.dart';
+import 'package:huayin_logistics/provider/view_state.dart';
 import 'package:huayin_logistics/ui/color/DiyColors.dart';
 import 'package:huayin_logistics/ui/widget/comon_widget.dart';
 import 'package:huayin_logistics/ui/widget/pop_window/kumi_popup_window.dart';
+import 'package:huayin_logistics/utils/platform_utils.dart';
+import 'package:oktoast/oktoast.dart';
+
+const String NETWORK_ERR = '当前网络不可用，请检查你的网络设置! ';
+const String NETWORK_TIMEOUT = '服务器响应超时! ';
 
 class PopUtils {
   static Color themeColor;
@@ -56,61 +64,119 @@ class PopUtils {
         context: context,
         clickDismiss: true,
         child: Container(
-          child: Padding(
-            padding: EdgeInsets.all(0),
+            child: UnconstrainedBox(
+          child: Container(
+            width: ScreenUtil().setWidth(80),
+            height: ScreenUtil().setWidth(80),
             child: CircularProgressIndicator(
-              strokeWidth: 2.0,
-              valueColor: AlwaysStoppedAnimation<Color>(DiyColors.heavy_blue),
-            ),
+                backgroundColor: Colors.grey[200],
+                valueColor: AlwaysStoppedAnimation(DiyColors.heavy_blue)),
           ),
-        ));
+        )));
   }
 
-  static void toast(
-      {BuildContext context,
-      String message,
-      Function callback,
-      String align,
-      double distance}) {
-    AlignmentGeometry alignment;
-    Widget infoWidget = Container(
-        child: DecoratedBox(
-            decoration: BoxDecoration(
-                color: Color.fromRGBO(17, 17, 17, 0.7),
-                borderRadius: BorderRadius.all(Radius.circular(4.0))),
-            child: Padding(
-                padding: EdgeInsets.only(
-                    top: 6.0, right: 18.0, bottom: 6.0, left: 18.0),
-                child: DefaultTextStyle(
-                    style: TextStyle(color: Colors.white, fontSize: 16.0),
-                    textAlign: TextAlign.center,
-                    child: toTextWidget(message, 'message')))));
-
-    // 判断对齐方式
-    switch (align) {
-      case 'top':
-        alignment = Alignment.topCenter;
-        infoWidget =
-            Padding(padding: EdgeInsets.only(top: distance), child: infoWidget);
-        break;
-      case 'bottom':
-        alignment = Alignment.bottomCenter;
-        infoWidget = Padding(
-            padding: EdgeInsets.only(bottom: distance), child: infoWidget);
-        break;
-      default:
-        alignment = Alignment.center;
-        break;
-    }
-
-    showPop(
-        callback: callback,
-        duration: 2,
+  static KumiPopupWindow showNotice({String text = '提交成功', Function onPop}) {
+    BuildContext context =
+        GlobalConfig.navigatorKey.currentState.overlay.context;
+    return showPop(
+        context: context,
         clickDismiss: true,
-        child: Material(
-            type: MaterialType.transparency, //透明类型
-            child: Align(alignment: alignment, child: infoWidget)));
+        duration: 2,
+        callback: onPop,
+        child: Container(
+            width: 120,
+            height: 110,
+            decoration: BoxDecoration(
+                color: Colors.black.withOpacity(0.8),
+                borderRadius: BorderRadius.all(Radius.circular(10))),
+            child: Column(
+              children: <Widget>[
+                Padding(
+                  padding: EdgeInsets.only(top: 21),
+                  child: Image.asset(
+                    ImageHelper.wrapAssets('success.png'),
+                    width: 38,
+                    height: 38,
+                  ),
+                ),
+                Padding(
+                  padding: EdgeInsets.only(top: 10),
+                  child: Text(
+                    text,
+                    style: TextStyle(
+                      fontSize: 15,
+                      color: Colors.white,
+                    ),
+                  ),
+                )
+              ],
+            )));
   }
+
+  static dismiss() {
+    BuildContext context =
+        GlobalConfig.navigatorKey.currentState.overlay.context;
+    Navigator.pop(context);
+  }
+
+  static String toast(String message) {
+    message = message.contains('SocketException') ? NETWORK_ERR : message;
+    message = message.contains('CONNECT_TIMEOUT') ? NETWORK_TIMEOUT : message;
+    showToast(message.toString());
+    return message;
+  }
+
+  static String showError(e, stackTrace,
+      {String message, bool errState = true}) {
+    if (e?.response?.statusCode == 401) {
+      return null;
+    }
+    ViewStateErrorType errorType = ViewStateErrorType.defaultError;
+    if (e is DioError) {
+      if (e.type == DioErrorType.connectTimeout ||
+          e.type == DioErrorType.sendTimeout ||
+          e.type == DioErrorType.receiveTimeout) {
+        // timeout
+        errorType = ViewStateErrorType.networkTimeOutError;
+        message = e.error;
+      } else if (e.type == DioErrorType.response) {
+        // incorrect status, such as 404, 503...
+        message = e.error;
+      } else if (e.type == DioErrorType.cancel) {
+        // to be continue...
+        message = e.error;
+      } else {
+        // dio将原error重新套了一层
+        e = e.error;
+        if (e is UnAuthorizedException) {
+          stackTrace = null;
+          errorType = ViewStateErrorType.unauthorizedError;
+        } else if (e is NotSuccessException) {
+          stackTrace = null;
+          message = e.message;
+        } else if (e is SocketException) {
+          errorType = ViewStateErrorType.networkTimeOutError;
+          message = e.message;
+        } else {
+          message = e?.message ?? e.toString();
+        }
+      }
+    }
+    ViewStateError viewStateError = ViewStateError(
+      errorType,
+      message: message,
+      errorMessage: e.toString(),
+    );
+    if (viewStateError.isNetworkTimeOut) {
+      message ??= "当前网络不可用，请检查你的网络设置！";
+    } else {
+      message ??= viewStateError.message;
+    }
+    return toast(message);
+  }
+
+  /// 显示错误消息
+  showErrorMessage(context, {String message}) {}
 
   static showTip(
       {String title, Function confirm, String message, String confirmText}) {

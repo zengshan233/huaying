@@ -36,17 +36,6 @@ class MutilProjects extends StatelessWidget {
                   submitData.length, (index) => _recordItem(context, index)),
             ),
           );
-
-    // CustomScrollView(
-    //   slivers: <Widget>[
-    //     SliverList(
-    //       delegate: SliverChildBuilderDelegate(
-    //         (ctx, index) => _recordItem(context, index),
-    //         childCount: submitData.length,
-    //       ),
-    //     )
-    //   ],
-    // );
   }
 
   Widget _recordItem(BuildContext context, int index) {
@@ -121,6 +110,7 @@ class MutilProjects extends StatelessWidget {
                       onPressed: () {
                         yyAlertDialogWithDivider(
                             tip: "确认是否删除？",
+                            context: context,
                             success: () {
                               delete(item['main']['barCode']);
                             });

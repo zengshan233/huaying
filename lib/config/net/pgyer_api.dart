@@ -1,5 +1,4 @@
 import 'package:dio/dio.dart';
-import 'package:flutter/foundation.dart';
 
 import 'api.dart';
 
@@ -16,20 +15,20 @@ class Http extends BaseHttp {
 /// App相关 API
 class PgyerApiInterceptor extends InterceptorsWrapper {
   @override
-  onRequest(RequestOptions options) async {
+  onRequest(RequestOptions options, RequestInterceptorHandler handler) async {
     options.queryParameters['_api_key'] = '00f25cece8e201753872c268b5832df9';
     options.queryParameters['appKey'] = '7954deb7bce815d3b49a0626ff0b76a7';
-    debugPrint('---api-request--->url--> ${options.baseUrl}${options.path}' +
-        ' queryParameters: ${options.queryParameters}');
-    return options;
+    // debugPrint('---api-request--->url--> ${options.baseUrl}${options.path}' +
+    //     ' queryParameters: ${options.queryParameters}');
+    handler.next(options);
   }
 
   @override
-  onResponse(Response response) {
+  onResponse(Response response, ResponseInterceptorHandler handler) {
     ResponseData respData = ResponseData.fromJson(response.data);
     if (respData.success) {
       response.data = respData.data;
-      return http.resolve(response);
+      return handler.resolve(response);
     } else {
       throw NotSuccessException.fromRespData(respData);
     }

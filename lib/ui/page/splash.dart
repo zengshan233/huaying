@@ -52,7 +52,7 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-	ScreenUtil.instance = ScreenUtil(width: 1125, height: 2436)..init(context);
+    ScreenUtil.instance = ScreenUtil(width: 1125, height: 2436)..init(context);
     return Scaffold(
       body: WillPopScope(
         onWillPop: () => Future.value(false),
@@ -66,20 +66,20 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
 //              color: Colors.black.withOpacity(
 //                  Theme.of(context).brightness == Brightness.light ? 0 : 0.65),
               fit: BoxFit.fill),
-        //   AnimatedFlutterLogo(
-        //     animation: _animation,
-        //   ),
-        //   Align(
-        //     alignment: Alignment(0.0, 0.7),
-        //     child: Row(
-        //       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        //       children: <Widget>[
-        //         AnimatedAndroidLogo(
-        //           animation: _animation,
-        //         ),
-        //       ],
-        //     ),
-        //   ),
+          //   AnimatedFlutterLogo(
+          //     animation: _animation,
+          //   ),
+          //   Align(
+          //     alignment: Alignment(0.0, 0.7),
+          //     child: Row(
+          //       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          //       children: <Widget>[
+          //         AnimatedAndroidLogo(
+          //           animation: _animation,
+          //         ),
+          //       ],
+          //     ),
+          //   ),
           Align(
             alignment: Alignment.bottomRight,
             child: SafeArea(
@@ -180,13 +180,14 @@ class AnimatedAndroidLogo extends AnimatedWidget {
   }
 }
 
-void nextPage(context) {
-	var hasUser=Provider.of<MineModel>(context, listen: false).hasUser;
-	if(hasUser){
-		Navigator.of(context).pushReplacementNamed(RouteName.tab);
-	}else{
-		Navigator.of(context).pushReplacementNamed(RouteName.login);
-	}
+void nextPage(context) async {
+  var hasUser = Provider.of<MineModel>(context, listen: false).hasUser;
+  bool needRefresh = await MineModel.refreshUser();
+  if (hasUser && needRefresh) {
+    Navigator.of(context).pushReplacementNamed(RouteName.tab);
+  } else {
+    Navigator.of(context).pushReplacementNamed(RouteName.login);
+  }
 }
 
 class GuidePage extends StatefulWidget {
